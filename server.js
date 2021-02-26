@@ -71,11 +71,12 @@ async function getLesson(codlesson) {
     return lesson;
 }
 
-async function updateLesson(lesson) {
-    let dblesson = await db.collection('content').where('codlesson', '==', lesson.codlesson).get()
+async function updateContent(content) {
+    let cod = content.cod || content.codlesson
+    let dblesson = await db.collection('content').where('cod', '==', cod).get()
     let docID = dblesson.docs[0].id
 
-    db.collection('content').doc(docID).update(lesson).then(function () {
+    db.collection('content').doc(docID).update(content).then(function () {
         console.log("Document successfully updated!");
     }).catch(function (error) {
         // The document probably doesn't exist.
@@ -258,4 +259,4 @@ async function getStages(){
 
 
 
-export { getLessons, addLesson, addMeditation, getLesson,getContentbycod, updateLesson, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage}
+export { getLessons, addLesson, addMeditation, getLesson,getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage}

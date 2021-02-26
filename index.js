@@ -1,11 +1,7 @@
-import { getLessons, getLesson, updateLesson, addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod } from './server.js'
-
+import { getLessons, getLesson,  addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod, updateContent } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
-
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-
 import { LessonSlide, MeditationSlide, ImagePicker } from './tenstage-components.js'
-
 
 
 function Layout() {
@@ -34,7 +30,7 @@ function Layout() {
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
     let lessons = [];
-    let filter = { 'stagenumber': 1 }
+    let filter = {'stagenumber': 1 }
     let stages = []
     let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -787,7 +783,7 @@ function EditLesson() {
                             m(".uk-width-1-4",
                                 m("button.uk-button.uk-button-secondary",
                                     {
-                                        onclick: (e) => { updateLesson(lesson); editar = false; }
+                                        onclick: (e) => { updateContent(lesson); editar = false; }
                                     },
                                     "SAVE")
                             ),
@@ -832,11 +828,11 @@ function EditMeditation() {
 
                         Object.values(meditation.content).length > 0 ?
                             Object.keys(meditation.content).map((key) => {
+                                console.log(meditation['content'][key])
                                 return m(Column, { width: '1-3' },
                                     m(MeditationSlide, { data: meditation['content'], name: key, })
                                 )
                             }) : null,
-
 
 
                         editar ? m("a.uk-width-1-4@m",
@@ -855,7 +851,7 @@ function EditMeditation() {
                             m(".uk-width-1-4",
                                 m("button.uk-button.uk-button-secondary",
                                     {
-                                        onclick: (e) => { updateLesson(lesson); editar = false; }
+                                        onclick: (e) => { updateContent(meditation); editar = false; }
                                     },
                                     "SAVE")
                             ),

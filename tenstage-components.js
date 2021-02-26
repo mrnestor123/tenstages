@@ -1,10 +1,8 @@
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-import { getLessons, getLesson, updateLesson, addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod } from './server.js'
+import { getImages, deleteImage} from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 
 
-
-//imagepicker, meditationslide y lessonslide se podrían añadir a una clase nueva. 
 function ImagePicker() {
     var imagetoadd = {};
     let selectedindex;
@@ -117,12 +115,12 @@ function LessonSlide() {
 
 
 function MeditationSlide() {
-
     function SwitchType() {
         let types = {
             'image': () => m(Image),
             'text': () => m(Text, { type: "text" }),
-            'title': () => m(Text, { type: "title" })
+            'title': () => m(Text, { type: "title" }),
+            'type': ()=> null
         }
         let editing = true
         let object = {}
@@ -157,6 +155,7 @@ function MeditationSlide() {
         return {
             view: (vnode) => {
                 object = vnode.attrs.data[vnode.attrs.name]
+                console.log(object)
                 return m(Card,
                     m(CardBody, { style: "padding:0px" },
                         Object.keys(object).map((key) => {
@@ -173,23 +172,20 @@ function MeditationSlide() {
     return {
         view: (vnode) => {
             let { data, name } = vnode.attrs
-            console.log(name)
-            console.log(data)
             return [
                 m(Select, { data: data, name: name},
                     [
-                        { 'label': 'text', value: { 'text': data[name]['text'] || '' } },
-                        { 'label': 'title_text', value: { 'title': data[name]['title'] || '', 'text': data[name]['text'] || ''} },
-                        { 'label': 'title_image', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '' } },
-                        { 'label': 'image', value: { 'image': data[name]['image'] || '' } },
-                        { 'label': 'image_text', value: { 'image': data[name]['image'] || '', 'text': data[name]['text'] || ''} },
-                        { 'label': 'title_image_text', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'text': data[name]['text'] || '' } },
-                        { 'label': 'video', value: { 'video': '' } },
-                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '' } }
+                        { 'label': 'text', value: { 'text': data[name]['text'] || '' , 'type':"text" } },
+                        { 'label': 'title_text', value: { 'title': data[name]['title'] || '', 'text': data[name]['text'] || '', 'type':"title_text"} },
+                        { 'label': 'title_image', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'type':"title_image"} },
+                        { 'label': 'image', value: { 'image': data[name]['image'] || '', 'type':"image"}},
+                        { 'label': 'image_text', value: { 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type':"image_text"}},
+                        { 'label': 'title_image_text', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type':"title_image_text"}},
+                        { 'label': 'video', value: { 'video': '', 'type':"video" } },
+                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '', 'type':"video_text" } }
                     ]
                 ),
-                data[name] ?
-                    m(SwitchType, { data: data, name: name, editing: true }) : null
+                data[name] ? m(SwitchType, { data: data, name: name, editing: true }) : null
             ]
         }
     }
