@@ -42,8 +42,6 @@ async function getLesson(codlesson) {
         query = await db.collection('content').where('cod', '==', codlesson).get();
     }
 
-    console.log(query.docs.length)
-
 
     let lesson;
     //para sacar la imagen
@@ -72,7 +70,8 @@ async function getLesson(codlesson) {
 }
 
 async function updateContent(content) {
-    let cod = content.cod || content.codlesson
+    let cod = content.cod 
+    console.log(cod)
     let dblesson = await db.collection('content').where('cod', '==', cod).get()
     let docID = dblesson.docs[0].id
 
@@ -82,6 +81,9 @@ async function updateContent(content) {
         // The document probably doesn't exist.
         console.error("Error updating document: ", error);
     });
+
+    //luego vemos si está en una stage.
+
 
     return true;
 }

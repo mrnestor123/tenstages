@@ -1,4 +1,4 @@
-import { getLessons, getLesson,  addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod, updateContent } from './server.js'
+import { getLessons, getLesson, addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod, updateContent } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
 import { LessonSlide, MeditationSlide, ImagePicker } from './tenstage-components.js'
@@ -30,7 +30,7 @@ function Layout() {
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
     let lessons = [];
-    let filter = {'stagenumber': 1 }
+    let filter = { 'stagenumber': 1 }
     let stages = []
     let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
@@ -481,172 +481,162 @@ function ContentManagement() {
 
         let edit = false;
 
+        function StageHeader() {
+            return {
+                view: (vnode) => {
+                    return m(Card,
+                        m(CardHeader,
+                            ' Stage ' + filter.stagenumber,
+                            m("a",
+                                {
+                                    'uk-icon': 'icon:file-edit',
+                                    onclick: (e) => edit = !edit
+                                }
+                            ),
+                            m(Button, { width: '1-2', type: "primary", onclick: (e) => updateStage(stage) }, "Save"),
+                        ),
+                        m(CardBody,
+                            m(Grid,
+                                m(Column, { width: '1-2' },
+                                    m("strong", "Basic information"),
+                                    !edit ?
+                                        [
+                                            m("p", "Description : ", stage.description),
+                                            m("p", "Goals: " + stage.goals),
+                                            m("p", "Obstacles: " + stage.obstacles,),
+                                            m("p", "Skills: " + stage.skills),
+                                            m("p", "Mastery: " + stage.mastery)
+                                        ] :
+                                        [
+                                            m("p", "Description :", m(TextField, { data: stage, name: "description", type: "input" })),
+                                            m("p", "Goals :", m(TextField, { data: stage, name: "goals", type: "input" })),
+                                            m("p", "Obstacles :", m(TextField, { data: stage, name: "obstacles", type: "input" })),
+                                            m("p", "Skills :", m(TextField, { data: stage, name: "skills", type: "input" })),
+                                            m("p", "Mastery :", m(TextField, { data: stage, name: "mastery", type: "input" })),
+                                        ]
+                                ),
+                                m(Column, { width: '1-2' },
+                                    m("strong", "Objectives"),
+                                    m("p", "Streak"),
+                                    m(TextField, { data: stage['objectives'], name: "streak", type: "number" }),
+                                    m("p", "Total time"),
+                                    m(TextField, { data: stage['objectives'], name: "totaltime", type: "number" }),
+                                    m("p", "Meditations"),
+                                    m(TextField, { data: stage['objectives']['meditation'], name: "time", type: "number", placeholder: "time" }),
+                                    m(TextField, { data: stage['objectives']['meditation'], name: "count", type: "number", placeholder: "count" })
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+        }
+
+        function ContentAdd() {
+            return {
+                view: (vnode) => {
+                    return m(Column, { width: '1-2' },
+                        m("h3", path_filter),
+                        m(Grid, { size: "small" },
+                            content.filter((elem) => elem.position == null).map((cont) => {
+                                if (path_filter == 'Lessons' && cont.type != 'meditation-practice' || path_filter != 'Lessons' && cont.type == 'meditation-practice') {
+                                    return m(Column, { width: '1-3' },
+                                        m(Card,
+                                            m(CardHeader,
+                                                m(".uk-card-title", cont.title),
+                                            ),
+                                            m(CardFooter,
+                                                m(Button, {
+                                                    style: "margin-top:5px",
+                                                    target: '#addtoPath',
+                                                    onclick: (e) => { toadd = cont },
+                                                    type: "default"
+                                                }, "Add"),
+                                                m(Modal,
+                                                    {
+                                                        id: 'addtoPath',
+                                                        center: true
+                                                    },
+                                                    m(ModalBody,
+                                                        m("label", "Add in position"),
+                                                        m(Select, {
+                                                            data: position,
+                                                            name: "selected",
+                                                        }, Array.from(new Array(Object.keys(stage.path).length + 1).keys())),
+                                                        m(Button, {
+                                                            style: "margin-top:10px",
+                                                            class: "uk-modal-close",
+                                                            type: "primary",
+                                                            onclick: (e) => {
+                                                                if (path_filter == 'Lessons') {
+                                                                    toadd.position = position.selected;
+                                                                    stage.path[position.selected] ? stage.path[position.selected].push(toadd) : stage.path[position.selected] = [toadd]
+                                                                } else {
+                                                                    toadd.position = position.selected;
+                                                                    stage.meditations[position.selected] ? stage.meditations[position.selected].push(toadd) : stage.meditations[position.selected] = [toadd]
+                                                                }
+                                                                updateContent(toadd)
+                                                                position.selected = 0
+                                                            }
+                                                        }, "Add")
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                }
+                            })
+                        )
+                    )
+
+                }
+            }
+        }
+
+        function Path() {
+            return {
+                view: (vnode) => {
+                    return m(Column, { width: '1-2' },
+                        m("h1", "The path"),
+                        content.filter((elem) => elem.position != null).sort((a, b) => a.position - b.position).map((cont) => {
+                            return m(Grid,
+                                m(Column, { width: '1-3' },
+                                    m(Card,
+                                        m(CardBody,
+                                            m("label", cont.title),
+                                            m(Button, {
+                                                type: "danger",
+                                                style: "margin-top:3px",
+                                                onclick: (e) => { cont.position = null; updateContent(cont);}
+                                            }, "Remove")
+                                        ),
+                                    )
+                                )
+                            )
+                        })
+                    )
+                }
+            }
+        }
+
+
         return {
             view: (vnode) => {
                 stage = stages[(Number(filter.stagenumber) - 1)]
+                //esto podría quitarlo
                 if (!stage.objectives) { stage.objectives = { 'meditation': {}, }; console.log(stage) }
                 if (!stage.meditations) { stage.meditations = {}; console.log(stage) }
 
                 return [
                     m(Column, { width: '1-1' },
-                        m(Card,
-                            m(CardHeader,
-                                ' Stage ' + filter.stagenumber,
-                                m("a",
-                                    {
-                                        'uk-icon': 'icon:file-edit',
-                                        onclick: (e) => edit = !edit
-                                    }
-                                ),
-                                m(Button, { width: '1-2', type: "primary", onclick: (e) => updateStage(stage) }, "Save"),
-                            ),
-                            m(CardBody,
-                                m(Grid,
-                                    m(Column, { width: '1-2' },
-                                        m("strong", "Basic information"),
-                                        !edit ?
-                                            [
-                                                m("p", "Description : ", stage.description),
-                                                m("p", "Goals: " + stage.goals),
-                                                m("p", "Obstacles: " + stage.obstacles,),
-                                                m("p", "Skills: " + stage.skills),
-                                                m("p", "Mastery: " + stage.mastery)
-                                            ] :
-                                            [
-                                                m("p", "Description :", m(TextField, { data: stage, name: "description", type: "input" })),
-                                                m("p", "Goals :", m(TextField, { data: stage, name: "goals", type: "input" })),
-                                                m("p", "Obstacles :", m(TextField, { data: stage, name: "obstacles", type: "input" })),
-                                                m("p", "Skills :", m(TextField, { data: stage, name: "skills", type: "input" })),
-                                                m("p", "Mastery :", m(TextField, { data: stage, name: "mastery", type: "input" })),
-                                            ]
-                                    ),
-                                    m(Column, { width: '1-2' },
-                                        m("strong", "Objectives"),
-                                        m("p", "Streak"),
-                                        m(TextField, { data: stage['objectives'], name: "streak", type: "number" }),
-                                        m("p", "Total time"),
-                                        m(TextField, { data: stage['objectives'], name: "totaltime", type: "number" }),
-                                        m("p", "Meditations"),
-                                        m(TextField, { data: stage['objectives']['meditation'], name: "time", type: "number", placeholder: "time" }),
-                                        m(TextField, { data: stage['objectives']['meditation'], name: "count", type: "number", placeholder: "count" })
-                                    )
-                                )
-                            )
-                        )
+                        m(StageHeader)
                     ),
                     m('.uk-button-group',
                         m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Lessons'; } }, "Lessons"),
                         m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Meditations'; } }, "Meditations")
                     ),
-                    m(Column, { width: '1-2' },
-                        m(Section,
-                            m(Padding,
-                                { size: "small" },
-                                m("h3", path_filter),
-                                m(Grid, { size: "small" },
-                                    content.map((cont, index) => {
-                                        if (path_filter == 'Lessons' && cont.type != 'meditation-practice' || path_filter != 'Lessons' && cont.type == 'meditation-practice') {
-                                            return m(Column, { width: '1-3' },
-                                                m(Card,
-                                                    m(CardHeader,
-                                                        m(".uk-card-title", cont.title),
-                                                    ),
-                                                    m(CardFooter,
-                                                        m(Button, {
-                                                            style: "margin-top:5px",
-                                                            target: '#addtoPath',
-                                                            onclick: (e) => { toadd = content[index] },
-                                                            type: "default"
-                                                        }, "Add"),
-                                                        m(Modal,
-                                                            {
-                                                                id: 'addtoPath',
-                                                                center: true
-                                                            },
-                                                            m(ModalBody,
-                                                                m("label", "Add in position"),
-                                                                m(Select, {
-                                                                    data: position,
-                                                                    name: "selected",
-                                                                }, Array.from(new Array(Object.keys(stage.path).length + 1).keys())),
-                                                                m(Button, {
-                                                                    style: "margin-top:10px",
-                                                                    class: "uk-modal-close",
-                                                                    type: "primary",
-                                                                    onclick: (e) => {
-                                                                        if (path_filter == 'Lessons') {
-                                                                            stage.path[position.selected] ? stage.path[position.selected].push(toadd) : stage.path[position.selected] = [toadd]
-                                                                        } else {
-                                                                            stage.meditations[position.selected] ? stage.meditations[position.selected].push(toadd) : stage.meditations[position.selected] = [toadd]
-                                                                        }
-                                                                        position.selected = 0
-                                                                    }
-                                                                }, "Add")
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        }
-                                    })
-                                )
-                            )
-                        ),
-                    ),
-                    m(Column, { width: '1-2' },
-                        m(Grid,
-                            { center: true, size: "small" },
-                            [
-                                m("h1", "The path"),
-                                stage.path || stage.meditations ?
-                                    Object.values(path_filter == 'Lessons' ? stage.path : stage.meditations).map((less, pathindex) =>
-                                        m(Row,
-                                            m(Grid,
-                                                less.map((lesson, index) => {
-                                                    if (lessons.includes(lesson)) { lessons.splice(lessons.indexOf(lesson), 1) }
-                                                    return m(Column, { width: '1-3' },
-                                                        m(Card,
-                                                            m(CardBody,
-                                                                lesson.slider ? m("img", { src: lesson.slider }) : m("label", lesson.title),
-                                                                m(Button, {
-                                                                    type: "danger",
-                                                                    style: "margin-top:3px",
-                                                                    onclick: (e) => { less.splice(index, 1); if (!stage.path[pathindex]) { stage.path.splice(pathindex, 1) } }
-                                                                }, "Remove")
-                                                            ),
-                                                        )
-                                                    )
-                                                })
-                                            )
-                                        )
-                                    ) : null
-                            ]
-                        )
-                    ),
-
-
-
-
-
-                    /*stages.map((stage) => {
-                        return m(Column, { width: '1-3' },
-                            m(Section,
-                                m("h1", { class: 'uk-heading-small', style: "text-align:center" }, 'Stage ' + stage.stagenumber),
-                                m(Grid,
-                                    lessons.filter((lesson) => lesson.stagenumber == stage.stagenumber).map((lesson) => {
-                                        return m(Column, { width: '1-2' },
-                                            m(Card,
-                                                {
-                                                    size: 'small'
-                                                },
-                                                m(CardBody, lesson.slider ? m("img", { src: lesson.slider }) : m("label", lesson.title))
-                                            )
-                                        )
-                                    })
-                                )
-                            )
-                        )
-                    })*/
+                    m(ContentAdd),
+                    m(Path)
                 ]
             }
         }
