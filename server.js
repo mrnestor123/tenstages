@@ -16,6 +16,7 @@ firebase.analytics();
 
 var db = firebase.firestore()
 var storage = firebase.storage();
+var auth = firebase.auth();
 
 // Saca las lecciones de la stage seleccionada 
 //Hay que cachear ERRORES  EN TODAS LAS FUNCIONES :/ !!!
@@ -36,7 +37,7 @@ async function getLesson(codlesson) {
     var query = await db.collection('content').where('codlesson', '==', codlesson).get();
     console.log(query.docs.length)
 
-    if(query.docs.length == 0 ){
+    if (query.docs.length == 0) {
         console.log('entramos')
         console.log(codlesson)
         query = await db.collection('content').where('cod', '==', codlesson).get();
@@ -59,7 +60,7 @@ async function getLesson(codlesson) {
                     }
                 }
             }
-        } else if(lesson.text){
+        } else if (lesson.text) {
             lesson.text.map((entry) => {
                 lesson.text.push(entry);
             });
@@ -70,7 +71,7 @@ async function getLesson(codlesson) {
 }
 
 async function updateContent(content) {
-    let cod = content.cod 
+    let cod = content.cod
     console.log(cod)
     let dblesson = await db.collection('content').where('cod', '==', cod).get()
     let docID = dblesson.docs[0].id
@@ -82,15 +83,11 @@ async function updateContent(content) {
         console.error("Error updating document: ", error);
     });
 
-    //luego vemos si está en una stage.
-
-
     return true;
 }
 
 //esto podría ser una barra de carga?
 async function uploadFile(file, stage) {
-    console.log(stage)
     var store = storage.ref('stage ' + stage + '/' + file.name);
 
     //upload file
@@ -122,6 +119,95 @@ async function uploadFile(file, stage) {
         }
     );*/
 
+
+
+
+}
+
+async function register(email, password) {
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((user) => {
+            // Signed in
+            // ...
+        })
+        .catch((error) => {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // ..
+        });
+}
+
+async function login(email, password) {
+    auth.signInWithEmailAndPassword(email, password)
+        .then((user) => {
+            // Signed in
+            // ...
+        })
+        .catch((error) => {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+        });
+}
+
+
+async function loginWithFacebook() {
+    var provider = new firebase.auth.FacebookAuthProvider();
+
+    firebase
+        .auth()
+        .signInWithPopup(provider)
+        .then((result) => {
+            console.log(result)
+            /** @type {firebase.auth.OAuthCredential} */
+            var credential = result.credential;
+
+            // The signed-in user info.
+            var user = result.user;
+
+            // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+            var accessToken = credential.accessToken;
+
+            // ...
+        })
+        .catch((error) => {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+
+            // ...
+        });
+}
+
+async function loginWithGoogle() {
+
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().useDeviceLanguage();
+
+    firebase.auth()
+        .signInWithPopup(provider)
+        .then((result) => {
+            /** @type {firebase.auth.OAuthCredential} */
+            var credential = result.credential;
+            console.log('signed in')
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            var token = credential.accessToken;
+            // The signed-in user info.
+            var user = result.user;
+            // ...
+        }).catch((error) => {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // The email of the user's account used.
+            var email = error.email;
+            // The firebase.auth.AuthCredential type that was used.
+            var credential = error.credential;
+            // ...
+        });
 
 
 
@@ -224,7 +310,7 @@ async function getStage(stagenumber) {
     return stage
 }
 
-async function getContentbycod(cod){
+async function getContentbycod(cod) {
     var query = await db.collection('content').where('cod', '==', cod).get();
     let content = {};
     content = query.docs[0].data();
@@ -235,10 +321,8 @@ async function getContentbycod(cod){
 
 //returns all the content
 async function getContent(stagenumber) {
-    console.log('stage ' + stagenumber)
     var query = await db.collection('content').where('stagenumber', '==', stagenumber).get();
     let content = [];
-    console.log(query.docs);
     //para sacar la imagen
     for (let doc of query.docs) {
         content.push(doc.data());
@@ -247,7 +331,7 @@ async function getContent(stagenumber) {
     return content;
 }
 
-async function getStages(){
+async function getStages() {
     var query = await db.collection('stages').get();
     let stages = [];
     //para sacar la imagen
@@ -261,4 +345,4 @@ async function getStages(){
 
 
 
-export { getLessons, addLesson, addMeditation, getLesson,getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage}
+export { getLessons, addLesson, addMeditation, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle }

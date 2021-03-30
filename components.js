@@ -9,6 +9,7 @@
     divider: true | false
     match-height: true|false
     masonry: true || false
+    center: true ||false
 */
 function Grid() {
     let clase = ''
@@ -73,10 +74,11 @@ function Column() {
 function Card() {
     return {
         view: (vnode) => {
-            let { type, size } = vnode.attrs
+            let { type, size, hover } = vnode.attrs
             return m('.uk-card ' +
-                (type ? 'uk-card-' + type + ' ' : 'uk-card-default ')
-                + (size ? 'uk-card-' + size + ' ' : ''), vnode.children)
+                (type ? 'uk-card-' + type + ' ' : 'uk-card-default ') +
+                (size ? 'uk-card-' + size + ' ' : '') +
+                (hover ? 'uk-card-hover' : ''),vnode.attrs, vnode.children)
 
         }
     }
@@ -136,6 +138,7 @@ function TextField() {
                         class: types[type].class,
                         style: style || '',
                         value: data[name],
+                        width: vnode.attrs.width || undefined,
                         oninput: (e) => {
                             if (type == "number") { data[name] = Number(e.target.value) }
                             else { data[name] = e.target.value; }
@@ -177,8 +180,7 @@ function Button() {
 }
 
 
-//children es un array de ['value':'x', 'label':1] puede no llevar value y ser solo las labels [1,2,3,4]
-
+//children es un array de ['value':'x', 'label':1], tmb puede no llevar value y ser solo las labels [1,2,3,4]
 function Select() {
     let data, name;
 
@@ -199,18 +201,19 @@ function Select() {
                             data[name] = vnode.children[e.target.selectedIndex].value
                         }
                         vnode.attrs.onchange ? vnode.attrs.onchange(e) : null
-                    }
+                    },
+                    value: data[name]
                 },
                 [
-                vnode.children.map((child, i) => {
-                    if (child.value) {
-                        return m("option", { value: child.value}, child.label)
-                    } else {
-                        return m("option", child)
-                    }
+                    vnode.children.map((child, i) => {
+                        if (child.value) {
+                            return m("option", { value: child.value }, child.label)
+                        } else {
+                            return m("option", child)
+                        }
 
-                })
-            ]
+                    })
+                ]
             )
         }
     }
@@ -224,6 +227,7 @@ function Section() {
     return {
         oninit: (vnode) => {
             clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section-muted')
+                + (vnode.attrs.width ? 'uk-width-' + vnode.attrs.width + ' ' : '')
         },
         view: (vnode) => {
             return m("div",
@@ -236,6 +240,7 @@ function Section() {
 }
 
 
+//padding can be small ,large, or you can not specify it
 function Padding() {
     let clase = ''
 
@@ -290,6 +295,22 @@ function ModalBody() {
     }
 }
 
+function ModalHeader() {
+    return {
+        view: (vnode) => {
+            return m(".uk-modal-header", vnode.attrs, m(".uk-modal-title", vnode.children))
+        }
+    }
+}
+
+function ModalFooter() {
+    return {
+        view: (vnode) => {
+            return m(".uk-modal-footer", vnode.attrs, vnode.children)
+        }
+    }
+}
+
 function ModalClose() {
     return {
         view: (vnode) => {
@@ -298,6 +319,55 @@ function ModalClose() {
     }
 }
 
+/*
+    sizes == tiny, small, medium, large, huge
+*/
+function Container() {
+    let size = '';
+
+    return {
+        oninit: (vnode) => {
+            vnode.attrs.size == 'tiny' ?
+                size = '.uk-container-xsmall' :
+                vnode.attrs.size == 'small' ?
+                    size = '.uk-container-small' :
+                    vnode.attrs.size == 'medium' ?
+                        size = '.uk-container-large' :
+                        vnode.attrs.size == 'large' ?
+                            size = '.uk-container-xlarge' :
+                            vnode.attrs.size == 'huge' ?
+                                size = '.uk-container-expand' :
+                                null
+        },
+        view: (vnode) => {
+            return m(`.uk-container`, vnode.attrs, vnode.children)
+        }
+    }
+}
+
+function Form() {
+    //Para el futuro
+    let types = ["uk-form-stacked", 'uk-form-horizontal']
+
+
+    return {
+        view: (vnode) => {
+            return m("form", vnode.attrs, vnode.children)
+        }
+    }
+}
+
+function FormLabel() {
+
+    return {
+        view: (vnode) => {
+            return m("label.uk-form-label", vnode.attrs, vnode.children)
+        }
+    }
+}
+
+
+//Hacer un componente de TEXT
 
 
 
@@ -305,4 +375,4 @@ function ModalClose() {
 
 
 
-export { TextField, Button, Grid, Column, Card, CardBody, CardHeader, CardMedia, Row, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter }
+export { TextField, Button, Grid, Column, Card, CardBody, CardHeader, CardMedia, Row, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }

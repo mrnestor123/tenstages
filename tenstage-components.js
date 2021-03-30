@@ -1,5 +1,5 @@
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-import { getImages, deleteImage} from './server.js'
+import { getImages, deleteImage } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 
 
@@ -97,7 +97,7 @@ function LessonSlide() {
                     m("img", {
                         src: item.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg",
                         'uk-toggle': `target:#text-images${index}`,
-                        style: "cursor:pointer"
+                        style: "cursor:pointer; width:100%"
                     }),
                     m(ImagePicker, { data: data[index], name: "image", id: `text-images${index}` })
                 ),
@@ -120,7 +120,7 @@ function MeditationSlide() {
             'image': () => m(Image),
             'text': () => m(Text, { type: "text" }),
             'title': () => m(Text, { type: "title" }),
-            'type': ()=> null
+            'type': () => null
         }
         let editing = true
         let object = {}
@@ -128,7 +128,7 @@ function MeditationSlide() {
         function Text() {
             return {
                 view: (vnode) => {
-                    return editing ? m(TextField, { data: object, name: vnode.attrs.type, type: "textarea", rows: vnode.attrs.type == 'text' ?"6":'3'}) : null
+                    return editing ? m(TextField, { data: object, name: vnode.attrs.type, type: "textarea", rows: vnode.attrs.type == 'text' ? "6" : '3' }) : null
                 }
             }
         }
@@ -173,16 +173,16 @@ function MeditationSlide() {
         view: (vnode) => {
             let { data, name } = vnode.attrs
             return [
-                m(Select, { data: data, name: name},
+                m(Select, { data: data, name: name },
                     [
-                        { 'label': 'text', value: { 'text': data[name]['text'] || '' , 'type':"text" } },
-                        { 'label': 'title_text', value: { 'title': data[name]['title'] || '', 'text': data[name]['text'] || '', 'type':"title_text"} },
-                        { 'label': 'title_image', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'type':"title_image"} },
-                        { 'label': 'image', value: { 'image': data[name]['image'] || '', 'type':"image"}},
-                        { 'label': 'image_text', value: { 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type':"image_text"}},
-                        { 'label': 'title_image_text', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type':"title_image_text"}},
-                        { 'label': 'video', value: { 'video': '', 'type':"video" } },
-                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '', 'type':"video_text" } }
+                        { 'label': 'text', value: { 'text': data[name]['text'] || '', 'type': "text" } },
+                        { 'label': 'title_text', value: { 'title': data[name]['title'] || '', 'text': data[name]['text'] || '', 'type': "title_text" } },
+                        { 'label': 'title_image', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'type': "title_image" } },
+                        { 'label': 'image', value: { 'image': data[name]['image'] || '', 'type': "image" } },
+                        { 'label': 'image_text', value: { 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type': "image_text" } },
+                        { 'label': 'title_image_text', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type': "title_image_text" } },
+                        { 'label': 'video', value: { 'video': '', 'type': "video" } },
+                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '', 'type': "video_text" } }
                     ]
                 ),
                 data[name] ? m(SwitchType, { data: data, name: name, editing: true }) : null
