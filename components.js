@@ -135,7 +135,7 @@ function TextField() {
             return type != "textarea" ?
                 m("input",
                     {
-                        class: types[type].class,
+                        class: type ? types[type].class : types['input'].class,
                         style: style || '',
                         value: data[name],
                         width: vnode.attrs.width || undefined,

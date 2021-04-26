@@ -291,11 +291,11 @@ async function addStage(stage) {
 }
 
 
-async function addMeditation(meditation) {
-    var query = await db.collection('content').add(meditation);
-    console.log('meditation added ')
+async function addContent(content) {
+    var query = await db.collection('content').add(content);
     return true
 }
+
 
 
 async function getStage(stagenumber) {
@@ -345,4 +345,4 @@ async function getStages() {
 
 
 
-export { getLessons, addLesson, addMeditation, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle }
+export { getLessons, addLesson, addContent, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle }

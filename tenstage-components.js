@@ -38,7 +38,7 @@ function ImagePicker() {
                                                 vnode.attrs.data[vnode.attrs.name] = images[selectedindex]
                                             },
                                             class: "uk-modal-close"
-                                        }, "Select Image"),
+                                        }, "Select"),
                                         m("button.uk-button.uk-button-default", { onclick: () => { document.getElementById(`file-chooser-${rndnmb}`).click() } }, "Upload Image"),
                                         m(FileUploader, {
                                             data: imagetoadd,
@@ -72,7 +72,9 @@ function ImagePicker() {
                                             m(Grid,
                                                 images.map((src, index) => {
                                                     return m(Column, { width: '1-3' },
-                                                        m("img", { src: src, onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '' })
+                                                        src.match('jpeg|jpg|gif|png') ?
+                                                        m("img", { src: src, onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '' }) :
+                                                        m("video", {src:src, onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '', 'controls':true })
                                                     )
                                                 })
                                             ) : null

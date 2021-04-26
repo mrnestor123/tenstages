@@ -1,4 +1,4 @@
-import { getLessons, getLesson, addLesson, addMeditation, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod, updateContent, loginWithFacebook, loginWithGoogle } from './server.js'
+import { getLessons, getLesson, addContent, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, getContentbycod, updateContent, loginWithFacebook, loginWithGoogle } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter } from './components.js'
 import { LessonSlide, MeditationSlide, ImagePicker } from './tenstage-components.js'
@@ -55,7 +55,7 @@ function Layout() {
             return [
                 m("nav.uk-navbar-container", { 'uk-navbar': '' },
                     m("nav", { 'uk-navbar': '', style: "width:100%" },
-                        m(".uk-navbar-left", 
+                        m(".uk-navbar-left",
                             m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px" })),
                             m("ul.uk-navbar-nav",
                                 m("li",
@@ -74,7 +74,7 @@ function Layout() {
                                 )
                             )
                         ),
-                        m(".uk-navbar-right", 
+                        m(".uk-navbar-right",
                             m(".uk-navbar-item",
                                 m(Button,
                                     {
@@ -88,11 +88,12 @@ function Layout() {
                         )
                     )
                 ),
+
                 vnode.children.map((child) => {
-                    return m(Container, { size: "medium", style: "flex:2"}, m(child, vnode.attrs))
+                    return m("main", m(Container, m(child, vnode.attrs)))
                 }),
 
-                m("footer",{style:"width:100%;background-color:black;min-height:100px;"},"Footer")
+                m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
 
             ]
         }
@@ -107,6 +108,7 @@ function ContentManagement() {
     let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     let content = [];
+    let filteredcontent = [];
 
     //para subir imágenes a la lección
     let index = 0;
@@ -221,7 +223,7 @@ function ContentManagement() {
                                             else {
                                                 console.log(json)
                                                 json.cod = create_UUID();
-                                                addLesson(json);
+                                                addContent(json);
                                                 document.getElementById('closemodal').click();
                                                 json = { 'type': 'lesson' }
                                                 text = []
@@ -341,8 +343,140 @@ function ContentManagement() {
                                         if (step == 1) { step++; index = 1; }
                                         else {
                                             json.cod = create_UUID();
-                                            addLesson(json);
+                                            addContent(json);
                                             document.getElementById('closemodalmed').click();
+                                            json = {
+                                                'cod': '',
+                                                'title': '',
+                                                'description': '',
+                                                'image': '',
+                                                'duration': 1,
+                                                'stagenumber': 1,
+                                                'type': 'meditation-practice',
+                                                'content': {}
+                                            }
+                                            step = 1
+                                        }
+                                    }
+                                },
+                                step > 1 ? "Create" : "Next")
+                        )
+                    )
+                ]
+            }
+        }
+    }
+
+    function AddGame() {
+        let json = {
+            'cod': '',
+            'title': '',
+            'description': '',
+            'image': '',
+            'stagenumber': 1,
+            'type': 'meditation-game',
+            'video': '',
+            'questions': []
+        }
+
+        let step = 1
+
+        return {
+            view: (vnode) => {
+                return [
+                    m(Button,
+                        {
+                            'target': '#modal-game',
+                        },
+                        "Game"),
+                    m(Modal,
+                        {
+                            id: "modal-game",
+                            center: true
+                        },
+                        m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'closemodalgame' }),
+                        m(".uk-modal-header", m(".uk-modal-title", "Add Game")),
+                        m(".uk-modal-body",
+                            step == 1 ? [
+                                m("p", { style: "text-align:center" }, "Input game basic content"),
+                                m("form.uk-form-stacked.uk-grid-small", { 'uk-grid': '' },
+                                    m(Row,
+                                        m("label.uk-form-label", "Title"),
+                                        m(TextField, { type: "input", data: json, name: "title" })
+                                    ),
+                                    m(Row,
+                                        m("label.uk-form-label", "Description"),
+                                        m(TextField, { type: "input", data: json, name: "description" })
+                                    ),
+                                    m(Column, { width: '1-4' },
+                                        m("label.uk-form-label", "Image"),
+                                        json.image ? m("img", { src: json.image }) : null,
+                                        m(Button,
+                                            {
+                                                target: '#modal-images3',
+                                                type: "secondary"
+                                            }, !json.image ? "Upload image" : 'Change image'),
+                                        m(ImagePicker, { id: "modal-images3", data: json, name: "image" })
+                                    ),
+                                    m(Column, { width: '1-4' },
+                                        m("label.uk-form-label", "Stagenumber"),
+                                        m(Select,
+                                            { data: json, name: "stagenumber" },
+                                            stagenumbers
+                                        )
+                                    ),
+                                    m(Column, { width: '1-4' },
+                                        m("label.uk-form-label", "Video"),
+                                        json.video ? m("video", { src: json.video, 'controls':true }) : null,
+                                        m(Button,
+                                            {
+                                                target: '#modal-video',
+                                                type: "secondary"
+                                            }, !json.video ? "Upload video" : 'Change video'),
+                                        m(ImagePicker, { id: "modal-video", data: json, name: "video" })
+                                    ),
+                                )
+                            ] :
+                                [
+                                    m("p", "Input game questions"),
+                                    m(Grid,
+                                        json.questions.map((question, index) => {
+                                          return [  
+                                              m(Column,{width:'1-2'},
+                                                m("label","Question"),
+                                                m(TextField,{type:'input', data:question, name: 'question'})
+                                            ),
+                                            m(Column,{width:'1-2'},
+                                                m("label","Answer"),
+                                                m(TextField,{type:'input', data:question, name: 'answer'})
+                                            )
+                                          ]
+                                        }),
+
+
+                                        m(Column,
+                                            {
+                                                width: '1-3',
+                                                style: "cursor:pointer",
+                                                'uk-icon': 'icon:plus',
+                                                onclick: (e) => {
+                                                    json.questions.push({ 'question': '', 'answer': '' });
+                                                }
+                                            }
+                                        )
+                                    )
+                                ]
+                        ),
+                        m(".uk-modal-footer.uk-text-right",
+                            step > 1 ? m("button.uk-button.uk-button-default", { onclick: (e) => { step = 1; index = 0 } }, "Back") : null,
+                            m("button.uk-button.uk-button-primary",
+                                {
+                                    onclick: (e) => {
+                                        if (step == 1) { step++; index = 1; }
+                                        else {
+                                            json.cod = create_UUID();
+                                            addContent(json);
+                                            document.getElementById('closemodalgame').click();
                                             json = {
                                                 'cod': '',
                                                 'title': '',
@@ -460,31 +594,26 @@ function ContentManagement() {
     //para ver meditaciones y lecciones
     function ContentView() {
         return {
-            view: () => {
-                return content.length > 0 ?
-                    content.map((content) => {
-                        if (filter.type == 'meditations' && content.type == 'meditation-practice' || (content.type == "lesson" || content.type == "meditation") && filter.type != 'meditations') {
-                            return m("div.uk-width-1-4@m",
-                                m(".uk-card.uk-card-default",
-                                    content.image ?
-                                        m("uk-card-media-top",
-                                            m("img", { src: content.image })
-                                        ) : null,
-                                    m(".uk-card-body",
-                                        m("h4.uk-card-title", content.title),
-                                        m("p", content.description)
-                                    ),
-                                    m(".uk-card-footer",
-                                        m("a.uk-button.uk-button-text",
-                                            { onclick: (e) => filter.type == 'meditations' ? m.route.set('/editmeditation/' + content.cod) : m.route.set('/editlesson/' + (content.cod || content.codlesson)) },
-                                            "Edit")
-                                    )
-                                )
+            view: (vnode) => {
+                return vnode.attrs.content.map((content) => {
+                    return m("div.uk-width-1-4@m",
+                        m(".uk-card.uk-card-default",
+                            content.image ?
+                                m("uk-card-media-top",
+                                    m("img", { src: content.image })
+                                ) : null,
+                            m(".uk-card-body",
+                                m("h4.uk-card-title", content.title),
+                                m("p", content.description)
+                            ),
+                            m(".uk-card-footer",
+                                m("a.uk-button.uk-button-text",
+                                    { onclick: (e) => filter.type == 'meditations' ? m.route.set('/editmeditation/' + content.cod) : m.route.set('/editlesson/' + (content.cod || content.codlesson)) },
+                                    "Edit")
                             )
-                        }
-                    }) :
-                    null
-
+                        )
+                    )
+                })
             }
         }
 
@@ -678,6 +807,7 @@ function ContentManagement() {
         oninit: (vnode) => {
             getContent(filter.stagenumber).then((res) => {
                 content = res;
+                filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation')
             })
 
             getStages().then((res) => {
@@ -712,20 +842,30 @@ function ContentManagement() {
                         m(Select,
                             {
                                 data: filter,
-                                name: "type"
+                                name: "type",
+                                onchange: (e) => {
+                                    filter.type == 'meditations' ?
+                                        filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
+                                        filter.type == 'lessons' ?
+                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
+                                            filter.type == 'game' ?
+                                                filteredcontent = content.filter((item) => item.type == 'meditation-game') :
+                                                null
+                                }
                             },
-                            ['lessons', 'stage', 'meditations']
+                            ['lessons', 'stage', 'meditations', 'game']
                         )
                     ),
                     m(Column, { width: '3-5' },
                         m(".uk-text-bold", { style: "margin-bottom:0px;" }, "Add Content"),
                         m(AddLesson),
                         m(AddMeditation),
-                        m(AddStage)
+                        m(AddStage),
+                        m(AddGame)
                     ),
                     filter.type == 'stage' ?
                         m(PathView) :
-                        m(ContentView)
+                        m(ContentView, { content: filteredcontent })
 
                 )
             )
@@ -745,8 +885,9 @@ function EditContent() {
             getContentbycod(vnode.attrs.cod).then((res) => {
                 content = res;
                 content.type == 'meditation-practice' ?
-                    types = ['meditation-practice', 'game'] :
-                    types = ['lesson', 'meditation']
+                    types = ['meditation-practice'] : 
+                    content.type != 'meditation-game' ? 
+                    types = ['lesson', 'meditation'] : types = ['game']
                 console.log(content)
                 m.redraw()
             })
@@ -809,7 +950,7 @@ function EditContent() {
                                 )
                             )
                         ),
-
+                        content.text ||content.content ?
                         content.text ? content.text.map((item, i) => {
                             return m(Column, { width: "1-4" },
                                 m(LessonSlide, { data: content.text, index: i, item: item })
@@ -818,9 +959,38 @@ function EditContent() {
                             return m(Column, { width: '1-4' },
                                 m(MeditationSlide, { data: content['content'], name: key, })
                             )
-                        }),
+                        }): content.video ? [
+                            m(Column, {width: '1-3'},
+                                m("video", {src: content.video, 'controls': true})
+                            ),
+                            m(Column, {width: '1-3'}, 
+                                m("ul.uk-list.uk-list-divider",
+                                content.questions.map((question) => {
+                                    return [
+                                        m("li",
+                                            !editar ? 
+                                            m("label", question.question) :
+                                            m(TextField, {data:question, name:'question'}),
 
-                        editar ? m("a.uk-width-1-4@m",
+                                            !editar ? 
+                                            m("label", question.answer) :
+                                            m(TextField, {data: question, name: 'answer'})
+                                        )                                       
+                                    ]
+                                }),
+                                editar ? m("a.uk-width-1-1@m",
+                                        {
+                                            'uk-icon': 'icon:plus',
+                                            onclick: (e) => {
+                                                content.questions.push({'question':'','answer':''})
+                                            }
+                                        }
+                                    ) : null
+                                ) 
+                            )]
+                        : null,
+
+                        editar && content.type != 'meditation-game' ? m("a.uk-width-1-4@m",
                             {
                                 'uk-icon': 'icon:plus',
                                 onclick: (e) => {
@@ -861,14 +1031,14 @@ function MainScreen() {
                     {
                         match: true
                     },
-                    content.filter((cont) => (cont.type == vnode.attrs.type[0] || cont.type == vnode.attrs.type[1]) && cont.position != null).sort((a,b)=> a.position - b.position).map((content) => {
+                    content.filter((cont) => (cont.type == vnode.attrs.type[0] || cont.type == vnode.attrs.type[1]) && cont.position != null).sort((a, b) => a.position - b.position).map((content) => {
                         return m(Column,
                             { width: '1-5' },
                             m(Card,
                                 {
-                                    hover:true,
-                                    style:"cursor:pointer;",
-                                    onclick:(e)=> {m.route.set('/contentview/' + content.cod)}
+                                    hover: true,
+                                    style: "cursor:pointer;",
+                                    onclick: (e) => { m.route.set('/contentview/' + content.cod) }
                                 },
                                 content.image ?
                                     m(CardMedia, m("img", { src: content.image }))
@@ -932,7 +1102,7 @@ function MainScreen() {
                     m(Content, { type: ['meditation-practice', 'game'] })
                 ),
 
-                
+
 
 
 
@@ -944,30 +1114,30 @@ function MainScreen() {
 function ContentView() {
     let content = {}
     return {
-        oninit:(vnode) => {
+        oninit: (vnode) => {
             getContentbycod(vnode.attrs.cod).then((res) => {
                 content = res;
                 console.log(content)
                 m.redraw()
             })
         },
-        view:(vnode) => {
-            return m(Grid, 
+        view: (vnode) => {
+            return m(Grid,
                 {
 
                 },
-              
+
                 m(Column,
                     {
-                        width:'1-2'
+                        width: '1-2'
                     },
-                    m("div",{style:"font-family:Gotham Rounded; font-size:2em"},content.title),
+                    m("div", { style: "font-family:Gotham Rounded; font-size:2em" }, content.title),
                 ),
-                m(Column ,
+                m(Column,
                     {
-                        width:'1-2'
+                        width: '1-2'
                     },
-                    m("img",{style:"width:100%;height:auto",src:content.image})
+                    m("img", { style: "width:100%;height:auto", src: content.image })
                 )
             )
         }
@@ -1000,8 +1170,8 @@ m.route(document.body, "/", {
         },
     },
 
-    '/contentview/:cod':{
-        render:(vnode) => {
+    '/contentview/:cod': {
+        render: (vnode) => {
             return m(Layout, vnode.attrs, ContentView)
         }
     }
