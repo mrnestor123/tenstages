@@ -1,8 +1,10 @@
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
+import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
 import { getImages, deleteImage } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 
+//explicar como se utiliza para el futuro
 
+// se utiliza en conjunto con button, pasarle un data y name y un id.
 function ImagePicker() {
     var imagetoadd = {};
     let selectedindex;
@@ -105,7 +107,7 @@ function LessonSlide() {
                 ),
                 m(CardBody,
                     { style: "padding:0px" },
-                    m(TextField, { data: data[index], name: "text", type: "textarea", rows: "10", style: "margin:0px;font-size:0.9em;padding:5px" }),
+                    m(TextEditor, { data: data[index], name: "text", type: "textarea", rows: "10", style: "margin:0px;font-size:0.9em;padding:5px" }),
                     m("div", { style: "position:absolute;right:5;top:5" },
                         m("a", { 'uk-icon': 'icon:trash', style: "color:red", onclick: (e) => data.splice(index, 1) })
                     )
@@ -193,7 +195,26 @@ function MeditationSlide() {
     }
 }
 
+function FollowAlongSlide(){
 
-export { MeditationSlide, LessonSlide, ImagePicker }
+    return { 
+        view:(vnode) => {
+            let slide = vnode.attrs.slide
+            let edit = vnode.attrs.edit
+
+            return [ 
+                m("strong", "Time "),
+                !edit ? [m("br"),m("uk-label", slide.time)] : m(TextField, {data: slide, name:'time', type: 'time'}),
+                m("br"),
+                m("strong","Text "),
+                !edit ? [m("br"),m("uk-label", slide.text)] : m(TextField, {data: slide, name:'text', type:'textarea', rows:5 }) 
+            ]
+        }
+    }
+
+}
+
+
+export { MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide }
 
 

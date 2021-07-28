@@ -328,6 +328,8 @@ async function getContent(stagenumber) {
         content.push(doc.data());
     };
 
+    console.log(content)
+    
     return content;
 }
 
@@ -342,7 +344,46 @@ async function getStages() {
     return stages;
 }
 
+async function getUsers(){
+    var query = await db.collection('users').get()
+    let users = []
+
+    for(let doc of query.docs){
+        users.push(doc.data())
+    }
+
+    return users;
+
+}
+
+
+async function deleteUser(cod) {   
+    let user = await db.collection('users').where('coduser', '==', cod).get();
+    console.log(user)
+    await db.collection("users").doc(user.docs[0].id).delete()
+
+    
+    let usermeditations = await db.collection('meditations').where('coduser', '==',cod).get();
+
+    for(var meditation of usermeditations.docs){
+        await db.collection("meditations").doc(meditation.id).delete()
+    }
+
+    let useractions = await db.collection('actions').where('coduser', '==',cod).get();
+    
+    for(var action of useractions.docs){
+        await db.collection("actions").doc(action.id).delete()
+    }
+
+    let users = await db.collection('users').where('following', 'array-contains' ,cod).get();
+    
+    for(let doc of users.docs){
+        doc.update({following: firebase.firestore.FieldValue.arrayRemove(cod)});
+    }
+}
 
 
 
-export { getLessons, addLesson, addContent, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle }
+
+
+export { getLessons, addLesson, addContent, getUsers, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle, deleteUser }

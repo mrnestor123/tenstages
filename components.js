@@ -126,7 +126,8 @@ function TextField() {
     let types = {
         "textarea": { class: "uk-textarea" },
         "input": { class: "uk-input", type: "text" },
-        "number": { class: "uk-input", type: "number" }
+        "number": { class: "uk-input", type: "number" },
+        'time': { class: 'uk-input', type:'time'}
     }
 
     return {
@@ -137,6 +138,7 @@ function TextField() {
                     {
                         class: type ? types[type].class : types['input'].class,
                         style: style || '',
+                        type: type ? types[type].type : 'text',
                         value: data[name],
                         width: vnode.attrs.width || undefined,
                         oninput: (e) => {
@@ -159,7 +161,7 @@ function TextField() {
     }
 }
 
-
+// @attrs type, size, width
 function Button() {
     let clase = '';
     return {
@@ -370,9 +372,215 @@ function FormLabel() {
 //Hacer un componente de TEXT
 
 
+/*
+    guarda el html interior dentro del objeto data[name]
+*/
+function TextEditor() {
+
+    let html = true
+    let imgdata={}
+    let isLocalized=false
+    let text
+
+    let topbuttons = [{
+        placeholder: 'Styles',
+        multiple: true,
+        buttons: [
+            { 'label': 'B', active: false, 'pressed': 'bold', icon: 'bold' },
+            { 'label': 'I', active: false, 'pressed': 'italic', icon: 'italic' },
+            { 'label': 'U', active: false, 'pressed': 'underline', icon: 'underline' },
+            { 'label': 'S', active: false, 'pressed': 'strikethrough', icon: 'strikethrough' }
+        ]
+    },
+    {
+        placeholder: 'Undo/redo',
+        buttons: [
+            { 'label': 'undo', 'pressed': 'undo', icon: 'undo' },
+            { 'label': 'redo', 'pressed': 'redo', icon: 'redo' },
+        ]
+    },
+    {
+        placeholder: 'Text Format',
+        buttons: [
+            { 'label': 'P', 'pressed': 'insertParagraph', icon: 'level down alternate' },
+            { 'label': 'P', 'pressed': 'formatBlock:p', icon: 'paragraph' },
+            { 'label': 'H1', 'pressed': 'formatBlock:H1' },
+            { 'label': 'H2', 'pressed': 'formatBlock:H2' },
+            { 'label': 'H3', 'pressed': 'formatBlock:H3' }
+        ]
+    },
+    {
+        placeholder: 'Font Size',
+        buttons: [
+            { 'label': 'SM', active: false, 'pressed': 'fontsize:1' },
+            { 'label': 'M', active: false, 'pressed': 'fontsize:3' },
+            { 'label': 'U', active: false, 'pressed': 'fontsize:5' }
+        ]
+    },
+    {
+        placeholder: 'Lists',
+        buttons: [
+            { 'label': 'UL', 'pressed': 'insertUnorderedList', 'icon': 'list ul' },
+            { 'label': 'OL', 'pressed': 'insertOrderedList', 'icon': 'list ol' }
+        ]
+    },
+    {
+        placeholder: 'Alignment',
+        multiple: false,
+        buttons: [
+            { 'label': '&#8676;', 'pressed': 'justifyLeft', icon: 'align left' },
+            { 'label': '&#8596;', 'pressed': 'justifyCenter', icon: 'align center' },
+            { 'label': '&#8677;', 'pressed': 'justifyRight', icon: 'align right' }
+        ]
+    },
+    {
+        placeholder: 'Clear Formatting',
+        buttons: [{ 'label': 'Borrar formato', 'pressed': 'removeFormat', 'icon': 'eraser' }]
+    }
+    ]
+    let data = {}
+    let name = '';
+
+    let rndnmb = Math.floor(Math.random() * 1000);
+
+    let language = 'und';
+
+    function addTable(n) {
+        if (!addTable.count) addTable.count = 1
+        else addTable.count++
+
+        let html = `<table id='${addTable.count}' style="width: 100%;"><tbody><tr>
+        <td style='width:1em' rowspan=0><button class='ui icon button' onclick='let row=document.getElementById((${addTable.count})).insertRow(-1);
+            for(i=0;i<${n};i++) row.insertCell(i);
+        '><i class='ui edit icon'></i></button></td>
+        `
+        for (let i = 0; i < n; i++) {
+            html += `<td>Columna ${i + 1}</td>`
+        }
+        html += '</tr></tbody></table>'
+        return html
+    }
+
+    return {
+        view: (vnode) => {
+            data = vnode.attrs.data 
+            name = vnode.attrs.name
+
+            typeof data[name] == 'string'
+
+            // METER esto en el oninit ??
+            if(typeof data[name] == 'object')  {
+                isLocalized=true
+                //!!! este truco funcionará???
+                data=data[name]
+                name=language
+            }
+ 
+            return m('.ui.padded.grid', {
+                style: vnode.attrs.style ? vnode.attrs.style : undefined
+            },
+                m('.ui.row', { style: 'position:relative' },
+                    !vnode.attrs.hidecontrols 
+                    ? [                        
+                        topbuttons.map((span) => {
+                        return m('.ui.tiny.icon.compact.menu', { style: 'margin:5px;' },
+                            span.buttons.map((button) => {
+                                return m('a.item', {
+                                    class: button.active ? 'active' : '',
+                                    onclick: (e) => {
+                                        typeof button.active != 'undefined' ? button.active = !button.active : null
+                                        const cmd = button.pressed.split(':')
+                                        document.execCommand(cmd[0], false, cmd[1])
+                                    }
+                                },
+                                    button['icon'] ?
+                                        m('i', { class: button['icon'] + ' icon' }) :
+                                        button['label']
+                                    )
+                                })
+                            )
+                        }),
+                        m(".ui.compact.menu", { style: 'margin:5px;' }, [
+                            m(".ui.dropdown.simple.item", [
+                                //m("i.dropdown.icon"),
+                                "TABLA",
+                                m(".menu", [
+                                    m(".item", {
+                                        onclick: () => data[name] += addTable(1)
+                                    }, "1 columna"),
+                                    m(".item", {
+                                        onclick: () => data[name] += addTable(2)
+                                    }, "2 columna"),
+                                    m(".item", {
+                                        onclick: () => data[name] += addTable(3)
+                                    }, "3 columna")
+                                ])
+                            ])
+                        ])
+                    ] 
+                    : null,
+
+                    m(".ui.compact.tiny.icon.menu",
+                        {
+                            style: 'margin:5px;',
+                            onclick:(e) => document.getElementById('input-hidden').click()
+                        },
+                        m("a.item", m("i.image.icon"))
+                    ),
+
+                ),
+
+                m(".ui.mini.button", { onclick: () => html = !html }, html ? "TEXT" : "HTML"),
+
+                // Hará falta algo para convertir a localized
+                isLocalized 
+                ? m(".ui.mini.button", {
+                    onclick:() => {                         
+                        language === 'und' 
+                        ? language = 'es' 
+                        : language === 'es' 
+                        ? language = 'va'
+                        : language = 'und'   
+                    },
+                }, language.toUpperCase())
+                : null,
+
+                    html
+                    ? m('div', {
+                        style: 'min-height: 300px; border: 1px solid black; width: 100%',
+                        'contenteditable': true,
+                        id: 'contenteditable-' + rndnmb,
+                        onkeydown: (e)=> {if (e.key==='Enter') e.preventDefault() },
+                        oninput: (e) => {
+                                data[name] = document.getElementById('contenteditable-' +rndnmb).innerHTML
+                        }
+                    },
+                        //data[name] ? m.trust(data[name]) : null
+                        data[name] && data[name] 
+                        ? m.trust(data[name]) 
+                        : m.trust('')
+                    )
+                    : m("textarea", {
+                        style:"width:100%;height:300px",
+                        oninput: (e) => {
+                            data[name] = e.target.value
+                        }
+                    }, data[name] ),
+
+                m("style", `
+                #contenteditable-${rndnmb} table, #contenteditable-${rndnmb} th, #contenteditable-${rndnmb} td {
+                    border: 1px solid black;
+                    border-collapse: collapse;
+                }`)
+            )
+        }
+    }
+}
 
 
 
 
 
-export { TextField, Button, Grid, Column, Card, CardBody, CardHeader, CardMedia, Row, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }
+
+
+export { TextField, Button, Grid, Column, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }

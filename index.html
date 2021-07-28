@@ -1,23 +1,27 @@
 <head>
 
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/css/uikit.min.css" />
+    <link rel="stylesheet" href="https://components.digitalvalue.es/lib//semantic.min.css" />
+
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/js/uikit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3.5.10/dist/js/uikit-icons.min.js"></script>
     <script src="https://unpkg.com/mithril/mithril.js"></script>
     <style>
-        body {
-        display: flex !important;
-        flex-direction: column !important;
+        body{ height:100vh; margin:0; }
+
+        header{ min-height:50px; background:lightcyan; }
+        footer{ min-height:50px; background:PapayaWhip; }
+
+        /* Trick */
+        body { 
+            display:flex; 
+            flex-direction:column; 
         }
 
-        main{
-            flex:2
+        footer{
+            margin-top:auto; 
         }
-
-        footer {
-            margin-top: auto !important;
-        }
-      
 
     </style>
 </head>
