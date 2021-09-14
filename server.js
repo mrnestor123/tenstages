@@ -1,3 +1,5 @@
+import { api_get } from "./util.js";
+
 var firebaseConfig = {
     apiKey: "AIzaSyDWEW668iJRj-TIpRueiK2J3fhh-7aKd0M",
     authDomain: "the-mind-illuminated-32dee.firebaseapp.com",
@@ -14,12 +16,15 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
+const API = `http://localhost:8802`
+
 var db = firebase.firestore()
 var storage = firebase.storage();
 var auth = firebase.auth();
 
 // Saca las lecciones de la stage seleccionada 
 //Hay que cachear ERRORES  EN TODAS LAS FUNCIONES :/ !!!
+// PROBAR DE QUITAR FUNCIONES
 async function getLessons(stagenumber) {
     var query = await db.collection('content').where('stagenumber', '==', stagenumber).where('type', '==', 'lesson').get();
     var lessons = []
@@ -124,6 +129,7 @@ async function uploadFile(file, stage) {
 
 }
 
+// NO DEBERÍA DE PODERSE REGISTRARSE DESDE AQUÍ
 async function register(email, password) {
     auth.createUserWithEmailAndPassword(email, password)
         .then((user) => {
@@ -137,81 +143,51 @@ async function register(email, password) {
         });
 }
 
-async function login(email, password) {
-    auth.signInWithEmailAndPassword(email, password)
+
+// DEVUELVE EL USUARIO DE FIREBASE
+async function login({ type, email, password }) {
+    if (type == 'google' || type == 'facebook') {
+        var provider;
+
+        if (type == 'google') {
+            provider = new firebase.auth.GoogleAuthProvider();
+        } else {
+            provider = new firebase.auth.FacebookAuthProvider();
+        }
+
+        auth.useDeviceLanguage();
+
+        return firebase.auth()
+            .signInWithPopup(provider)
+            .then((result) => {
+                /** @type {firebase.auth.OAuthCredential} */
+                return result.user
+                // ...
+            }).catch((error) => {
+                return error.message
+                // ...
+            });
+    } else {
+        return auth.signInWithEmailAndPassword(email, password)
         .then((user) => {
-            // Signed in
-            // ...
+            return user;
+            console.log(user)
         })
         .catch((error) => {
-            var errorCode = error.code;
-            var errorMessage = error.message;
+            return error.message
         });
+    }
 }
 
 
-async function loginWithFacebook() {
-    var provider = new firebase.auth.FacebookAuthProvider();
+///DEVUELVE EL USUARIO DE LA APP
+async function getUser(cod){
 
-    firebase
-        .auth()
-        .signInWithPopup(provider)
-        .then((result) => {
-            console.log(result)
-            /** @type {firebase.auth.OAuthCredential} */
-            var credential = result.credential;
+  let user = api_get(`${API}/connect/${cod}`)
 
-            // The signed-in user info.
-            var user = result.user;
-
-            // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-            var accessToken = credential.accessToken;
-
-            // ...
-        })
-        .catch((error) => {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            // The email of the user's account used.
-            var email = error.email;
-            // The firebase.auth.AuthCredential type that was used.
-            var credential = error.credential;
-
-            // ...
-        });
+  return user;
 }
 
-async function loginWithGoogle() {
-
-    var provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().useDeviceLanguage();
-
-    firebase.auth()
-        .signInWithPopup(provider)
-        .then((result) => {
-            /** @type {firebase.auth.OAuthCredential} */
-            var credential = result.credential;
-            console.log('signed in')
-            // This gives you a Google Access Token. You can use it to access the Google API.
-            var token = credential.accessToken;
-            // The signed-in user info.
-            var user = result.user;
-            // ...
-        }).catch((error) => {
-            // Handle Errors here.
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            // The email of the user's account used.
-            var email = error.email;
-            // The firebase.auth.AuthCredential type that was used.
-            var credential = error.credential;
-            // ...
-        });
-
-
-
-}
 
 
 async function updateStage(stage) {
@@ -296,8 +272,6 @@ async function addContent(content) {
     return true
 }
 
-
-
 async function getStage(stagenumber) {
     var stage = '';
     var query = await db.collection('stages').where('stagenumber', '==', Number(stagenumber)).get();
@@ -329,7 +303,7 @@ async function getContent(stagenumber) {
     };
 
     console.log(content)
-    
+
     return content;
 }
 
@@ -344,11 +318,11 @@ async function getStages() {
     return stages;
 }
 
-async function getUsers(){
+async function getUsers() {
     var query = await db.collection('users').get()
     let users = []
 
-    for(let doc of query.docs){
+    for (let doc of query.docs) {
         users.push(doc.data())
     }
 
@@ -357,33 +331,76 @@ async function getUsers(){
 }
 
 
-async function deleteUser(cod) {   
+async function deleteUser(cod) {
     let user = await db.collection('users').where('coduser', '==', cod).get();
     console.log(user)
     await db.collection("users").doc(user.docs[0].id).delete()
 
-    
-    let usermeditations = await db.collection('meditations').where('coduser', '==',cod).get();
 
-    for(var meditation of usermeditations.docs){
+    let usermeditations = await db.collection('meditations').where('coduser', '==', cod).get();
+
+    for (var meditation of usermeditations.docs) {
         await db.collection("meditations").doc(meditation.id).delete()
     }
 
-    let useractions = await db.collection('actions').where('coduser', '==',cod).get();
-    
-    for(var action of useractions.docs){
+    let useractions = await db.collection('actions').where('coduser', '==', cod).get();
+
+    for (var action of useractions.docs) {
         await db.collection("actions").doc(action.id).delete()
     }
 
-    let users = await db.collection('users').where('following', 'array-contains' ,cod).get();
-    
-    for(let doc of users.docs){
-        doc.update({following: firebase.firestore.FieldValue.arrayRemove(cod)});
+    let users = await db.collection('users').where('following', 'array-contains', cod).get();
+
+    for (let doc of users.docs) {
+        doc.update({ following: firebase.firestore.FieldValue.arrayRemove(cod) });
     }
 }
 
 
+async function postRequest(request){
+    await db.collection('requests').add(request);
+}
+
+async function getRequests(){
+    // TODO: Sacar las requests que no estén cerradas 
+    var query = await db.collection('requests').get();
+    var requests = []
+
+    for (let doc of query.docs) {
+        let request = doc.data();
+        requests.push(request)
+    }
+
+    return requests;
+}
+
+async function updateRequest(request){
+    console.log(request)
+    let query = await db.collection('requests').where('cod', '==', request.cod).get()
+    let docID = query.docs[0].id
+
+    db.collection('requests').doc(docID).update(request).then(function () {
+        console.log("Document successfully updated!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+    });
+}
+
+async function deleteContent(content){
+    let query = await db.collection('content').where('cod', '==', content.cod).get()
+    let docID = query.docs[0].id
+
+    db.collection("meditations").doc(docID).delete().then(function () {
+        console.log("Document successfully deleted!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error deleting document: ", error);
+    });
+}
+ 
 
 
 
-export { getLessons, addLesson, addContent, getUsers, getLesson, getContentbycod, updateContent, uploadFile, getImages, getStage, updateStage, deleteImage, getContent, getStages, addStage, loginWithFacebook, loginWithGoogle, deleteUser }
+
+export { getLessons, addLesson, addContent,postRequest, getRequests,updateRequest, getUsers, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

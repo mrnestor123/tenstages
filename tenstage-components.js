@@ -150,7 +150,6 @@ function MeditationSlide() {
                         m(ImagePicker, { data: object, name: "image", id: `medit-image${id}` })
                     ]
                         :
-
                         null
                 }
             }
@@ -164,7 +163,7 @@ function MeditationSlide() {
                     m(CardBody, { style: "padding:0px" },
                         Object.keys(object).map((key) => {
                             console.log(key)
-                            return types[key]()
+                            return types[key] ? types[key]() : ''
                         })
                     )
                 )

@@ -3,13 +3,15 @@
 
 
 
-/*
-    size: small | medium | large
+/** 
+    * @attrs (object) {
+    size: small | medium | large 
     row-gap | column-gap:  small | medium | large | collapse
     divider: true | false
     match-height: true|false
     masonry: true || false
     center: true ||false
+    }
 */
 function Grid() {
     let clase = ''
@@ -161,7 +163,12 @@ function TextField() {
     }
 }
 
-// @attrs type, size, width
+/** 
+ * *@attrs 
+ *  type = default,primary,secondary,danger
+ *  size = small, large
+ *  width = uk-width-1-1
+ */
 function Button() {
     let clase = '';
     return {
@@ -234,7 +241,8 @@ function Section() {
         view: (vnode) => {
             return m("div",
                 {
-                    class: clase
+                    class: clase,
+                    style:vnode.attrs.style
                 }, vnode.children
             )
         }

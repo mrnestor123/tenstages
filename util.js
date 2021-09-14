@@ -40,7 +40,51 @@ function FileUploader() {
 }
 
 
+function api_get(url, method = 'GET', data = {}, options) {
+    // poner el token para app nativa
+    // const token = localStorage.getItem('token')
+    const headers = options && options.headers ? options.headers : {}
+    // if (token) headers['Authorization'] = token
+
+    let config = { // para poderlo ampliar
+        method: method,
+        url: url,
+        //      url: url.replace(/\/\//g, '/'), !!! hay que reemplazar solo la parte del path
+        withCredentials: false,
+        credentials: 'include',
+        body: data,
+        headers: headers,
+        timeout: 15000, // ¿habría que poderlo configurar?. Hace falta para Creta tv con mala conexión. 15 segundos
+        extract: extract,
+        background: options && options.background ? options.background : false
+    }
+
+    // Hay que cambiarl en mithriljs la cadena content0-type1 por content-type. Error de mithril
+    if (options && options.contentType) config.headers['content-type'] = options.contentType
+    return m
+        .request(
+            config
+        )
+        .then((res) => {
+            //console.log(res)
+            return res
+        })
+}
+
+var extract = function(xhr) {
+    //console.log("XHR:",xhr)
+    //    var e =  xhr.status == 400 ? JSON.stringify(xhr.responseText) : xhr.responseText
+    return xhr.status === 500 || xhr.responseText === ''
+        ? {
+            status: xhr.status,
+            httpStatus: xhr.status,
+            err: xhr.statusText
+        }
+        : xhr.status === 200 || xhr.status === 201
+        ? JSON.parse(xhr.responseText)
+        : Object.assign({httpStatus: xhr.status},JSON.parse(xhr.responseText))
+}
 
 
 
-export { FileUploader, create_UUID}
+export { FileUploader, create_UUID, api_get}

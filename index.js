@@ -1,16 +1,32 @@
-import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, loginWithFacebook, loginWithGoogle, deleteUser } from './server.js'
+import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter } from './components.js'
+import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
 import { LessonSlide, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
 
 let primarycolor = '#E0D5B6'
 
-
 function Layout() {
     let route = 'home'
+    let loggeduserin = {};
 
     function LoginModal() {
         let data = {};
+        let user;
+        let errormessage = undefined;
+        
+        async function log({type, email, password}){
+            var result = await login({type:type,email: email,password: password})
+
+            console.log(result)
+            
+            if(result.uid){
+                localStorage.setItem('meditationcod', result.uid)
+                loggeduserin = await getUser(result.uid)
+            }else{
+                errormessage = result;
+            }
+
+        }
 
         return {
             view: (vnode) => {
@@ -34,20 +50,25 @@ function Layout() {
                             m(FormLabel,
                                 "Password"
                             ),
-                            m(TextField, { data: data, name: "username", type: "input" })
-                        )
+                            m(TextField, { data: data, name: "username", type: "input" }),
+                            
+                            errormessage ? m("div",{style:"font-size:1.1em;color:red"}, errormessage) : null,
+
+                            )
                     ),
                     m(ModalFooter,
                         m("uk-text-left",
-                            m(".uk-icon-button", { 'uk-icon': 'facebook', onclick: (e) => loginWithFacebook() }),
-                            m(".uk-icon-button", { 'uk-icon': 'google', onclick: (e) => loginWithGoogle() })
+                        //CAMBIAR
+                            m(".uk-icon-button", { 'uk-icon': 'facebook', onclick: (e) => log({type:'facebook'}) }),
+                            m(".uk-icon-button", { 'uk-icon': 'google', onclick: (e) => log({type:'google'}) })
                         ),
-                        m(Button, { style: "float:right" }, "Login")
+                        m(Button, { style: "float:right", onclick:(e) => log({type:'mail'})}, "Login")
                     )
                 )
             }
         }
     }
+
 
     return {
         view: (vnode) => {
@@ -75,6 +96,16 @@ function Layout() {
                         ),
                         m(".uk-navbar-right",
                             m(".uk-navbar-item",
+                                localStorage.getItem('meditationcod') ?
+                                m("a.material-icons",
+                                    {
+                                        onclick:(e) => {
+                                            m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
+                                        }
+                                    },
+                                    'person'
+                                )
+                                :
                                 m(Button,
                                     {
                                         type: "secondary",
@@ -344,6 +375,7 @@ function ContentManagement() {
                                         if (step == 1) { step++; index = 1; }
                                         else {
                                             json.cod = create_UUID();
+                                            json.stagenumber = Number(json.stagenumber)
                                             addContent(json);
                                             document.getElementById('closemodalmed').click();
                                             json = {
@@ -592,13 +624,15 @@ function ContentManagement() {
         }
 
     }
+
     //para ver meditaciones y lecciones
     function ContentView() {
         return {
             view: (vnode) => {
-                return vnode.attrs.content.map((content) => {
+                return vnode.attrs.content.sort((a,b)=> b.position - a.position).map((content) => {
                     return m("div.uk-width-1-4@m",
                         m(".uk-card.uk-card-default",
+                            {style: !content.position ?" opacity:0.5":''},
                             content.image ?
                                 m("uk-card-media-top",
                                     m("img", { src: content.image })
@@ -636,11 +670,12 @@ function ContentManagement() {
                     return m(Card,
                         m(CardHeader,
                             ' Stage ' + filter.stagenumber,
-                            m("a",
+                            m(Button,
                                 {
-                                    'uk-icon': 'icon:file-edit',
+                                    width:'1-5',
                                     onclick: (e) => edit = !edit
-                                }
+                                },
+                                "EDIT"
                             ),
                             m(Button, { width: '1-4', style: "margin-left:5px", type: "primary", onclick: (e) => updateStage(stage) }, "Save"),
                         ),
@@ -662,7 +697,9 @@ function ContentManagement() {
                                             m("p", "Obstacles :", m(TextField, { data: stage, name: "obstacles", type: "input" })),
                                             m("p", "Skills :", m(TextField, { data: stage, name: "skills", type: "input" })),
                                             m("p", "Mastery :", m(TextField, { data: stage, name: "mastery", type: "input" })),
-                                        ]
+                                        ],
+                                    m("strong", "Short text"),
+                                    m(TextEditor,{data:stage,name:'shorttext'})
                                 ),
                                 m(Column, { width: '1-3' },
                                     m(Grid,
@@ -693,8 +730,17 @@ function ContentManagement() {
                                         target: '#stage-long-image',
                                         type: "secondary"
                                     }, !stage.longimage ? "Upload long image" : 'Change image'),
+                                    m("div","Long image"),
                                     m("div", stage.longimage? m("img",{src:stage.longimage}) : m("span")),
-                                    m(ImagePicker, { id: "stage-long-image", data: stage, name: "longimage" })
+                                    m(ImagePicker, { id: "stage-long-image", data: stage, name: "longimage" }),
+                                    m(Button,
+                                        {
+                                            target: '#stage-short-image',
+                                            type: "secondary"
+                                        }, !stage.shortimage ? "Upload short image" : 'Change image'),
+                                    m("div","Short image"),
+                                    m("div", stage.shortimage ? m("img",{src:stage.shortimage}) : m("span")),
+                                    m(ImagePicker, { id: "stage-short-image", data: stage, name: "shortimage"  })
                                 )
                             )
                         )
@@ -710,7 +756,10 @@ function ContentManagement() {
                         m("h3", path_filter),
                         m(Grid, { size: "small" },
                             content.filter((elem) => elem.position == null).map((cont) => {
-                                if (path_filter == 'Lessons' && cont.type != 'meditation-practice' || path_filter != 'Lessons' && cont.type == 'meditation-practice') {
+                                if (path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type!= 'meditation-game' || 
+                                    path_filter == 'Meditations' && cont.type == 'meditation-practice' ||
+                                    path_filter =='Games' && cont.type =='meditation-game'                                
+                                    ) {
                                     return m(Column, { width: '1-3' },
                                         m(Card,
                                             m(CardHeader,
@@ -739,13 +788,7 @@ function ContentManagement() {
                                                             class: "uk-modal-close",
                                                             type: "primary",
                                                             onclick: (e) => {
-                                                                if (path_filter == 'Lessons') {
-                                                                    toadd.position = Number(position.selected);
-                                                                    //stage.path[position.selected] ? stage.path[position.selected].push(toadd) : stage.path[position.selected] = [toadd]
-                                                                } else {
-                                                                    toadd.position = Number(position.selected);
-                                                                    stage.meditations[position.selected] ? stage.meditations[position.selected].push(toadd) : stage.meditations[position.selected] = [toadd]
-                                                                }
+                                                                toadd.position = Number(position.selected);
                                                                 updateContent(toadd)
                                                                 position.selected = 0
                                                             }
@@ -770,7 +813,9 @@ function ContentManagement() {
                     return m(Column, { width: '1-2' },
                         m("h1", "The path"),
                         content.filter((elem) => elem.position != null).sort((a, b) => a.position - b.position).map((cont) => {
-                            if (path_filter == 'Meditations' && cont.type == 'meditation-practice' || path_filter == 'Lessons' && cont.type != 'meditation-practice')
+                            if (path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type != 'meditation-game' 
+                            || path_filter == 'Meditations' && cont.type == 'meditation-practice' 
+                            || path_filter =='Games' && cont.type =='meditation-game')
                                 return m(Grid,
                                     m(Column, { width: '1-3' },
                                         m(Card,
@@ -805,7 +850,8 @@ function ContentManagement() {
                     m(Row,
                         m('.uk-button-group',
                             m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Lessons'; } }, "Lessons"),
-                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Meditations'; } }, "Meditations")
+                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Meditations'; } }, "Meditations"),
+                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Games'; } }, "Games"),
                         )),
                     m(ContentAdd),
                     m(Path)
@@ -974,28 +1020,30 @@ function EditContent() {
                                 content.content[Object.keys(content.content).length] = { 'text': 'Edit this text', 'type': 'text' }
                             }
                         },
-                        "Add before text"
+                        "Add before text",
+                        m("span", {class:"material-icons"},"add_box")
                     ) : null,
                     content.followalong ? [
                         m(Column, {width:'1-1'}, m("strong","During meditation")),
                         Object.keys(content.followalong).map((key) => {
                             return m(Column, { width: '1-4' },
-                                m(FollowAlongSlide, { slide: content.followalong[key] , edit: editar})
+                                m(MeditationSlide, { data:content['followalong'],name:key})
                             )
                         })
                         ] : null,
                     editar ? 
                         m("a.uk-width-1-4@m",
                             {
-                                'uk-icon': 'icon:plus',
                                 onclick: (e) => { 
                                     if(!content.followalong){
                                         content.followalong = {}
                                     }                            
-                                    content.followalong[Object.keys(content.followalong).length] = { 'text': 'Edit this text', 'time':'' }
+                                    content.followalong[Object.keys(content.followalong).length] = { 'text': 'Edit this text', 'type':'text'}
                                 }
                             },
-                            "Add followalong text"
+                            "Add followalong text",
+                            m("span", {class:"material-icons"},"add_box")
+
                         ) : null,
                     
                 ]
@@ -1147,8 +1195,26 @@ function EditContent() {
             return content.title ?
                 m("article.uk-article",
                     m("h1.uk-article-title",
-                        !editar ? content.title : m(TextField, { type: "input", data: content, name: "title" }),
-                        !editar ? m("a", { 'uk-icon': 'icon:file-edit', onclick: () => editar = !editar }) : [
+                            !editar ? content.title : m(TextField, { type: "input", data: content, name: "title" }),
+                            !editar ? 
+                            m("button.uk-button", {
+                                style:"background-color:green; color:white",
+                                'uk-icon': 'icon:file-edit', 
+                                onclick: () => editar = !editar },
+                                "Edit"
+                            ) : [
+                            m("button.uk-button",
+                                {
+                                    style:"color:white;background-color:red;margin-top:15px;margin-right:20px;",  
+                                    onclick:(e)=>{
+                                        if(confirm('You are going to delete. Are you sure?')){
+                                            deleteContent(content)
+                                            m.route.set('/management')
+                                        }
+                                    }
+                                },
+                                "Delete"
+                            ),
                             m("button.uk-button.uk-button-secondary",
                                 {
                                     style: "margin-top:15px",
@@ -1372,6 +1438,428 @@ function ContentView() {
 }
 
 
+function ProfileView(){
+    let user = {}
+    let loaded = false
+    
+    let issues = []
+    let suggestions = []
+    let selectedrequest = {}
+    let userfromselreq = {}
+
+    let adding = ''
+
+    let showing = 'data';
+
+    function UserData(){
+
+        function DataCard(){
+            return {
+                view:(vnode) => {
+                    let {header,number,sentence,icon} = vnode.attrs
+                    
+                    return m(Card,
+                        m(CardBody, 
+                            m(Grid,
+                                m(Row,
+                                    m("span",{
+                                        style: `font-family: system-ui;
+                                        font-size: 19px;
+                                        font-style: normal;
+                                        font-weight: 700;
+                                        line-height: 35px;
+                                        letter-spacing: 0em;
+                                        text-align: left;
+                                        `}, header.toUpperCase()),
+                                ),
+                                m(Column, {width:'2-3'},
+                                    icon ?
+                                    m("i",
+                                        {
+                                            style:"font-size:40px",
+                                            class: 'material-icons'
+                                        },
+                                        icon
+                                    ) :
+                                    m("span",{
+                                        style:"color:grey"
+                                    }, sentence)
+                                ),
+                                m(Column,{width:'1-3'},
+                                    m("div",{
+                                        style:`
+                                        font-family: system-ui;
+                                        font-size: 50px;
+                                        font-style: normal;
+                                        font-weight: 700;
+                                        line-height: 52px;
+                                        letter-spacing: 0em;
+                                        text-align: right;
+                                    `}, number)   
+                                )
+                            )
+                        )
+                    )
+                }
+            }
+        }
+
+        return {
+            view:(vnode) => {
+               return [ 
+                   m(Column, {width:'1-2'},
+                        m(DataCard,{header:'stage', icon:'hiking', number: user.stage.stagenumber})
+                    ),
+                    m(Column,{width:'1-2'},
+                        m(DataCard,{header:'Meditations completed', icon: "self_improvement",number: user.stats.total.meditaciones})
+                    ),
+                    m(Column,{width:'1-2'},
+                        m(DataCard,{header:'Lessons read', icon: "book",number: user.stats.total.lecciones})
+                    ),
+                    m(Column,{width:'1-2'},
+                        m(DataCard,{header:'Time meditated', icon: "timer",number: Math.floor(user.stats.total.tiempo / 60) + 'h'})
+                    )
+            ]
+           }
+        }
+
+
+    }
+    
+
+    //Lista de sugestiones y de issues
+    function ListOfRequests(){
+
+        return {
+            view:(vnode) => {
+                let {elements,issue} = vnode.attrs
+
+                return elements.map((request)  => {
+                        if(!request.votes){
+                            request.votes = {}
+                        }
+                        return m(Column, {width:'1-1'},
+                            m(Card,
+                                {
+                                    hover: true,
+                                    style:"cursor:pointer",
+                                    onclick:(e) => {
+                                        selectedrequest = request
+                                    }
+                                },
+                                m(CardBody,  
+                                    m(Grid,
+                                        m(Column, {
+                                            width:'3-4'
+                                        },
+                                            m("span",{style:"font-size:1.1em;font-weight:bold;"},request.title)
+                                        ),
+                                        m(Column,{
+                                            width:'1-4'
+                                        },  
+                                            m("span",
+                                                m("span",{class:"material-icons"},"person"),
+                                                m("span", request.username)
+                                            ),
+                                        )
+                                    ),
+                                    m("div", 
+                                        {
+                                            style:"position:absolute;top:0px;right:0px;padding:3.5px"
+                                        },
+                                        m("span",
+                                                m("a",{
+                                                    class:"material-icons",
+                                                    style:`color:red;${request.votes[user.coduser] == -1 ? 'opacity:1;': 'opacity:0.5;'}`, 
+                                                    onclick:(e) => {
+                                                        if(!request.votes[user.coduser] && request.points){
+                                                            request.votes[user.coduser] = -1
+                                                            request.points--;
+                                                        }
+                                                        //si has votado positivamente
+                                                        else if(request.votes[user.coduser] == 1 && request.points){
+                                                            request.points--;
+                                                            if(request.points){
+                                                                request.points--;
+                                                                request.votes[user.coduser] = -1
+                                                            }else {
+                                                                delete request.votes[user.coduser]
+                                                            }
+                                                        }
+                                                        // si has votado negativamente se te quita
+                                                        else if(request.votes[user.coduser] == -1){
+                                                            request.points++;
+                                                            delete request.votes[user.coduser]
+                                                        }
+                                                
+                                                        updateRequest(request)
+                                                    }
+                                                },"arrow_downward"),
+                                        ),
+                                        m("span",
+                                            m("a",{
+                                                class:"material-icons",
+                                                style:`color:green;${request.votes[user.coduser] == 1 ? 'opacity:1;': 'opacity:0.5;'}`, 
+
+                                                onclick:(e) => {
+                                                    if(!request.votes[user.coduser]){
+                                                        if(!request.points){request.points = 0}
+                                                        request.votes[user.coduser] = 1
+                                                        request.points++;
+                                                    }else if(request.votes[user.coduser] == 1){
+                                                        request.points --;
+                                                        delete request.votes[user.coduser]
+                                                    }else if(request.votes[user.coduser] == -1){
+                                                       request.points += 2
+                                                       request.votes[user.coduser] = 1
+                                                    }
+
+                                                    updateRequest(request)
+
+                                                } 
+                                            },"arrow_upward"),
+                                        ),
+
+                                        m("span", {style:"font-size:1.1em"},
+                                            request.points || 0
+                                        )
+                                    )
+
+                                )   
+                            )
+                        )
+                    })
+            }
+        }
+    }
+
+    function ModalRequest(){
+        let data = {}
+        return {
+            view:(vnode) => {
+                return m(Modal,
+                    {
+                        center: true,
+                        id: 'modal-request'
+                    },
+                    m(ModalHeader,
+                        "Add " +  adding
+                    ),
+                    m(ModalBody,
+                        m(Form,
+                            m(FormLabel,
+                                "Title"
+                            ),
+                            m(TextField, { data: data, name: "title", type: "input" }),
+                            
+                            m(FormLabel,
+                                "Description"
+                            ),
+                            m(TextField, { data: data, name: "description", type: "textarea", rows:'4'}),
+                        )
+                    ),
+                    m(ModalFooter,
+                        m(Button, { 
+                            style: "float:right", 
+                            onclick:(e) => {
+                                if(confirm('You are going to post a request to the server. Are you sure?')){
+                                    data.type = adding
+                                    data.cod = create_UUID()
+                                    data.state = 'open'
+                                    data.coduser = user.coduser
+                                    data.username = user.nombre
+                                    data.points = 0
+                                    postRequest(data)
+                                }
+                            }
+                         }, "Send")
+                    )
+                )
+            }
+        }
+
+
+    }
+
+    function ViewRequest(){
+        let startedcomment = false;
+        let data = {}
+
+        return {
+            view:(vnode)=> {
+                return m(Section,
+                    {
+                        type:'muted',
+                        style:"position:relative"
+                    },
+                    m(Padding,
+                        m("h3", 
+                            selectedrequest.title,
+                            m("span",{style:"font-size:0.9em;color:lightgrey"},  '  by  ' + selectedrequest.username)
+                        ),
+                        m(Grid,
+                            m(Column,{width:'1-1'},
+                                m("div", selectedrequest.description)
+                                )
+                            ),
+                             
+                            m(Column,{width:'1-1'},
+                                m(TextField, {
+                                    data:data,
+                                    type:"textarea",
+                                    rows:'4',
+                                    placeholder:'Tell us what you think',  
+                                    style:"margin-top:20px",                                  
+                                    name:'comment',
+                                })
+                            ),
+
+                            m(Column, {width:'1-3'},
+                                m(Button, 
+                                    {
+                                        style:"background-color:blue;margin-top:5px;color:white;",
+                                        onclick:(e)=> {
+                                            if(data.comment){
+                                                if(!selectedrequest.comments){
+                                                    selectedrequest.comments = []
+                                                }
+                                                selectedrequest.comments.push({
+                                                    'comment':data.comment,
+                                                    'username':user.nombre,
+                                                    'date':new Date(),
+                                                    'coduser':user.coduser
+                                                })
+                                                data.comment = ''
+                                                updateRequest(selectedrequest)
+                                            }
+                                        }
+                                    },
+                                    "Comentar"
+                                )
+                            ),
+                            
+                            selectedrequest.comments && selectedrequest.comments.map((comment)=> {
+                                return m(Column,{width:'1-1'},
+                                    m(Card,{style:"margin-top:10px"},
+                                        m(CardBody, 
+                                            comment.comment, 
+                                            m("span",{style:"color:grey;font-size:1.1em"}, 'by ' + comment.username),
+                                            
+                                            m("span",{style:"position:absolute;top:5px;right:5px"}, )
+                                        )    
+                                    )
+                                )
+                            })
+                        ),
+                        m(".material-icons",
+                        {
+                            style:"position:absolute;top:10px;right:10px;font-size:25px;cursor:pointer", 
+                            onclick:(e) => selectedrequest = {}
+                        }, "close")
+                )
+            }
+        }
+    }
+
+    return {
+        oninit:(vnode) => {
+            getUser(vnode.attrs.cod).then((usr) => {
+                user = usr
+                console.log(user)
+                loaded = true
+                m.redraw()
+            })
+
+            getRequests().then((res) => {
+                console.log(res)
+                issues = res.filter((item)  => item.type =='issue')
+                suggestions = res.filter((item) => item.type =='suggestion')
+            })
+        },
+        view:(vnode) => {
+            return  m(Padding,
+            loaded ?  m(Grid, {
+                size:'large',   
+                },
+                m(Column, {width:'1-3'},
+                    m("img", {src:user.image, style:"width:100%;height:auto"}),
+                    m(Button,
+                        {
+                        type:"secondary", 
+                        style:"width:100%;margin:10px auto", 
+                        target: '#modal-request', 
+                        onclick:(e) => adding = 'issue'
+                        },
+                        "ADD ISSUE"
+                    ),
+                    m(Button,
+                        {
+                        type:"secondary", 
+                        style:"width:100%;margin:10px auto", 
+                        target: '#modal-request', 
+                        onclick:(e) => adding = 'suggestion'
+                        },
+                        "ADD SUGGESTION"
+                    ),
+                    m(ModalRequest),
+                    m(Button, {type:"danger",style:"width:100%;margin:10px auto"}, "LOG OUT")
+                ),
+
+                selectedrequest.cod ? 
+                m(Column,{width:'2-3'},
+                    m(ViewRequest)
+                )
+                :
+                m(Column,{width: '2-3'},
+                    m(Grid,
+                        m(Row,
+                            m(".ui.secondary.pointing.menu",
+                                m("a.item",
+                                    {
+                                        onclick:(e)=> {
+                                            showing = 'data'
+                                        },
+                                        class: showing == 'data' ? 'active': '',
+                                    },
+                                    "User Data"
+                                ),
+                                m("a.item",
+                                    {
+                                        onclick:(e)=> {
+                                            showing ='issues'
+                                        },
+                                        class: showing == 'issues' ? 'active':'',
+                                    },
+                                    "Issues"
+                                ),
+                                m("a.item",
+                                    {
+                                        onclick:(e)=> {
+                                            showing ='suggestions'
+                                        },
+                                        class: showing == 'suggestions' ? 'active':'',
+                                    },
+                                    "Suggestions"
+                                )
+                            ),    
+                        ),
+                        showing == 'data' ? 
+                        m(UserData) :
+                        showing == 'issues' ?
+                        m(ListOfRequests, {issue: true, elements: issues})
+                        : 
+                        m(ListOfRequests, {issue: false, elements: suggestions})
+
+                    )
+                )
+            ): null
+            ) 
+        }
+    }
+}
+
+
+
 m.route(document.body, "/", {
     "/": {
         render: function (vnode) {
@@ -1400,6 +1888,12 @@ m.route(document.body, "/", {
     '/contentview/:cod': {
         render: (vnode) => {
             return m(Layout, vnode.attrs, ContentView)
+        }
+    },
+
+    '/profile/:cod' :{
+        render: (vnode) => {
+            return m(Layout, vnode.attrs, ProfileView)
         }
     }
 
