@@ -1,4 +1,4 @@
-import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent } from './server.js'
+import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
 import { LessonSlide, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
@@ -69,7 +69,6 @@ function Layout() {
         }
     }
 
-
     return {
         view: (vnode) => {
             return [
@@ -135,7 +134,7 @@ function ContentManagement() {
     let lessons = [];
     let filter = { 'stagenumber': 1, 'type': 'lessons' }
     let stages = []
-    let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
 
     let content = [];
     let filteredcontent = [];
@@ -349,7 +348,6 @@ function ContentManagement() {
                                             Object.keys(json.content).map((key, i) => {
                                                 return m(Column, { width: '1-3' },
                                                     m(MeditationSlide, { data: json['content'], name: key, })
-
                                                 )
                                             }) : null,
                                         m(Column,
@@ -375,9 +373,14 @@ function ContentManagement() {
                                         if (step == 1) { step++; index = 1; }
                                         else {
                                             json.cod = create_UUID();
-                                            json.stagenumber = Number(json.stagenumber)
+                                            if(json.stagenumber == 'none'){
+                                                json.stagenumber = 'none'
+                                            }else{
+                                                json.stagenumber = Number(json.stagenumber)
+                                            }
                                             addContent(json);
                                             document.getElementById('closemodalmed').click();
+                                            console.log('added meditation !')
                                             json = {
                                                 'cod': '',
                                                 'title': '',
@@ -632,7 +635,7 @@ function ContentManagement() {
                 return vnode.attrs.content.sort((a,b)=> b.position - a.position).map((content) => {
                     return m("div.uk-width-1-4@m",
                         m(".uk-card.uk-card-default",
-                            {style: !content.position ?" opacity:0.5":''},
+                            {style: content.position == undefined  ?" opacity:0.5":''},
                             content.image ?
                                 m("uk-card-media-top",
                                     m("img", { src: content.image })
@@ -660,6 +663,7 @@ function ContentManagement() {
 
         let position = { 'selected': 0 }
         let path_filter = 'Lessons'
+        let filteredcontent = []
 
         let edit = false;
 
@@ -697,9 +701,10 @@ function ContentManagement() {
                                             m("p", "Obstacles :", m(TextField, { data: stage, name: "obstacles", type: "input" })),
                                             m("p", "Skills :", m(TextField, { data: stage, name: "skills", type: "input" })),
                                             m("p", "Mastery :", m(TextField, { data: stage, name: "mastery", type: "input" })),
+                                            
                                         ],
-                                    m("strong", "Short text"),
-                                    m(TextEditor,{data:stage,name:'shorttext'})
+                                    m("strong", "Long description"),
+                                    m(TextEditor,{data:stage,name:'longdescription'}),
                                 ),
                                 m(Column, { width: '1-3' },
                                     m(Grid,
@@ -721,6 +726,9 @@ function ContentManagement() {
                                             m("span", "Minutes"),
                                             m(TextField, { data: stage['objectives']['meditation'], name: "count", type: "number", placeholder: "count" })
                                         ),
+                                            
+                                        m("strong", "Image description"),
+                                        m(TextEditor,{data:stage,name:'shorttext'}),
                                     )
                                 ),
                                 m(Column,{width:'1-3'},
@@ -755,11 +763,7 @@ function ContentManagement() {
                     return m(Column, { width: '1-2' },
                         m("h3", path_filter),
                         m(Grid, { size: "small" },
-                            content.filter((elem) => elem.position == null).map((cont) => {
-                                if (path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type!= 'meditation-game' || 
-                                    path_filter == 'Meditations' && cont.type == 'meditation-practice' ||
-                                    path_filter =='Games' && cont.type =='meditation-game'                                
-                                    ) {
+                           filteredcontent.filter((c)=>c.position ==null).map((cont) => {
                                     return m(Column, { width: '1-3' },
                                         m(Card,
                                             m(CardHeader,
@@ -789,6 +793,12 @@ function ContentManagement() {
                                                             type: "primary",
                                                             onclick: (e) => {
                                                                 toadd.position = Number(position.selected);
+                                                                let ctwithlessposition = filteredcontent.filter((c)=> c.position >= toadd.position)
+                                                                if(ctwithlessposition.length > 0){
+                                                                    ctwithlessposition.map((c)=>{
+                                                                        c.posti
+                                                                    })
+                                                                }
                                                                 updateContent(toadd)
                                                                 position.selected = 0
                                                             }
@@ -799,7 +809,7 @@ function ContentManagement() {
                                         )
                                     )
                                 }
-                            })
+                            )
                         )
                     )
 
@@ -812,21 +822,38 @@ function ContentManagement() {
                 view: (vnode) => {
                     return m(Column, { width: '1-2' },
                         m("h1", "The path"),
-                        content.filter((elem) => elem.position != null).sort((a, b) => a.position - b.position).map((cont) => {
-                            if (path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type != 'meditation-game' 
-                            || path_filter == 'Meditations' && cont.type == 'meditation-practice' 
-                            || path_filter =='Games' && cont.type =='meditation-game')
+                        filteredcontent.filter((elem) => elem.position != null).sort((a, b) => a.position - b.position).map((cont) => {
                                 return m(Grid,
                                     m(Column, { width: '1-3' },
                                         m(Card,
                                             m(CardBody,
                                                 m("label", cont.title),
+                                                m("strong",cont.position),
+                                            ),
+                                            m(CardFooter,
+                                                m(Button, {
+                                                    type:'secondary',
+                                                    onclick:(e)=>{
+                                                        m.route.set('/editlesson/' + cont.cod)
+                                                    }
+                                                },"View"),
                                                 m(Button, {
                                                     type: "danger",
                                                     style: "margin-top:3px",
-                                                    onclick: (e) => { cont.position = null; updateContent(cont); }
+                                                    onclick: (e) => { 
+                                                        cont.position = null; 
+                                                        let contentwithmoreposition = filteredcontent.filter((c) => c.position > cont.position);
+                                                        contentwithmoreposition.map((c)=> {
+                                                            c.position-=1;
+                                                            updateContent(c);
+                                                        })
+
+                                                        console.log(cont)
+
+                                                        updateContent(cont); 
+                                                    }
                                                 }, "Remove")
-                                            ),
+                                            )
                                         )
                                     )
                                 )
@@ -842,6 +869,13 @@ function ContentManagement() {
                 //esto podría quitarlo
                 if (!stage.objectives) { stage.objectives = { 'meditation': {}, }; console.log(stage) }
                 if (!stage.meditations) { stage.meditations = {}; console.log(stage) }
+
+                filteredcontent =content.filter( cont=>  (
+                    path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type != 'meditation-game' 
+                    || path_filter == 'Meditations' && cont.type == 'meditation-practice' 
+                    || path_filter =='Games' && cont.type =='meditation-game'
+                    )
+                )
 
                 return [
                     m(Row,
@@ -883,6 +917,16 @@ function ContentManagement() {
                                 m("td", user.stagenumber),
                                 m("td", user.role),
                                 m("td", 
+                                    m(Button, {
+                                        onclick:(e)=> {
+                                            if(user.role == 'admin'){
+                                                user.role = 'meditator'
+                                            }else{
+                                                user.role ='admin'
+                                            }
+                                            updateUser(user)
+                                        }
+                                    }, user.role == 'admin' ? 'Quitar admin': "Hacer admin"),
                                     m(Button, {
                                         onclick:(e) => {
                                             if(confirm('Estás seguro que quieres eliminar?')){
@@ -929,21 +973,32 @@ function ContentManagement() {
                                 data: filter,
                                 name: "stagenumber",
                                 onchange: (e) => {
-                                    getContent(Number(e.target.value)).then((res) => {
-                                        content = res;
-                                        filter.type == 'meditations' ?
-                                        filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
-                                        filter.type == 'lessons' ?
-                                        filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
-                                        filter.type == 'games' ?
-                                        filteredcontent = content.filter((item) => item.type == 'meditation-game') :
-                                        
-                                        console.log(filter.type, filteredcontent)
-                                        m.redraw();
-                                    })
+                                    if(e.target.value == 'none' ){
+                                        getContent(e.target.value).then((res) => {
+                                            content = res;
+                                            filter.type == 'meditations' ?
+                                            filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
+                                            filter.type == 'lessons' ?
+                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
+                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') 
+                                        });
+                                        console.log('getting no content')
+                                    }else{
+                                        getContent(Number(e.target.value)).then((res) => {
+                                            content = res;
+                                            filter.type == 'meditations' ?
+                                            filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
+                                            filter.type == 'lessons' ?
+                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
+                                            filter.type == 'games' ?
+                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') :
+                                            console.log('EERROR',filter.type, filteredcontent)
+                                            m.redraw();
+                                        })
+                                    }
                                 }
                             },
-                            stages.map((stage) => stage.stagenumber)
+                            stagenumbers
                         )
                     ),
                     m(Column, { width: '1-5' },

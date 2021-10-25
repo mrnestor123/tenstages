@@ -111,7 +111,8 @@ function LessonSlide() {
                     m("div", { style: "position:absolute;right:5;top:5" },
                         m("a", { 'uk-icon': 'icon:trash', style: "color:red", onclick: (e) => data.splice(index, 1) })
                     )
-                )
+                ),
+                m(Button,{style:"color:red",onclick:(e)=> data.splice(index, 1)}, "DELETE")
             )
         }
     }
@@ -124,7 +125,7 @@ function MeditationSlide() {
             'image': () => m(Image),
             'text': () => m(Text, { type: "text" }),
             'title': () => m(Text, { type: "title" }),
-            'type': () => null
+            'html': ()=> m(TextEditor,{data:object, name:'html'})
         }
         let editing = true
         let object = {}
@@ -162,7 +163,6 @@ function MeditationSlide() {
                 return m(Card,
                     m(CardBody, { style: "padding:0px" },
                         Object.keys(object).map((key) => {
-                            console.log(key)
                             return types[key] ? types[key]() : ''
                         })
                     )
@@ -173,9 +173,15 @@ function MeditationSlide() {
     }
 
     return {
+        oninit:(vnode)=>{
+            let {data,name} =  vnode.attrs
+
+
+        },
         view: (vnode) => {
             let { data, name } = vnode.attrs
             return [
+                //ESTO SE PODRÍA MEJORAR !!
                 m(Select, { data: data, name: name },
                     [
                         { 'label': 'text', value: { 'text': data[name]['text'] || '', 'type': "text" } },
@@ -185,10 +191,15 @@ function MeditationSlide() {
                         { 'label': 'image_text', value: { 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type': "image_text" } },
                         { 'label': 'title_image_text', value: { 'title': data[name]['title'] || '', 'image': data[name]['image'] || '', 'text': data[name]['text'] || '', 'type': "title_image_text" } },
                         { 'label': 'video', value: { 'video': '', 'type': "video" } },
-                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '', 'type': "video_text" } }
+                        { 'label': 'video_text', value: { 'video': '', 'text': data[name]['text'] || '', 'type': "video_text" } },
+                        { 'label': 'html', value: { 'html':  data[name]['html'] || ''}},
+                        { 'label': 'image_html', value: {'image':'','html': data[name]['html'] || ''}}
                     ]
                 ),
-                data[name] ? m(SwitchType, { data: data, name: name, editing: true }) : null
+                data[name] ? m(SwitchType, { data: data, name: name, editing: true }) : null,
+                m(Button,{style:"color:red", onclick:(e)=> { delete data[name]}}, "Delete"),
+                m(Button,{onclick:(e)=>{}},"RIGHT"),
+                m(Button,{onclick:(e)=>{}},"LEFT")
             ]
         }
     }

@@ -387,6 +387,18 @@ async function updateRequest(request){
     });
 }
 
+async function updateUser(user){
+    let query = await db.collection('users').where('coduser', '==', user.coduser).get()
+    let docID = query.docs[0].id
+
+    db.collection('users').doc(docID).update(user).then(function () {
+        console.log("Document successfully updated!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+    });
+}
+
 async function deleteContent(content){
     let query = await db.collection('content').where('cod', '==', content.cod).get()
     let docID = query.docs[0].id
@@ -403,4 +415,4 @@ async function deleteContent(content){
 
 
 
-export { getLessons, addLesson, addContent,postRequest, getRequests,updateRequest, getUsers, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+export { getLessons, addLesson, addContent,postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

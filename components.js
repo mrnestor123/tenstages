@@ -220,7 +220,6 @@ function Select() {
                         } else {
                             return m("option", child)
                         }
-
                     })
                 ]
             )
