@@ -1,7 +1,7 @@
 import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
-import { LessonSlide, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
+import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
 
 let primarycolor = '#E0D5B6'
 
@@ -254,6 +254,7 @@ function ContentManagement() {
                                             else {
                                                 console.log(json)
                                                 json.cod = create_UUID();
+                                                json.stagenumber = Number(json.stagenumber)
                                                 addContent(json);
                                                 document.getElementById('closemodal').click();
                                                 json = { 'type': 'lesson' }
@@ -1110,18 +1111,25 @@ function EditContent() {
         return {
             view:(vnode)=>{
                 return [
-                    content.text ? 
-                        content.text.map((item, i) => {
-                            return m(Column, { width: "1-4" },
-                                m(LessonSlide, { data: content.text, index: i, item: item })
-                            )
-                        }) 
-                        : 
+                    /*m(Column,{
+                        width:'1-4'
+                    },
+                        m("strong", "Help text"),
+                        m(TextEditor, { 
+                            data: content, 
+                            name: "help", 
+                            type: "textarea", 
+                            rows: "3", 
+                        }),
+                    ),*/
+
+                    // TENDRIA QUE  SER LESSONSLIDES
+                    content.text ? m(LessonSlides,{data:content, name:'text'})
+                    : 
                         null,
                         editar ? 
-                        m("a.uk-width-1-4@m",
-                            {
-                                'uk-icon': 'icon:plus',
+                        m(Button,
+                            {   
                                 onclick: (e) => {
                                     if(!content.text){
                                         content.text = []
@@ -1129,7 +1137,7 @@ function EditContent() {
 
                                     content.text.push({ 'text': "Edit this text", 'image': "" })    
                                 }
-                            }
+                            },"ADD SLIDE"
                         ) : null
                 ]    
             }

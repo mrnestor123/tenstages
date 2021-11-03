@@ -74,7 +74,7 @@ function ImagePicker() {
                                             m(Grid,
                                                 images.map((src, index) => {
                                                     return m(Column, { width: '1-3' },
-                                                        src.match('jpeg|jpg|gif|png') ?
+                                                        src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                                         m("img", { src: src, onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '' }) :
                                                         m("video", {src:src, onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '', 'controls':true })
                                                     )
@@ -90,7 +90,50 @@ function ImagePicker() {
         }
     }
 }
+function LessonSlides(){
+    let data,name
 
+    function goBackForward(index, back){
+        let auxarray = data[name].map((el)=> el)
+        let position = index + (back ? -1 : 1)
+        auxarray[position] = data[name][index] 
+        auxarray[index] = data[name][position]
+        data[name] = auxarray
+        m.redraw()
+    }
+
+
+    return{
+        oninit:(vnode)=>{
+            data= vnode.attrs.data
+            name= vnode.attrs.name
+        },
+        view:(vnode)=>{
+            return data[name].map((item, i) => {
+                return m(Column, { width: "1-4" },
+                    m(LessonSlide, { data: data[name], index: i, item: item}),
+                    i != 0 ? 
+                    m(Button,
+                     {
+                         onclick:(e)=>{
+                            goBackForward(i,true)
+                         }
+                     },
+                     "Move left"
+                    ) : null,
+                    m(Button,
+                        {
+                            onclick:(e)=>{
+                               goBackForward(i)
+                            }
+                        },
+                        "Move right"
+                    ),
+                )
+            }) 
+        }
+    }
+}
 function LessonSlide() {
     return {
         view: (vnode) => {
@@ -108,9 +151,11 @@ function LessonSlide() {
                 m(CardBody,
                     { style: "padding:0px" },
                     m(TextEditor, { data: data[index], name: "text", type: "textarea", rows: "10", style: "margin:0px;font-size:0.9em;padding:5px" }),
+                    m("strong","Help text"),
+                    m(TextEditor, {data:data[index], name:'help'}),
                     m("div", { style: "position:absolute;right:5;top:5" },
                         m("a", { 'uk-icon': 'icon:trash', style: "color:red", onclick: (e) => data.splice(index, 1) })
-                    )
+                    ),
                 ),
                 m(Button,{style:"color:red",onclick:(e)=> data.splice(index, 1)}, "DELETE")
             )
@@ -225,6 +270,6 @@ function FollowAlongSlide(){
 }
 
 
-export { MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide }
+export { MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide, LessonSlides }
 
 
