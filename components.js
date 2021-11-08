@@ -487,7 +487,7 @@ function TextEditor() {
                 style: vnode.attrs.style ? vnode.attrs.style : undefined
             },
                 m('.ui.row', { style: 'position:relative' },
-                    !vnode.attrs.hidecontrols 
+                    vnode.attrs.showcontrols 
                     ? [                        
                         topbuttons.map((span) => {
                         return m('.ui.tiny.icon.compact.menu', { style: 'margin:5px;' },
@@ -523,18 +523,18 @@ function TextEditor() {
                                     }, "3 columna")
                                 ])
                             ])
-                        ])
+                        ]),
+                    
+
+                        m(".ui.compact.tiny.icon.menu",
+                            {
+                                style: 'margin:5px;',
+                                onclick:(e) => document.getElementById('input-hidden').click()
+                            },
+                            m("a.item", m("i.image.icon"))
+                        ),
                     ] 
-                    : null,
-
-                    m(".ui.compact.tiny.icon.menu",
-                        {
-                            style: 'margin:5px;',
-                            onclick:(e) => document.getElementById('input-hidden').click()
-                        },
-                        m("a.item", m("i.image.icon"))
-                    ),
-
+                : null,
                 ),
 
                 m(".ui.mini.button", { onclick: () => html = !html }, html ? "TEXT" : "HTML"),
