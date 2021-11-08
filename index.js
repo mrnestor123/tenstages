@@ -494,11 +494,17 @@ function ContentManagement() {
                                             {
                                                 width: '1-3',
                                                 style: "cursor:pointer",
-                                                'uk-icon': 'icon:plus',
                                                 onclick: (e) => {
                                                     json.questions.push({ 'question': '', 'answer': '' });
                                                 }
-                                            }
+                                            },
+                                            m("i",
+                                            {
+                                                style:"font-size:40px",
+                                                class: 'material-icons'
+                                            },
+                                            "add"
+                                            ) 
                                         )
                                     )
                                 ]
@@ -1141,10 +1147,10 @@ function EditContent() {
             view:(vnode) => {
                 console.log('game content')
                 return [ 
-                m(Column, {width: '1-3'},
+                m(Column, {width: '1-2'},
                     m("video", {src: content.video, 'controls': true})
                 ),
-                m(Column, {width: '1-3'}, 
+                m(Column, {width: '1-1'}, 
                     m("ul.uk-list.uk-list-divider",
                     content.questions.map((question,index) => {
                         if(!question.key){
@@ -1172,7 +1178,22 @@ function EditContent() {
                                                 m(Column, {width:'1-2'},
                                                     m(TextField, {data: question.options, name: index}),
                                                 ),
-                                                m(Column, {width:'1-2'}, 
+                                                m(Column,{width:'1-4'},
+                                                    question.image  
+                                                    ?  m("img",{src:question.image, style:"width:50%;height:auto"})
+                                                    :m(ImagePicker,{
+                                                        data:question,
+                                                        name:'image',
+                                                        id:'question-images'
+                                                    }),
+                                                    
+                                                    m(Button,
+                                                        {
+                                                            target: '#question-images',
+                                                        }, 
+                                                        !question.image ? "Add image" : 'Change image'),
+                                                ),
+                                                m(Column, {width:'1-4'}, 
                                                 question.answer != index ?
                                                     m(Button, {
                                                     onclick:(e) => {
@@ -1186,9 +1207,9 @@ function EditContent() {
                                 ),
 
                                 editar ? [
+                                    
                                     m("div.uk-width-1-3@m", 
                                         {   
-                                            'uk-icon':'icon:trash', 
                                             style:"cursor:pointer;color:red", 
                                             onclick:(e) => {content.questions.splice(index,1)}
                                         }, 
@@ -1196,7 +1217,6 @@ function EditContent() {
                                         
                                     m("div.uk-width-1-3@m", 
                                     {   
-                                        'uk-icon':'icon:plus', 
                                         style:"cursor:pointer;color:blue", 
                                         onclick:(e) => {question.options.push('Answer')}
                                     }, 
@@ -1204,11 +1224,13 @@ function EditContent() {
 
                                     m("div.uk-width-1-3@m", 
                                     {   
-                                        'uk-icon':'icon:plus', 
                                         style:"cursor:pointer;color:red", 
-                                        onclick:(e) => {question.options.pop()}
+                                        onclick:(e) => {
+                                            console.log('deLeting answers')
+                                            question.options.pop()
+                                        }
                                     }, 
-                                    "Delete answer")
+                                    "Delete last answer")
                                 ] : null, 
                             ),                     
                         ]
@@ -1218,6 +1240,7 @@ function EditContent() {
                     m("a.uk-width-1-1@m",
                             {
                                 'uk-icon': 'icon:plus',
+                                style:"margin-bottom:10px;",
                                 onclick: (e) => {
                                     if(!content.questions){
                                         content.questions = []
@@ -1301,7 +1324,11 @@ function EditContent() {
 
                         m(Column, { width: '1-3' },
                             m(".uk-text-bold", 'Type'),
-                            m(Select, { data: content, name: 'type' }, types)
+                            m(Select, { data: content, name: 'type' }, types),
+                            content.type == 'meditation-practice' ? [ 
+                                m(".uk-text-bold"," Minimum duration"),
+                                m(TextField,{type:'input',data:content,name:'duration'})
+                            ]: null,
                         ),
 
                         m(Column, { width: "1-4" },
@@ -1343,7 +1370,6 @@ function errorPageComponent() {
         }
     }
 }
-
 
 //PAGINA WEB. PASARLO A OTRO SITIO
 function MainScreen() {
