@@ -1057,12 +1057,46 @@ function EditContent() {
 
 
     function MeditationContent() {
+        let aux ;
+
         return {
+            oninit:(vnode)=>{
+                //HACER ESTO PARA LAS LESSONNS !!!!
+                let aux = 0;
+                if(content.content) {
+                    let contentlast=0
+
+                    Object.keys(content.content).map((key,index)=>{
+                        let aux = Number(key)
+                        console.log(aux,contentlast)
+                        if (key != 0 && aux - 1 != contentlast){
+                            content.content[Number(contentlast)+1] = content.content[key]
+                            delete content.content[key]
+                        }
+
+                        contentlast = Number(key)
+                    })
+                }
+
+                if(content.followalong){
+                    let followalonglast = 0
+
+                    Object.keys(content.followalong).map((key)=>{
+                        let aux = Number(key)
+                        if (key != 0 && aux - 1 != followalonglast){
+                            content.followalong[Number(followalonglast)+1] = content.followalong[key]
+                            delete content.followalong[key]
+                        }
+                        followalonglast = Number(key)
+                    })
+                }
+            },
             view:(vnode) => {
                 return  [
                     m(Column, {width:'1-1'}, 
                         m("strong", "Before meditation")
                     ),    
+                    //CONTENT NO ES UN BUEN NOMBRE!!! :(
                     content.content ? 
                         Object.keys(content.content).map((key) => {
                             return m(Column, { width: '1-4' },
@@ -1078,7 +1112,7 @@ function EditContent() {
                             onclick: (e) => {      
                                 if(!content.content) {
                                     content.content = {}
-                                }                        
+                                }                      
                                 content.content[Object.keys(content.content).length] = { 'text': 'Edit this text', 'type': 'text' }
                             }
                         },

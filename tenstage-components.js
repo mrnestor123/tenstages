@@ -204,7 +204,6 @@ function MeditationSlide() {
         return {
             view: (vnode) => {
                 object = vnode.attrs.data[vnode.attrs.name]
-                console.log(object)
                 return m(Card,
                     m(CardBody, { style: "padding:0px" },
                         Object.keys(object).map((key) => {
