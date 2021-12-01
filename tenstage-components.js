@@ -141,11 +141,15 @@ function LessonSlide() {
             return m(Card,
                 { size: "small" },
                 m(CardMedia,
+                    data[index].image ? 
+                    m("a.ui.red.label",{onclick:(e)=>data[index].image = ''},"Delete  image"):null,
+
                     m("img", {
                         src: item.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg",
                         'uk-toggle': `target:#text-images${index}`,
                         style: "cursor:pointer; width:100%"
                     }),
+                    
                     m(ImagePicker, { data: data[index], name: "image", id: `text-images${index}` })
                 ),
                 m(CardBody,
