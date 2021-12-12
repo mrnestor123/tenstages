@@ -1,4 +1,4 @@
-import { getLessons, getLesson, addContent, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser } from './server.js'
+import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
 import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
@@ -635,6 +635,65 @@ function ContentManagement() {
 
     }
 
+    function AddVersion(){
+        let json = {
+            'versionNumber':'',
+            'description':'', 
+            'content':[]
+        }
+
+        return {
+            view:(vnode)=>{
+                return [
+                    m(Button,
+                    {
+                        'target': '#modal-version',
+                    },
+                    "Version"),
+                m(Modal,
+                    {
+                        id: "modal-version",
+                        center: true
+                    },
+                    m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'closemodal' }),
+                    m(ModalHeader, m(".uk-modal-title","Add Version")),
+                    m(ModalBody,
+                        m("form.uk-form-stacked.uk-grid-small", { 'uk-grid': '' },
+                            m(Row,
+                                m(FormLabel, "VersionNumber"),
+                                m(TextField,{type:'input',data:json,name:'versionNumber'})    
+                            ),
+                            m(Row,
+                                m(FormLabel, "Description"),
+                                m(TextField,{type:'input',data:json,name:'description'})    
+                            ),
+                            m(Row,
+                                m(FormLabel, "Content"),
+                                json.content.map((content)=>
+                                    m(TextField,{type:'input',data:content,name:'text'})
+                                ),
+                                m(Button,{onclick:(e)=> json.content.push({})}, "Add Content")
+                            ),
+                        )
+                    ),
+                   
+                    m(".uk-modal-footer.uk-text-right",
+                        m("button.uk-button.uk-button-primary",
+                            {
+                                onclick: (e) => {
+                                    addVersion(json);
+                                    document.getElementById('closemodal').click();
+                                    json = {'content':[]}
+                                }
+                            },
+                            "Create")
+                    )
+                )    
+                ]          
+            }
+        }
+    }
+
     //para ver meditaciones y lecciones
     function ContentView() {
         return {
@@ -1035,7 +1094,8 @@ function ContentManagement() {
                         m(AddLesson),
                         m(AddMeditation),
                         m(AddStage),
-                        m(AddGame)
+                        m(AddGame),
+                        m(AddVersion)
                     ),
                     filter.type == 'stage' ?
                         m(PathView) :

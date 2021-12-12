@@ -410,9 +410,12 @@ async function deleteContent(content){
         console.error("Error deleting document: ", error);
     });
 }
- 
 
 
+async function addVersion(version){
+    var query = await db.collection('versions').add(version);
+    return true
+}
 
 
-export { getLessons, addLesson, addContent,postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+export { getLessons, addLesson, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
