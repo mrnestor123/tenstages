@@ -994,6 +994,17 @@ function ContentManagement() {
                                         }
                                     }, user.role == 'admin' ? 'Quitar admin': "Hacer admin"),
                                     m(Button, {
+                                        onclick:(e)=> {
+                                            if(user.role == 'teacher'){
+                                                user.role = 'meditator'
+                                            }else {
+                                                user.role ='teacher'
+                                            }
+                                            updateUser(user)
+                                        }
+                                    }, user.role == 'teacher' ? 'Quitar profesor': "Hacer profesor"),
+
+                                    m(Button, {
                                         onclick:(e) => {
                                             if(confirm('Estás seguro que quieres eliminar?')){
                                                 console.log(user)
