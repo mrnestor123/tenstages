@@ -31,7 +31,6 @@ async function getLessons(stagenumber) {
 
     for (let doc of query.docs) {
         let lesson = doc.data();
-        let storageRef = storage.ref();
         lessons.push(lesson)
     }
 
