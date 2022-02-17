@@ -49,6 +49,8 @@ function ImagePicker() {
                                             id: `file-chooser-${rndnmb}`,
                                             onsuccess: (src) => { images.push(src) }
                                         }),
+                                        
+                                        /*
                                         m(Button, {
                                             onclick: (e) => {
                                                 if (selectedindex != null) {
@@ -57,7 +59,7 @@ function ImagePicker() {
                                                     m.redraw()
                                                 }
                                             }
-                                        }, "Delete"),
+                                        }, "Delete"),*/
                                     ),
                                     m(Column, { width: '1-2' },
                                         m("label", "Select stage"),
@@ -90,6 +92,8 @@ function ImagePicker() {
         }
     }
 }
+
+
 function LessonSlides(){
     let data,name
 
@@ -134,6 +138,8 @@ function LessonSlides(){
         }
     }
 }
+
+
 function LessonSlide() {
     return {
         view: (vnode) => {
@@ -166,7 +172,6 @@ function LessonSlide() {
         }
     }
 }
-
 
 function MeditationSlide() {
     function SwitchType() {
@@ -220,6 +225,7 @@ function MeditationSlide() {
 
     }
 
+    
     return {
         oninit:(vnode)=>{
             let {data,name} =  vnode.attrs

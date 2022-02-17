@@ -2,26 +2,30 @@ import { getLessons, getLesson, addContent,addVersion, getImages, getStage, upda
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
 import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
+import { User } from './user.js'
 
 let primarycolor = '#E0D5B6'
 
+let user = {};
+
 function Layout() {
     let route = 'home'
-    let loggeduserin = {};
+    // DE MOMENTO PASAMOS EL USUARIO ASI !!!
 
     function LoginModal() {
         let data = {};
-        let user;
         let errormessage = undefined;
         
         async function log({type, email, password}){
-            var result = await login({type:type,email: email,password: password})
+            console.log(type,email,password)
+            var result = await login({type:type, email: email, password: password})
 
-            console.log(result)
+            console.log(result, result.uid)
             
             if(result.uid){
                 localStorage.setItem('meditationcod', result.uid)
-                loggeduserin = await getUser(result.uid)
+             //   user  = await getUser(result.uid)
+                location.reload()
             }else{
                 errormessage = result;
             }
@@ -45,24 +49,23 @@ function Layout() {
                             ),
                             //m(".uk-inline",
                             //  m("span.uk-form-icon",{'uk-icon':'icon:user'}),
-                            m(TextField, { data: data, name: "username", type: "input" }),
+                            m(TextField, { data: data, name: "email", type: "input" }),
                             //),
                             m(FormLabel,
                                 "Password"
                             ),
-                            m(TextField, { data: data, name: "username", type: "input" }),
+                            m(TextField, { data: data, name: "password", type: "input" }),
                             
                             errormessage ? m("div",{style:"font-size:1.1em;color:red"}, errormessage) : null,
-
-                            )
+                        )
                     ),
                     m(ModalFooter,
                         m("uk-text-left",
-                        //CAMBIAR
-                            m(".uk-icon-button", { 'uk-icon': 'facebook', onclick: (e) => log({type:'facebook'}) }),
-                            m(".uk-icon-button", { 'uk-icon': 'google', onclick: (e) => log({type:'google'}) })
+                            //CAMBIAR
+                            //m("button", { 'uk-icon': 'facebook', onclick: (e) => log({type:'facebook'}) }),
+                            m(Button, { onclick: (e) => log({type:'google'}), style:"background-color:red;color:white;font-weight:bold"}, "Login with google" )
                         ),
-                        m(Button, { style: "float:right", onclick:(e) => log({type:'mail'})}, "Login")
+                        m(Button, { style: "float:right", onclick:(e) => log({type:'mail', email:data.email,password:data.password})}, "Login with MAIL")
                     )
                 )
             }
@@ -70,12 +73,19 @@ function Layout() {
     }
 
     return {
+        oninit:(vnode)=>{
+            if(localStorage.getItem('meditationcod')){
+                getUser(localStorage.getItem('meditationcod')).then((usr)=>{
+                    user = usr
+                })
+            }
+        },
         view: (vnode) => {
             return [
                 m("nav.uk-navbar-container", { 'uk-navbar': '' },
                     m("nav", { 'uk-navbar': '', style: "width:100%" },
                         m(".uk-navbar-left",
-                            m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px" })),
+                            m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
                             m("ul.uk-navbar-nav",
                                 m("li",
                                     {
@@ -84,13 +94,14 @@ function Layout() {
                                     },
                                     m("a", "Home ")
                                 ),
+                                user.role == 'teacher' || user.role =='admin' ?
                                 m("li.uk-active",
                                     {
                                         class: route == 'management' ? 'uk-active' : '',
                                         onclick: (e) => { route = 'management'; m.route.set('/management') }
                                     },
                                     m("a", "Content")
-                                )
+                                ) : null
                             )
                         ),
                         m(".uk-navbar-right",
@@ -122,7 +133,7 @@ function Layout() {
                     return m("main", m(Container, m(child, vnode.attrs)))
                 }),
 
-                m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
+                //m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
 
             ]
         }
@@ -1053,6 +1064,7 @@ function ContentManagement() {
                                     if(e.target.value == 'none' ){
                                         getContent(e.target.value).then((res) => {
                                             content = res;
+                                            // TIENE QUE HABER ALGUNA MANERA MEJOR DE SACAR ESTO !!!
                                             filter.type == 'meditations' ?
                                             filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
                                             filter.type == 'lessons' ?
@@ -1068,7 +1080,7 @@ function ContentManagement() {
                                             filter.type == 'lessons' ?
                                             filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
                                             filter.type == 'games' ?
-                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') :
+                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') : nulls
                                             console.log('EERROR',filter.type, filteredcontent)
                                             m.redraw();
                                         })
@@ -1085,6 +1097,7 @@ function ContentManagement() {
                                 data: filter,
                                 name: "type",
                                 onchange: (e) => {
+                                    // SE FILTRA MUCHAS VECES !!!
                                     filter.type == 'meditations' ?
                                         filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
                                         filter.type == 'lessons' ?
@@ -1094,10 +1107,11 @@ function ContentManagement() {
                                                 null
 
                                 
-                                                console.log(filter.type, filteredcontent)
                                 }
                             },
-                            ['lessons', 'stage', 'meditations', 'games', 'users']
+                            user.role == 'admin' ? 
+                            ['lessons', 'stage', 'meditations', 'games', 'users'] :
+                            ['lessons','stage','meditations']
                         )
                     ),
                     m(Column, { width: '3-5' },
@@ -1105,8 +1119,10 @@ function ContentManagement() {
                         m(AddLesson),
                         m(AddMeditation),
                         m(AddStage),
-                        m(AddGame),
-                        m(AddVersion)
+                        user.role == 'admin' ? [
+                            m(AddGame),
+                            m(AddVersion)
+                        ]: null
                     ),
                     filter.type == 'stage' ?
                         m(PathView) :
@@ -1394,6 +1410,7 @@ function EditContent() {
                                 onclick: () => editar = !editar },
                                 "Edit"
                             ) : [
+                                user.role == 'admin' ?
                             m("button.uk-button",
                                 {
                                     style:"color:white;background-color:red;margin-top:15px;margin-right:20px;",  
@@ -1405,7 +1422,7 @@ function EditContent() {
                                     }
                                 },
                                 "Delete"
-                            ),
+                            ) : null,
                             m("button.uk-button.uk-button-secondary",
                                 {
                                     style: "margin-top:15px",
@@ -1520,17 +1537,23 @@ function MainScreen() {
 
     return {
         oninit: (vnode) => {
-            getContent(1).then((res) => {
+            /*getContent(1).then((res) => {
                 content = res;
                 m.redraw();
-                console.log(content)
-            })
+            })*/
         },
         view: (vnode) => {
             return m(Grid,
                 {
                     center: true
                 },
+
+                m(Padding,{size:'large'},
+                    m("img",{src:'./assets/website-under-construction.jpeg',style:"width:100%;height:auto;margin-top:100px"})
+                )
+
+                
+                /*
                 m(Padding,
                     m(Row, m("div", { style: "font-family:Gotham Rounded; font-size:2em;text-align:center;" }, "Are you ready for enlightenment?")),
                     m(Row, { style: "text-align:center" }, m(Button, { type: "primary", style: `margin-top:15px;background-color:${primarycolor};text-align:center;` }, "Join"))
@@ -1591,7 +1614,7 @@ function MainScreen() {
 
 
 
-
+                    */
 
             )
         }
@@ -1610,9 +1633,7 @@ function ContentView() {
         },
         view: (vnode) => {
             return m(Grid,
-                {
-
-                },
+                {},
 
                 m(Column,
                     {
@@ -1957,6 +1978,7 @@ function ProfileView(){
 
     return {
         oninit:(vnode) => {
+            
             getUser(vnode.attrs.cod).then((usr) => {
                 user = usr
                 console.log(user)
@@ -1996,7 +2018,7 @@ function ProfileView(){
                         "ADD SUGGESTION"
                     ),
                     m(ModalRequest),
-                    m(Button, {type:"danger",style:"width:100%;margin:10px auto"}, "LOG OUT")
+                    m(Button, {type:"danger",style:"width:100%;margin:10px auto", onclick:(e)=>{localStorage.removeItem('meditationcod');user ={};m.route.set('/');}}, "LOG OUT")
                 ),
 
                 selectedrequest.cod ? 
@@ -2051,7 +2073,6 @@ function ProfileView(){
         }
     }
 }
-
 
 
 m.route(document.body, "/", {

@@ -16,7 +16,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-const API = `http://localhost:8802`
+const API = `https://public.digitalvalue.es:8002`
 
 var db = firebase.firestore()
 var storage = firebase.storage();
@@ -181,8 +181,9 @@ async function login({ type, email, password }) {
 
 ///DEVUELVE EL USUARIO DE LA APP
 async function getUser(cod){
+    //OJOOO
+  let user = await api_get(`${API}/connect/${cod}`)
 
-  let user = api_get(`${API}/connect/${cod}`)
 
   return user;
 }
@@ -300,8 +301,6 @@ async function getContent(stagenumber) {
     for (let doc of query.docs) {
         content.push(doc.data());
     };
-
-    console.log(content)
 
     return content;
 }
