@@ -91,13 +91,19 @@ async function updateContent(content) {
 }
 
 //esto podría ser una barra de carga?
-async function uploadFile(file, stage) {
-    var store = storage.ref('stage ' + stage + '/' + file.name);
-
+async function uploadFile(file, stage, path) {
+    var store;
+    if(path){
+        store = storage.ref(`${path}/${file.name}`)
+    }else{
+        store = storage.ref('stage ' + stage + '/' + file.name);
+    }
     //upload file
+    //PASAR ESTO A OTRO SITIO ???
     var upload = await store.put(file);
     let url = await upload.ref.getDownloadURL();
 
+    console.log('got file',url)
 
     return url;
 

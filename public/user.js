@@ -1,5 +1,5 @@
 
-
+// INTENTO DE CREAR UNA CLASE USER !!! 
 var User = {
     coduser :'',
     nombre :'' ,

@@ -36,6 +36,7 @@ function ImagePicker() {
                                 [
                                     m(Column, { width: '1-2' },
                                         m(Button, {
+                                            type:'primary',
                                             onclick: (e) => {
                                                 vnode.attrs.data[vnode.attrs.name] = images[selectedindex]
                                             },

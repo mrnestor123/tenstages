@@ -20,21 +20,28 @@ function FileUploader() {
     return {
         view: (vnode) => {
             //data[name] es donde guardamos la url de la imagen
-            let { data, name, id , stage } = vnode.attrs
-            return m("input", {
+            let { data, name, id , stage,path } = vnode.attrs
+            return [
+                
+
+
+                m("input", {
                 type: "file", 
                 id: id, 
-                accept: "image/*",
+                accept: "*",
                 onchange: (e) => {
                     let file = e.target.files[0]
-                    uploadFile(file,stage).then((url) => {
-                        data[name] = url
-                        vnode.attrs.onsuccess ? vnode.attrs.onsuccess(url) : null
-                        m.redraw()
-                    })
+                    if(file){
+                        uploadFile(file,stage,path).then((url) => {
+                            data[name] = url
+                            vnode.attrs.onsuccess ? vnode.attrs.onsuccess(url) : null
+                            m.redraw()
+                        })
+                    }
                 },
                 style: "display:none"
-            })
+                })
+            ]
         }
     }
 }

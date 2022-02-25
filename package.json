@@ -1,0 +1,23 @@
+{
+  "name": "tenstages",
+  "version": "1.0.0",
+  "description": "tenstages best app in the world",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrnestor123/tenstages.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mrnestor123/tenstages/issues"
+  },
+  "homepage": "https://github.com/mrnestor123/tenstages#readme",
+  "dependencies": {
+    "firebase": "^9.6.7"
+  }
+}
