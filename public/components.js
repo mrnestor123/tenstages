@@ -134,7 +134,7 @@ function TextField() {
 
     return {
         view: (vnode) => {
-            let { data, name, type, oninput, style, rows } = vnode.attrs
+            let { data, name, type = 'input', oninput, style, rows } = vnode.attrs
             return type != "textarea" ?
                 m("input",
                     {
@@ -477,11 +477,14 @@ function TextEditor() {
 
             // METER esto en el oninit ??
             if(typeof data[name] == 'object')  {
+                
+
                 isLocalized=true
                 //!!! este truco funcionará???
                 data=data[name]
                 name=language
             }
+
  
             return m('.ui.padded.grid', {
                 style: vnode.attrs.style ? vnode.attrs.style : undefined
@@ -559,7 +562,9 @@ function TextEditor() {
                         id: 'contenteditable-' + rndnmb,
                         onkeydown: (e)=> {if (e.key==='Enter') e.preventDefault() },
                         oninput: (e) => {
-                                data[name] = document.getElementById('contenteditable-' +rndnmb).innerHTML
+                            /// TODO: PP PORFAVOR UNETE A LA COMUNIDAD DE tenstages.com
+                            ///  data[name] = data[name].replace(/<[^>]*>?/gm, '');
+                            data[name] = document.getElementById('contenteditable-' +rndnmb).innerHTML
                         }
                     },
                         //data[name] ? m.trust(data[name]) : null

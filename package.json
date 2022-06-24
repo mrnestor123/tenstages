@@ -4,8 +4,12 @@
   "description": "tenstages best app in the world",
   "main": "index.js",
   "scripts": {
-    "test": "test",
-    "start": "node server.js"
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "test"
   },
   "repository": {
     "type": "git",

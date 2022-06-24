@@ -22,9 +22,6 @@ function FileUploader() {
             //data[name] es donde guardamos la url de la imagen
             let { data, name, id , stage,path } = vnode.attrs
             return [
-                
-
-
                 m("input", {
                 type: "file", 
                 id: id, 
@@ -32,6 +29,7 @@ function FileUploader() {
                 onchange: (e) => {
                     let file = e.target.files[0]
                     if(file){
+                        if(vnode.attrs.onupload){ vnode.attrs.onupload()}
                         uploadFile(file,stage,path).then((url) => {
                             data[name] = url
                             vnode.attrs.onsuccess ? vnode.attrs.onsuccess(url) : null

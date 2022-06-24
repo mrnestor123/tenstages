@@ -16,7 +16,8 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-const API = `https://public.digitalvalue.es:8002`
+//const API = `https://public.digitalvalue.es:8002`
+const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
 
 var db = firebase.firestore()
 var storage = firebase.storage();
@@ -311,6 +312,20 @@ async function getContent(stagenumber) {
     return content;
 }
 
+
+async function getAllContent(){
+    var query = await db.collection('content').get();
+    let content = [];
+    //para sacar la imagen
+    for (let doc of query.docs) {
+        content.push(doc.data());
+    };
+
+    return content;
+
+}
+
+
 async function getStages() {
     var query = await db.collection('stages').get();
     let stages = [];
@@ -415,6 +430,18 @@ async function deleteContent(content){
     });
 }
 
+async function getVersions(){
+    let query = await db.collection('versions').get();
+
+    let versions = []
+
+    for (let doc of query.docs) {
+        versions.push(doc.data())
+    }
+
+    return versions;
+}
+
 
 async function addVersion(version){
     var query = await db.collection('versions').add(version);
@@ -422,4 +449,29 @@ async function addVersion(version){
 }
 
 
-export { getLessons, addLesson, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+async function addSumUp(sumup){
+    var query = await db.collection('sumups').where('sumup','==',sumup.stagenumber).get();
+
+    if(query.docs && query.docs.length){
+        await db.collection('sumups').update(sumup);
+    }else {
+        await db.collection('sumups').add(sumup);
+    }
+}
+
+
+async function getSumups(){
+    let query = await db.collection('sumups').get();
+
+    let sumups = []
+
+    for (let doc of query.docs) {
+        sumups.push(doc.data())
+    }
+
+    return sumups;
+
+}
+
+
+export { getLessons, getVersions,getSumups, addSumUp, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

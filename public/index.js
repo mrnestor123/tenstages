@@ -1,8 +1,9 @@
-import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser } from './server.js'
+import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser, getVersions, getAllContent, getSumups, addSumUp } from './server.js'
 import { FileUploader, create_UUID } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor } from './components.js'
 import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide } from './tenstage-components.js'
 import { User } from './user.js'
+import { isGame, isLesson, isMeditation } from './helpers.js'
 
 let primarycolor = '#E0D5B6'
 
@@ -76,7 +77,11 @@ function Layout() {
         oninit:(vnode)=>{
             if(localStorage.getItem('meditationcod')){
                 getUser(localStorage.getItem('meditationcod')).then((usr)=>{
-                    user = usr
+                    if(usr){
+                        console.log('got user',user)
+                        user = usr
+                        m.redraw()
+                    }
                 })
             }
         },
@@ -142,7 +147,6 @@ function Layout() {
 
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
-    let lessons = [];
     let filter = { 'stagenumber': 1, 'type': 'lessons' }
     let stages = []
     let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
@@ -150,11 +154,27 @@ function ContentManagement() {
     let content = [];
     let filteredcontent = [];
 
+    let meditations = []
+    let lessons = []
+    let games = []
+
+    let versions =[]
+
     let users = []
 
     //para subir imágenes a la lección
     let index = 0;
     let json = {};
+
+    let sumups = []
+
+    function filtercontent(stage = 1){
+        lessons =  content.filter((item) => isLesson(item) && item.stagenumber == stage)
+        meditations = content.filter((item)=> isMeditation(item) && item.stagenumber == stage)
+        games = content.filter((item)=> isGame(item) && item.stagenumber == stage)
+        filteredcontent = lessons
+
+    }
 
     function AddLesson() {
         let step = 1;
@@ -679,7 +699,10 @@ function ContentManagement() {
                                 json.content.map((content)=>
                                     m(TextField,{type:'input',data:content,name:'text'})
                                 ),
-                                m(Button,{onclick:(e)=> json.content.push({})}, "Add Content")
+                                m(Button,{onclick:(e)=> json.content.push({})},  
+                              
+                                
+                                "Add Content")
                             ),
                         )
                     ),
@@ -705,7 +728,7 @@ function ContentManagement() {
     function ContentView() {
         return {
             view: (vnode) => {
-                return vnode.attrs.content.sort((a,b)=> b.position - a.position).map((content) => {
+                return vnode.attrs.content.map((content) => {
                     return m("div.uk-width-1-4@m",
                         m(".uk-card.uk-card-default",
                             {style: content.position == undefined  ?" opacity:0.5":''},
@@ -739,6 +762,7 @@ function ContentManagement() {
         let filteredcontent = []
 
         let edit = false;
+
 
         function StageHeader() {
             return {
@@ -943,12 +967,7 @@ function ContentManagement() {
                 if (!stage.objectives) { stage.objectives = { 'meditation': {}, }; console.log(stage) }
                 if (!stage.meditations) { stage.meditations = {}; console.log(stage) }
 
-                filteredcontent =content.filter( cont=>  (
-                    path_filter == 'Lessons' && cont.type != 'meditation-practice' && cont.type != 'meditation-game' 
-                    || path_filter == 'Meditations' && cont.type == 'meditation-practice' 
-                    || path_filter =='Games' && cont.type =='meditation-game'
-                    )
-                )
+               
 
                 return [
                     m(Row,
@@ -956,9 +975,9 @@ function ContentManagement() {
                     ),
                     m(Row,
                         m('.uk-button-group',
-                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Lessons'; } }, "Lessons"),
-                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Meditations'; } }, "Meditations"),
-                            m(Button, { type: "secondary", onclick: (e) => { path_filter = 'Games'; } }, "Games"),
+                            m(Button, { type: "secondary", onclick: (e) => { filteredcontent = lessons; } }, "Lessons"),
+                            m(Button, { type: "secondary", onclick: (e) => { filteredcontent = meditations; } }, "Meditations"),
+                            m(Button, { type: "secondary", onclick: (e) => { filteredcontent = games; } }, "Games"),
                         )),
                     m(ContentAdd),
                     m(Path)
@@ -1028,11 +1047,142 @@ function ContentManagement() {
         }
     }
 
+    function VersionsView(){
+        return {
+            view:(vnode)=>{
+                return m("dl",{class:"uk-description-list"},
+                    versions.map((version)=>{
+                        console.log(version)
+                        return [
+                            m("dt", version.description + ' version number:' + version.versionNumber),
+                            m("dd",
+                                m("ul",
+                                    version.content.map((content)=>{
+                                        return m("li",content.text)
+                                    })
+                                )
+                            )
+                        ]
+                    })
+                )
+            }
+        }
+    }
+
+
+    function ViewEditSumup(){
+        let sumup = {}
+
+        let modelo = {
+            'stagenumber':1,
+            type: '',
+            children:[ ]
+        }
+
+        function Menu(){
+            let editingIndex = -1;
+
+            return {
+                view:(vnode)=>{
+                    let {items,submenu} = vnode.attrs
+                    if(items && items.length){
+                        return m(submenu ? ".menu": ".ui.large.vertical.menu",
+                            items.map((item,index)=>{
+                                let isEditing = editingIndex == index
+
+                                return m(".item",
+                                    isEditing ? [
+                                        m("i.circular.check.link.icon",{onclick:(e)=> editingIndex = -1}),
+                                        m(TextField,{
+                                            data:item,
+                                            name:'text',
+                                            type:'textarea'
+                                        })
+                                    ]: [
+                                    
+                                    m("i.circular.trash.red.icon",{
+                                        onclick:(e)=>{
+                                        if(!item.children || confirm('All the childrens will be deleted. Are you sure?')){
+                                            items.splice(index,1)
+                                        }
+                                        }
+                                    }),
+                                    m("i.circular.edit.green.link.icon",{style:"z-index:100", onclick:(e)=> editingIndex = index}),
+                                    
+                                    
+                                    m("i.circular.plus.blue.link.icon",{
+                                        onclick:(e)=> {
+                                            if(!item.children){item.children= []} 
+                                            item.children.push({'text':'edit this text'})
+                                        }
+                                    }),
+
+                                    m("span",{style:"word-wrap: break-word"},item.text),
+                                
+                                    item.children ? m(Menu,{items:item.children, submenu:true}): null,
+                                ])
+                            })
+                        )
+                    }
+                }
+            }
+        }
+
+        return {
+            view:(vnode)=>{
+                let type =filter.type == 'lessons' ? 'lesson': 'meditation'
+
+                console.log(sumups)
+
+                sumup = sumups.length ? sumups.filter((sumup)=> sumup.stagenumber == filter.stagenumber && sumup.type == type)[0] || {} : modelo
+
+                sumup.type = type 
+
+                return [
+                    m(Column, {width:'1-1'},
+                        m("div",{class:"uk-text-bold"}, "Short sum up"),
+                        m(Button,{
+                            onclick:(e)=>{
+                                sumup.children.push({'text':'press on edit to change this text'})
+                            }
+                        },"Add new item"
+                        
+                        ),
+                        m(Button,{
+                            onclick:(e)=>{
+                                addSumUp(sumup)
+                                alert('SAVED')
+                            }
+                        },"Save sum up"),
+
+                        sumup.children && sumup.children.length ? m(Menu,{items:sumup.children}) : null  
+                    ),              
+                ]
+            }
+        }
+    }
+
     return {
         oninit: (vnode) => {
-            getContent(filter.stagenumber).then((res) => {
-                content = res;
-                filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation')
+            getAllContent().then((res)=>{
+                function compare(a,b){
+                    if(a.position != undefined && b.position == null){
+                        return -1
+                    }else if(b.position != undefined && a.position == null){
+                        return 1   
+                    }else{
+                        return 0;
+                    }
+                }
+        
+                content = res.sort((a,b) => compare(a,b));
+                filtercontent(1)
+            })
+
+            getSumups().then((res)=>{
+                if(res){
+                    sumups = res;
+                }
             })
 
             getStages().then((res) => {
@@ -1042,6 +1192,10 @@ function ContentManagement() {
 
             getUsers().then((res) => {
                 users = res;
+            })
+
+            getVersions().then((res)=>{
+                versions = res;
             })
         },
         view: (vnode) => {
@@ -1057,30 +1211,7 @@ function ContentManagement() {
                                 data: filter,
                                 name: "stagenumber",
                                 onchange: (e) => {
-                                    if(e.target.value == 'none' ){
-                                        getContent(e.target.value).then((res) => {
-                                            content = res;
-                                            // TIENE QUE HABER ALGUNA MANERA MEJOR DE SACAR ESTO !!!
-                                            filter.type == 'meditations' ?
-                                            filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
-                                            filter.type == 'lessons' ?
-                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
-                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') 
-                                        });
-                                        console.log('getting no content')
-                                    }else{
-                                        getContent(Number(e.target.value)).then((res) => {
-                                            content = res;
-                                            filter.type == 'meditations' ?
-                                            filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
-                                            filter.type == 'lessons' ?
-                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
-                                            filter.type == 'games' ?
-                                            filteredcontent = content.filter((item) => item.type == 'meditation-game') : nulls
-                                            console.log('EERROR',filter.type, filteredcontent)
-                                            m.redraw();
-                                        })
-                                    }
+                                    filtercontent(e.target.value == 'none' ? e.target.value : Number(e.target.value))
                                 }
                             },
                             stagenumbers
@@ -1093,20 +1224,17 @@ function ContentManagement() {
                                 data: filter,
                                 name: "type",
                                 onchange: (e) => {
-                                    // SE FILTRA MUCHAS VECES !!!
-                                    filter.type == 'meditations' ?
-                                        filteredcontent = content.filter((item) => item.type == 'meditation-practice') :
-                                        filter.type == 'lessons' ?
-                                            filteredcontent = content.filter((item) => item.type == 'lesson' || item.type == 'meditation') :
-                                            filter.type == 'games' ?
-                                                filteredcontent = content.filter((item) => item.type == 'meditation-game') :
-                                                null
-
-                                
+                                    if(filter.type == 'meditations'){
+                                        filteredcontent = meditations
+                                    }else if(filter.type == 'lessons'){
+                                        filteredcontent = lessons
+                                    }else if(filter.type == 'games'){
+                                        filteredcontent = games
+                                    }
                                 }
                             },
                             user.role == 'admin' ? 
-                            ['lessons', 'stage', 'meditations', 'games', 'users'] :
+                            ['lessons', 'stage', 'meditations', 'games', 'users', 'versions'] :
                             ['lessons','stage','meditations']
                         )
                     ),
@@ -1120,17 +1248,27 @@ function ContentManagement() {
                             m(AddVersion)
                         ]: null
                     ),
+
+
                     filter.type == 'stage' ?
                         m(PathView) :
                     filter.type == 'users' ?
                         m(UsersView):
-                        m(ContentView, { content: filteredcontent })
-
+                    filter.type == 'versions' ? 
+                        m(VersionsView)
+                        : [
+                            filter.type !='games' ?
+                            m(ViewEditSumup) : null,
+                       
+                       
+                            m(ContentView, { content: filteredcontent })
+                    ]
                 )
             )
         }
     }
 }
+
 
 function EditContent() {
     let content = {}
@@ -1415,7 +1553,7 @@ function EditContent() {
                 content.type == 'meditation-practice' ?
                     types = ['meditation-practice'] : 
                     content.type != 'meditation-game' ? 
-                    types = ['lesson', 'meditation'] : types = ['game']
+                    types = ['lesson', 'meditation','mind'] : types = ['game']
                 console.log(content)
                 m.redraw()
             })
@@ -1465,7 +1603,7 @@ function EditContent() {
                             center: true
                         },
 
-                        m(Column, { width: '1-3' },
+                        m(Column, { width: '1-4' },
                             !editar ? m(".uk-text-lead", content.description) : 
                             [
                                 m(".uk-text-bold", "Description"),
@@ -1473,12 +1611,12 @@ function EditContent() {
                             ],
                         ),
 
-                        m(Column, { width: '1-3' },
+                        m(Column, { width: '1-4' },
                             m(".uk-text-bold", 'Stage'),
                             m(Select, { data: content, name: 'stagenumber', onchange: (e) => content.stagenumber = Number(lesson.stagenumber) }, stages)
                         ),
 
-                        m(Column, { width: '1-3' },
+                        m(Column, { width: '1-4' },
                             m(".uk-text-bold", 'Type'),
                             m(Select, { data: content, name: 'type' }, types),
                             content.type == 'meditation-practice' ? [ 
@@ -1486,23 +1624,30 @@ function EditContent() {
                                 m(TextField,{type:'input',data:content,name:'duration'})
                             ]: null,
                         ),
-
+                        
                         content.type != 'meditation-game' ? 
                         m(Row,
                             editar ? [
                                 m("button.uk-button.uk-button-default", { onclick: () => { document.getElementById(`meditation-file-chooser`).click(); }}, 
-                                content.file ? "CHANGE FILE": "ADD FILE" ),
+                                uploading ?  m("div",{"uk-spinner":''}) :
+                                content.file ? "CHANGE FILE": "ADD FILE"),
                                 m(FileUploader, {
                                     data: {},
                                     path:'dynamicfiles',
-                                    stage: content.stagenumber,
+                                    onupload:() => uploading = true,
+                                    Dstage: content.stagenumber,
                                     name: "file",
                                     id: `meditation-file-chooser`,
-                                    onsuccess: (src) => { content.file = src;m.redraw(); }
+                                    onsuccess: (src) => { 
+                                        uploading = false;
+                                        content.file = src;
+                                        m.redraw(); 
+                                    }
                                 }),
                             ]: null,
-                            content.file ? 
-                            m(FileView,{file:content.file}) : null
+
+                            content.file ?  m("div",m(FileView,{file:content.file,key:uploading ? 0 : 1})) : null
+                            
                         ): null,
 
 
@@ -1680,8 +1825,6 @@ function ContentView() {
         },
         view: (vnode) => {
             return m(Grid,
-                {},
-
                 m(Column,
                     {
                         width: '1-2'
