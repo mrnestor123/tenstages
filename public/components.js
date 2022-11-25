@@ -1,16 +1,13 @@
 //Aquí meteré todos los componentes reutilizables
-
-
-
-
 /** 
     * @attrs (object) {
     size: small | medium | large 
     row-gap | column-gap:  small | medium | large | collapse
     divider: true | false
-    match-height: true|false
+    match:(height) true|false
     masonry: true || false
     center: true ||false
+    verticalalign: true || false
     }
 */
 function Grid() {
@@ -19,12 +16,13 @@ function Grid() {
     return {
         oninit: (vnode) => {
 
-            let { divider, match, rowgap, columngap, size, center, align, sortable } = vnode.attrs
+            let { divider, match, rowgap, columngap, size, center, align, sortable, verticalalign } = vnode.attrs
 
             clase = (match ? ' uk-grid-match' : '') +
                 (size ? ' uk-grid-' + size : '') +
                 (center ? ' uk-flex-center ' : '') +
                 (rowgap ? ' uk-grid-row-' + rowgap : '') +
+                (verticalalign ? 'uk-flex-middle' : '') + 
                 (columngap ? ' uk-grid-column-' + columngap : '') +
                 (divider ? ' uk-grid-divider' : '') +
                 (align ? ' uk-align-' + align : '')
@@ -128,13 +126,16 @@ function TextField() {
     let types = {
         "textarea": { class: "uk-textarea" },
         "input": { class: "uk-input", type: "text" },
+        "password": { class: "uk-input", type: "password" },
         "number": { class: "uk-input", type: "number" },
-        'time': { class: 'uk-input', type:'time'}
+        'time': { class: 'uk-input', type:'time'},
+        'checkbox': { class: 'uk-checkbox', type:'checkbox'},
+        'date': {class:'uk-input',type:'date'}
     }
 
     return {
         view: (vnode) => {
-            let { data, name, type = 'input', oninput, style, rows } = vnode.attrs
+            let { data, name, type = 'input', oninput, style, rows, onchange } = vnode.attrs
             return type != "textarea" ?
                 m("input",
                     {
@@ -144,8 +145,10 @@ function TextField() {
                         value: data[name],
                         width: vnode.attrs.width || undefined,
                         oninput: (e) => {
-                            if (type == "number") { data[name] = Number(e.target.value) }
+                            if(type =='checkbox'){ data[name] = e.target.checked}
+                            else if (type == "number") { data[name] = Number(e.target.value) }
                             else { data[name] = e.target.value; }
+                            
                             if (oninput) oninput(e)
                         },
                     }
@@ -211,10 +214,11 @@ function Select() {
                         }
                         vnode.attrs.onchange ? vnode.attrs.onchange(e) : null
                     },
-                    value: data[name]
+                    value: data[name] || ''
                 },
                 [
-                    vnode.children.map((child, i) => {
+
+                     vnode.children.map((child, i) => {
                         if (child.value) {
                             return m("option", { value: child.value }, child.label)
                         } else {
@@ -349,7 +353,7 @@ function Container() {
                                 null
         },
         view: (vnode) => {
-            return m(`.uk-container`, vnode.attrs, vnode.children)
+            return m(`.uk-container${size}`, vnode.attrs, vnode.children)
         }
     }
 }
@@ -488,10 +492,11 @@ function TextEditor() {
  
             return m('.ui.padded.grid', {
                 style: vnode.attrs.style ? vnode.attrs.style : undefined
-            },
+            }, 
+             
+                vnode.attrs.showcontrols ?
                 m('.ui.row', { style: 'position:relative' },
-                    vnode.attrs.showcontrols 
-                    ? [                        
+                     [                        
                         topbuttons.map((span) => {
                         return m('.ui.tiny.icon.compact.menu', { style: 'margin:5px;' },
                             span.buttons.map((button) => {
@@ -537,8 +542,8 @@ function TextEditor() {
                             m("a.item", m("i.image.icon"))
                         ),
                     ] 
-                : null,
-                ),
+
+                ): null,
 
                 m(".ui.mini.button", { onclick: () => html = !html }, html ? "TEXT" : "HTML"),
 
@@ -557,7 +562,7 @@ function TextEditor() {
 
                     html
                     ? m('div', {
-                        style: 'min-height: 300px; border: 1px solid black; width: 100%',
+                        style: 'min-height: 150px; border: 1px solid black; width: 100%',
                         'contenteditable': true,
                         id: 'contenteditable-' + rndnmb,
                         onkeydown: (e)=> {if (e.key==='Enter') e.preventDefault() },
@@ -589,10 +594,50 @@ function TextEditor() {
     }
 }
 
+/**
+ * @attrs 
+ * icon :(string)=> el nombre  del icono, ex: search
+ *  
+ * color:(string)=> color para el icono. black[default]
+ * 
+ * size:(string)=> small | medium[default] | large || huge
+ * 
+ * opacity:(double) => 1 [default]. Va de 0 a 1
+ *   
+ * El nombre del icono se saca de 
+ * https://fonts.google.com/icons
+ *
+ **/
+ function Icon(){
+    // link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    let sizes = {
+        'mini':'font-size:14px',
+        'tiny':'font-size:16px',
+        'small':'font-size:18px;',
+        'medium':'',
+        'large':'font-size:26px',
+        'huge':'font-size:32px',
+        'massive':'font-size:50px'
+    }
+
+    return {
+        view:(vnode)=>{
+            return m("span",{
+                class:'material-icons', 
+                onclick:vnode.attrs.onclick,
+                style:`color:${vnode.attrs.color || 'black'};opacity:${vnode.attrs.opacity || 1};${sizes[vnode.attrs.size || 'medium']};`,
+                ...vnode.attrs
+            }, vnode.attrs.icon)
+        }
+    }
+}
 
 
 
 
 
 
-export { TextField, Button, Grid, Column, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }
+
+
+export { TextField, Button, Grid, Column, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }

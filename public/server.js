@@ -1,4 +1,4 @@
-import { api_get } from "./util.js";
+import { api_get, omit } from "./util.js";
 
 var firebaseConfig = {
     apiKey: "AIzaSyDWEW668iJRj-TIpRueiK2J3fhh-7aKd0M",
@@ -18,6 +18,9 @@ firebase.analytics();
 
 //const API = `https://public.digitalvalue.es:8002`
 const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+//const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+//const API = 'http://localhost:5001/app'
+
 
 var db = firebase.firestore()
 var storage = firebase.storage();
@@ -75,21 +78,59 @@ async function getLesson(codlesson) {
     return lesson;
 }
 
-async function updateContent(content) {
+async function updateContent(content,hideMessage) {
     let cod = content.cod
-    console.log(cod)
     let dblesson = await db.collection('content').where('cod', '==', cod).get()
     let docID = dblesson.docs[0].id
+        // PORQUE ESTO ???
 
-    db.collection('content').doc(docID).update(content).then(function () {
-        console.log("Document successfully updated!");
+    let c = JSON.parse(JSON.stringify(content))
+    if(typeof c.path != 'string' &&  c.path != undefined){
+        c.path = c.path.cod 
+    }
+
+    console.log('updating',docID,c)
+
+    if(c.stagenumber !=  null) c.stagenumber = Number(c.stagenumber)
+
+    db.collection('content').doc(docID).update(c).then(function () {
+        if(!hideMessage) alert("Document successfully updated!");
     }).catch(function (error) {
+        console.log('QUE PASA',error)
         // The document probably doesn't exist.
-        console.error("Error updating document: ", error);
+        alert("Error updating document: ", error);
     });
+
 
     return true;
 }
+
+async function updatePath(path){
+    let query = await db.collection('paths').where('cod', '==', path.cod).get()
+    let docID = query.docs[0].id
+    path.content.map((c)=>{
+        console.log(c)
+        updateContent(c,true);
+    })
+
+
+    db.collection('paths').doc(docID).update(omit('content',path)).then(function () {
+        alert("Document successfully updated!");
+    }).catch(function (error) {
+        console.log('QUE PASA')
+        // The document probably doesn't exist.
+        alert("Error updating document: ", error);
+    });
+
+
+    return true;
+
+
+}
+
+
+
+
 
 //esto podría ser una barra de carga?
 async function uploadFile(file, stage, path) {
@@ -204,6 +245,7 @@ async function updateStage(stage) {
 
     db.collection('stages').doc(docID).update(stage).then(function () {
         console.log("Document successfully updated!");
+        alert('Content saved correctly')
     })
 
 }
@@ -245,8 +287,8 @@ async function getAllImages() {
     return images
 }
 
-async function getImages(stage) {
-    var ref = storage.ref('stage ' + stage);
+async function getImages(path,noStage) {
+    var ref = storage.ref(noStage ? path : 'stage ' + path);
 
     var images = []
     let query = await ref.listAll()
@@ -279,6 +321,11 @@ async function addContent(content) {
     return true
 }
 
+async function addPath(content) {
+    var query = await db.collection('paths').add(content);
+    return true
+}
+
 async function getStage(stagenumber) {
     var stage = '';
     var query = await db.collection('stages').where('stagenumber', '==', Number(stagenumber)).get();
@@ -295,6 +342,11 @@ async function getContentbycod(cod) {
     var query = await db.collection('content').where('cod', '==', cod).get();
     let content = {};
     content = query.docs[0].data();
+
+    if(content.path){
+        var query = await db.collection('paths').where('cod','==',content.path).get()
+        content.path = query.docs[0].data();
+    }
 
     return content;
 }
@@ -322,6 +374,25 @@ async function getAllContent(){
     };
 
     return content;
+}
+
+async function getStats(content){
+    var query = await db.collection('doneContent').where('cod','==',content.cod).get();
+
+    let stats = {timeDone:0, people:0}
+    
+    //para sacar la imagen
+    for (let doc of query.docs) {
+        let c = doc.data();
+        
+        if(c.done){
+            stats.timeDone += c.done
+        }
+
+        stats.people += 1 
+    };
+
+    return stats;
 
 }
 
@@ -411,7 +482,7 @@ async function updateUser(user){
     let docID = query.docs[0].id
 
     db.collection('users').doc(docID).update(user).then(function () {
-        console.log("Document successfully updated!");
+        alert("Document successfully updated!");
     }).catch(function (error) {
         // The document probably doesn't exist.
         console.error("Error updating document: ", error);
@@ -474,4 +545,53 @@ async function getSumups(){
 }
 
 
-export { getLessons, getVersions,getSumups, addSumUp, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+async function getPaths(){
+
+    let paths = await api_get(`${API}/paths`)
+
+    return paths;
+
+}
+
+async function getUserMessages(coduser){
+    try{
+        let messages = await api_get(`${API}/messages/${coduser}/new`)
+        return messages;
+    }catch(e){
+        return {};
+    }
+}
+
+async function getCourses(coduser){
+    let courses = await db('collection')
+
+
+}
+
+async function getUserActions(coduser){
+    
+    let query = await db.collection('actions').where('coduser','==',coduser).get()
+    let actions = []
+
+    for (let doc of query.docs) {
+        actions.push(doc.data())
+    }
+
+    return actions;
+
+}   
+
+
+async function getChat(sender,receiver){
+    
+    let chat = await api_get(`${API}/${sender}/${receiver}/new`)
+
+    console.log(chat)
+
+    return chat;
+}
+
+
+
+
+export { getLessons, getUserActions, getVersions,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

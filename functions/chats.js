@@ -1,75 +1,6 @@
 
-const { getUser, db, storage, FieldValue } = require("./helpers");
+const { getUser, db, storage, FieldValue, create_UUID } = require("./helpers");
 
-async function getChat(req,res,next){
-    let sender = req.params.sender;
-    let receiver = req.params.receiver;
-
-
-    let respmessages = []
-
-    // HACE FALTA SACAR EL USER EN LOS MENSAJES ????? CREO QUE SI !!!
-    async function groupMessages(messages, isMe){
-        if(messages && messages.docs){
-            for(var doc of messages.docs){
-                let message = doc.data()
-               
-                if(!message.deleted){
-                    respmessages.push(message)
-                }   
-            }
-        }
-    }
-    
-    // ESTO ES MUCHO DOCUMENTO !!!!!!!!!
-    let sentmessages = await db.collection('messages').where('sender','==', sender).where('receiver','==',receiver).get()
-    let receivedmessages = await db.collection('messages').where('sender','==', receiver).where('receiver','==',sender).get()
-
-    await groupMessages(sentmessages)
-    await groupMessages(receivedmessages)
-
-
-    let createdChat = await db.collection('messages').where('cod','==', sender+'-'+receiver).get()
-
-    if(!createdChat.docs.length){
-        console.log('que pasa')
-        let userSender = await getUser(sender)
-        let userReceiver = await getUser(receiver)
-
-        if(respmessages && respmessages.length){
-            respmessages.sort(((a,b)=> new Date(b.date) - (new Date(a.date))))
-        }
-
-        // ESTO SE PODRÍA PASAR A REALTIME DATABASE !!!!!!!
-        let chat = {
-            cod: sender + '-' + receiver,
-            users:[sender,receiver],
-            user1: {
-                coduser: sender,
-                username: userSender.nombre,
-                userimage: userSender.image
-            },
-            user2:{
-                coduser: receiver,
-                username: userReceiver.nombre,
-                userimage: userReceiver.image
-            },
-            lastMessage: respmessages[0] || ''
-        }
-
-    }
-
-
-
-    
-    return res.status(200).json(respmessages);
-}
-
-function normalizeMessages(){
-
-
-
-}
 
 async function getUserMessages(req,res,next){
     let coduser = req.params.userId;
@@ -89,7 +20,6 @@ async function getUserMessages(req,res,next){
                     if(!groupedMessages[key]){
                         groupedMessages[key] = {}
                         // EL USUARIO LO SACAMOS DE OTRA FORMA ?????
-
                         groupedMessages[key].user = await getUser(key)
                         toupdate = true;
                         groupedMessages[key].messages = [] 
@@ -120,25 +50,6 @@ async function getUserMessages(req,res,next){
     return res.status(200).json(groupedMessages);
 }
 
-
-// HAY QUE MIRAR SI SE HA SUBIDO BIEN
-async function sendMessage(req,res,next){
-    let message = req.body
-    await db.collection('messages').add(message); 
-    
-    /*await db.collection('users').doc(message.userid).set({
-        'unreadmessages': FieldValue.arrayUnion(message.cod)
-    });*/
-
-    return res.status(200);
-
-}
-
-// PARA LEER LOS MENSAJES QUE NO SE HAN LEIDO   
-async function readMessages(){
-
-}
-
 // EN ESTE BORRAMOS LO QUE NOS SOBRA ???
 async function sendMessageNew(req,res,next){
     let message = req.body
@@ -148,92 +59,110 @@ async function sendMessageNew(req,res,next){
     if(chat.docs && chat.docs.length){
         await db.collection('chats').doc(chat.docs[0].id).update({
             'lastMessage': message,
-            [`users.${message.receiver}.unreadmessages`]: FieldValue.arrayUnion(message.cod)
+            [`users.${message.receiver}.unreadmessages`]: FieldValue.arrayUnion(message.cod),
         });
+
         await db.collection('chats').doc(chat.docs[0].id).collection('messages').add(message);
     }else {
-        // se podría crear el chat en otro sitio ???????????????????
+
         let user1 = await getUser(message.sender)
         let user2 = await getUser(message.receiver)
+        
 
-        let sender =  {
+        // HAY QUE CREAR EL CHAT EN  OTRO SITIO !!!!!
+        let sender = {
             coduser: message.sender,
-            username: user1.nombre,
+            nombre: user1.nombre,
             userimage: user1.image,
             unreadmessages:[]
         }
 
         let receiver = {
             coduser: message.receiver,
-            username: user2.nombre,
+            nombre: user2.nombre,
             userimage: user2.image,
             unreadmessages:[message.cod]
         }
 
         let chat ={
-            cod: message.sender + '-' + message.receiver,
+            cod: create_UUID(),
             users:  {},
             shortusers:{},
             lastMessage: message
         }
         
-        //guardar unreadmessages aqui???
         chat.users[message.sender] = sender
         chat.users[message.receiver] = receiver
         chat.shortusers[message.sender] = true
         chat.shortusers[message.receiver] = true
-
-
-        console.log('el chat no existe lo creamos', chat)
 
         let document = await db.collection('chats').add(chat);
 
         await db.collection('chats').doc(document.id).collection('messages').add(message);
     }
     
-
     return res.status(200);
-
 }
 
 async function getChatNew(req,res,next){
+
     let sender = req.params.sender;
     let receiver = req.params.receiver;
 
     let dbresponse = await db.collection('chats').where(`shortusers.${sender}`,
     '==', true).where(`shortusers.${receiver}`,'==',true).get()
-    
+
     let chat = {}
+
     if(dbresponse.docs && dbresponse.docs.length){
-        chat = dbresponse.docs[0].data();
         console.log('got chat',chat)
+        
+        chat = dbresponse.docs[0].data();
+
+
+        let messagesquery = await db.collection('chats').doc(dbresponse.docs[0].id).collection('messages').get()
+
+        if(messagesquery.docs && messagesquery.docs.length){
+            chat.messages = []
+            for(var doc of  messagesquery.docs){
+                chat.messages.push(doc.data())
+            }
+        }
+        
         return res.status(200).json(chat);
     }
+
+    
     
     return res.status(400).json({'error':'not found'});
 }
 
 async function getUserMessagesNew(req,res,next){
     let chats = []
-    let msgquery = await db.collection('chats').where(`shortusers.${req.params.userId}`,
-    '==', true).get()
+    let msgquery = await db.collection('chats').where(`shortusers.${req.params.userId}`,'==', true).get()
 
     // SACAMOS LOS CHATS DE CADA UNO 
     if(msgquery.docs.length){
         for(var doc of msgquery.docs){
             let chat = doc.data()
+
+
             chats.push(chat)
         }
     }
+
+
+    console.log('got chats ',chats)
     
     return res.status(200).json(chats);
 }
 
 
+
+
+
 module.exports = {
-    sendMessage, 
     getUserMessages,
-    getChat,
     getChatNew,
     sendMessageNew,
     getUserMessagesNew

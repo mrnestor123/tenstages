@@ -13,5 +13,13 @@ function isMeditation(content){
     return content.type == 'meditation-practice'
 }
 
+function isVideo(content){
+    return content.type == 'video'
+}
 
-export {isGame,isLesson,isMeditation}
+
+function isAdmin(user){
+    return user && user.role  == 'admin'
+}
+
+export {isGame,isLesson,isMeditation, isVideo, isAdmin}

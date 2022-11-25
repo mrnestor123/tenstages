@@ -1,5 +1,5 @@
 const { request } = require('express');
-var { db,FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent} = require('./helpers.js')
+var { db,FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent, expandContent, getUserPaths} = require('./helpers.js')
 
 
 // live
@@ -10,11 +10,58 @@ var mailbox={}
 
 // Devuelve las acciones del usuario
 async function updatefeed(req,res,next) {
+    console.log('QUE PASA AMIGO  !!!!')
     const userid = req.params.userId
-    console.log(req.params)
-    
-    // !!! lo borro despues
-    return res.status(200).json(mailbox[userid]);	
+    console.log('getting actions',req.params)
+
+    if(mailbox[userid]){
+        // !!! lo borro despues
+        return res.status(200).json(mailbox[userid]);	
+    }else{
+        let actionstoday = []
+        let actionsthisweek = []
+        let nonfilteredactions = []
+        let actionsquery = [];
+
+        let useractions = await db.collection('actions').where('coduser','==', userid).get();
+            
+        if(useractions.docs){
+            actionsquery = actionsquery.concat(useractions.docs)
+        }
+
+        let user = await getUser(userid, true)
+            
+        actionsquery.map((doc) => {
+            let action = doc.data()
+            // MEJORABLE
+            //action.user = followedUsers[action.coduser] ? followedUsers[action.coduser] : user
+            action.userimage = user.image
+            nonfilteredactions.push(action)
+        })
+
+        // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
+        var curr = new Date(); // get current date
+        var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1) ; // First day is the day of the month - the day of the week
+        var last = first + 6; // last day is the first day + 6
+        
+        var monday = new Date(new Date(curr.setDate(first)).setHours(0,0,0));
+        var sunday = new Date(curr.setDate(last));
+        var today = new Date()
+
+        // esto se ahorraria si filtrasemos en la llamada a la base de datos
+        actionstoday = nonfilteredactions.filter((action) => 
+            today.getDate() == new Date(action.time).getDate() && today.getMonth() == new Date(action.time).getMonth()
+        )        
+
+        actionsthisweek = nonfilteredactions.filter((action) => {
+            let date = new Date(action.time)
+            return date > monday && date < sunday && new Date(action.time).getDate() != today.getDate()
+        })
+
+        mailbox[userid] = {'today': actionstoday || [], 'thisweek': actionsthisweek || []}
+
+        return res.status(200).json(mailbox[userid]);	
+    }
 }
 
 
@@ -31,10 +78,6 @@ async function connect(req,res,next) {
         if(user){
             let followsyou = user.followsyou
             let following = user.following
-            let actionstoday = []
-            let actionsthisweek = []
-            let nonfilteredactions = []
-            let actionsquery = [];
 
             let followedUsers = {}
 
@@ -42,11 +85,6 @@ async function connect(req,res,next) {
             // SACAMOS LAS ACTIONS !!
             // HACE FALTA SACAR LOS USUARIOS AQUI ?????
             if(following && following.length){
-                for(var i = 0; i < following.length; i+=10){
-                    let query = await db.collection('actions').where('coduser','in', following.slice(i,i+10)).get()
-                    actionsquery = actionsquery.concat(query.docs)
-                }
-
                 user.following = await getUsersinArray(following)
 
                 user.following.map((user)=> {
@@ -56,6 +94,7 @@ async function connect(req,res,next) {
 
             // si el usuario es profesor, sacamos los archivos que haya añadido
             if(isTeacher(user)){
+                // los materiales q ue ha subido ??
                 let docs = await storage.bucket(`gs://the-mind-illuminated-32dee.appspot.com`).getFiles({prefix:`userdocs/${user.coduser}`})
                 if(docs.length){
                     let printed = false;
@@ -67,21 +106,44 @@ async function connect(req,res,next) {
                         }
                     }
                 }
-                let addedcontent = await db.collection('content').where('createdBy','==',user.coduser).get()
-                if(addedcontent && addedcontent.docs){
-                    user.addedcontent = []
-                    for(var c of addedcontent.docs){
-                        user.addedcontent.push(c.data())
+
+                user.addedcontent = await getContent(user.coduser)
+
+                user.addedcourses = await getUserPaths(user.coduser)
+            }
+
+            
+            
+            // SACAMOS LOS CURSOS DEL USUARIO
+            if(user.joinedcourses  && user.joinedcourses.length){
+                let joinedcourses =  []
+
+                for(var cod of user.joinedcourses){
+                    let course = await db.collection('paths').where('cod','==',cod).get();
+                    if(course.docs && course.docs.length > 0){
+                        joinedcourses.push(course.docs[0].data())
                     }
                 }
+
+                user.joinedcourses = joinedcourses
             }
             
             user.readlessons = await getReadLessons(user.coduser);
 
-            
+
+            let doneContent = await db.collection('doneContent').where('doneBy','==',userId).get();
+
+            if(doneContent.docs){
+                user.doneContent = []
+
+                for(var doc of doneContent.docs){
+                    user.doneContent.push(doc.data());
+                }
+            }
+
             let notifications = await db.collection('notifications').where('coduser','==',userId).get()
+            
             if(notifications.docs){
-                console.log('getting notifications')
                 user.notifications = []
                 for(var doc of notifications.docs){
                     let notification = doc.data()
@@ -98,47 +160,7 @@ async function connect(req,res,next) {
                     user.notifications.push(notification)
                 }
             }
-
-
-            let useractions = await db.collection('actions').where('coduser','==', userId).get();
             
-            if(useractions.docs){
-                actionsquery = actionsquery.concat(useractions.docs)
-            }
-
-                
-            actionsquery.map((doc) => {
-                let action = doc.data()
-                // MEJORABLE
-                action.user = followedUsers[action.coduser] ? followedUsers[action.coduser] : user
-                action.userimage = action.user.image
-                nonfilteredactions.push(action)
-            })
-
-            // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
-            var curr = new Date(); // get current date
-            var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1) ; // First day is the day of the month - the day of the week
-            var last = first + 6; // last day is the first day + 6
-            
-            var monday = new Date(new Date(curr.setDate(first)).setHours(0,0,0));
-            var sunday = new Date(curr.setDate(last));
-            var today = new Date()
-
-            // esto se ahorraria si filtrasemos en la llamada a la base de datos
-            actionstoday = nonfilteredactions.filter((action) => 
-                today.getDate() == new Date(action.time).getDate() && today.getMonth() == new Date(action.time).getMonth()
-            )        
-
-            actionsthisweek = nonfilteredactions.filter((action) => {
-                    let date = new Date(action.time)
-                    return date > monday && date < sunday && new Date(action.time).getDate() != today.getDate()
-                }
-            )
-
-            mailbox[userId] = {'today': actionstoday || [], 'thisweek': actionsthisweek || []}
-            
-            
-
             if(followsyou && followsyou.length){
                 user.followsyou = await getUsersinArray(followsyou)
                 friends[userId] = followsyou
@@ -153,10 +175,12 @@ async function connect(req,res,next) {
 
     }catch(e){ console.log('ERROR',e)}
     
-    
+    console.log('QUE PASA AQUI ????')
+
     return res.status(400).json({'error':'User does not exist'})
     // voy a notificar a los que me tienen como amigo
 }
+
 
 function disconnect(req,res,next){
     const userid = req.params.userId
@@ -168,7 +192,7 @@ function action(req,res,next) {
     const userId= req.params.userId
     const action = req.body;      
 
-    // LE METEMOS LA IMÁGEN DEL USUARIO !!!
+    // LE METEMOS LA IMÁGEN DEL USUARIO ????
     let user = db.collection('users').where('coduser','==', userId).get()
     
     if(user.docs && user.docs.length){
@@ -214,6 +238,7 @@ function removeFriend(req,res,next){
         friends[userid].splice(friends[userid].findIndex((id) => id == friendId))
     }
 }   
+
 
 async function getAllStages(req,res,next){
     let stagesquery = await db.collection('stages').get()
@@ -291,8 +316,6 @@ async function getTeachers(req,res,next){
 }
 
 
-
-
 async function expandUser(req,res,next){
     let userId = req.params.userId;
     let query = await db.collection('users').where('coduser','==',userId).get();
@@ -306,6 +329,7 @@ async function expandUser(req,res,next){
             user.following = await getUsersinArray(user.following)
             user.followsyou = await getUsersinArray(user.followsyou)
         }else{
+            console.log('getting content from ', user.coduser)
             user.students = await getUsersinArray(user.students)
             user.addedcontent = await getContent(user.coduser)
             console.log('addedcontent',user.addedcontent)
@@ -391,6 +415,67 @@ async function updatePhoto(req,res,next){
 
 
 
+async function getPaths(req,res,next){
+    let paths = await getUserPaths();
+   
+
+    return res.status(200).json(paths);
+}
+
+
+async function getNewContent(req,res,next){
+    let query = await db.collection('content').where('isNew','==',true).get();
+    let newContent = []
+
+    for(let doc of query.docs){
+        let content = doc.data()
+        await expandContent(content)
+        newContent.push(content)
+    }
+
+
+    if(newContent.length){
+        newContent.sort((a,b)=>{
+            let stagedifference = a.stagenumber - b.stagenumber
+            if(stagedifference == 0){
+                return a.position -b.position
+            }else{
+                return stagedifference
+            }
+        })
+    }
+
+    return res.status(200).json(newContent)
+
+}   
+
+
+async function expandCourse(req,res,next){
+    let query = await db.collection('content').where('path', '==', req.cod).get()
+    let content = []
+
+    if(query.docs){
+        for(let doc of query.docs){
+            content.push(doc.data())
+        }
+
+        content.sort((a,b)=> a.position - b.position)
+    }
+
+    // también se podrían sacar los usuarios !!!
+
+    return res.status(200).json(content)
+
+}
+
+
+// sacamos el curso y lo expandimos !!!!!!
+async function getCourse(req,res,next){
+
+
+}
+
+
 module.exports = {  
     getAllStages,
     removeFriend,
@@ -401,9 +486,13 @@ module.exports = {
     connect,
     getStageCall,
     getUsers,
+    getCourse,
+    expandCourse,
+    getNewContent,
     user,
     getTeachers,
     expandUser,
     follow,
-    updatePhoto
+    updatePhoto,
+    getPaths
 }

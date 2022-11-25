@@ -8,8 +8,6 @@ async function getRequest(req,res,next){
     let request
     let query = await db.collection('requests').where('cod','==', req.params.codrequest).get();
 
-
-    console.log('getting request new !!')
     let toupdate = false;
 
     if(query.docs.length){
@@ -28,7 +26,7 @@ async function getRequest(req,res,next){
 
         let commentsfirst = await db.collection('comments').where('codrequest','==', req.params.codrequest).get();
 
-        // EN EL FUTURO SOLO EStARÁ ESTO EH !!!
+        // EN EL FUTURO SOLO EStARÁ ESTO !!
         if(commentsfirst.docs && commentsfirst.docs.length){
             request.comments = []
 

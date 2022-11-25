@@ -91,5 +91,24 @@ var extract = function(xhr) {
 }
 
 
+function omit(key, obj) {
+    const { [key]: omitted, ...rest } = obj;
+    return rest;
+}
 
-export { FileUploader, create_UUID, api_get}
+
+const hora = (f) => new Date(f).toLocaleTimeString({ hour: '2-digit', minute: '2-digit',})
+const dia = (f) => new Date(f).toLocaleDateString()
+
+
+function isAudio(path){
+    return path.toLowerCase().match('.m4a|.mp3')
+}
+
+function isVideo(path){
+    return path.toLowerCase().match('.mp4|.mov')
+}
+
+
+
+export { FileUploader, create_UUID, api_get,omit, hora,dia, isAudio, isVideo}

@@ -13,11 +13,8 @@ admin.initializeApp({
 const db = admin.firestore()
 const storage = admin.storage()
 
-
-
-
 async function getStage(stagenumber) {
-    var stagequery = await db.collection('stages').where('stagenumber', '==', stagenumber).get();
+    var stagequery = await db.collection('stages').where('stagenumber', '==',stagenumber <  10 ? stagenumber: 1).get();
     var stage = stagequery.docs[0].data()
 
     if(stage ) {
@@ -50,10 +47,12 @@ async function getUser(userId,quick){
     if(query.docs.length){
         user = query.docs[0].data()
         if(quick != true){
+            // NO SACAMOS LOS CONTENIDOS ???
             if(isTeacher(user)){
                 user.students = await getUsersinArray(user.students)
             }
-
+            // stagenumber = 1 
+            // stages {}
             user.stage = await getStage(user.stagenumber);
             user.meditations = await getMeditations(userId);
         }
@@ -89,6 +88,7 @@ async function populateStage(stage) {
 
     stage.meditations = []
     stage.games = []
+    stage.videos = []
     stage.lessons = []
     
     for(var c of lessonsquery.docs){
@@ -96,14 +96,24 @@ async function populateStage(stage) {
         var content = c.data()
         // TODO ESTO PODRÍA SER LO MISMO !!!
         if (content['position'] != null || content['type'] == 'meditation-game' ) {
-
-            if(content['createdBy'] != null){
-                content['createdBy'] = await getUser(content['createdBy'],true)
-            }
+            await expandContent(content)
             content['type'] == 'meditation-practice' ? stage.meditations.push(content) :
             content['type'] == 'meditation-game' ? stage.games.push(content) : 
+            content['type'] == 'video' ? stage.videos.push(content) :
             stage.lessons.push(content);
         }
+    }
+}
+
+async function expandContent(content){
+    // HACE FALTA SABER QUIEN LO HA CREADO EN CADA MOMENTO ??????
+    // CACHEAR ESTAS LLAMADAS !!! 
+    if(content['createdBy'] != null){
+        let user = await getUser(content['createdBy'],true)
+        content['createdBy'] = {}
+        content['createdBy'].nombre = user.nombre
+        content['createdBy'].image = user.image
+        content['createdBy'].coduser = user.coduser
     }
 }
 
@@ -151,14 +161,15 @@ async function getContent(coduser){
     let content = []
     let res = await db.collection('content').where('createdBy','==', coduser).get()
 
-
     if(res && res.docs){
         for(var c of res.docs){
-            content.push(c.data())
+            if(c.data().position != null && c.data().path == null){
+                content.push(c.data())
+            }
         }
     }
+    if(content.length){ content.sort((a,b)=> a.position -b.position)}
 
-    console.log('getting content',content)
     
     return content;
 }
@@ -177,6 +188,35 @@ function create_UUID(){
 
 
 
+async function getUserPaths(coduser){
+    let query = await db.collection('paths').get() 
+    let paths = []
+
+    for (let doc of query.docs) {
+        let path = doc.data()
+        if((coduser && path.createdBy == coduser) || (!path.createdBy && !coduser)){
+            path.content = []
+            
+            let content = await db.collection('content').where('path', '==', path.cod).get()
+
+            if(content.docs){
+                for(let doc of content.docs){
+                    path.content.push(doc.data())
+                }
+                
+                path.content.sort((a,b)=> a.position - b.position)
+                
+            }
 
 
-module.exports ={db,FieldValue,getContent, storage,create_UUID, getStage,getReadLessons,getMessages, getUser, getMeditations, getUsersinArray, populateStage, isTeacher}
+            paths.push(path)
+        }
+    }
+
+    return paths;
+
+}
+
+
+
+module.exports ={db,FieldValue,getContent,getUserPaths,  storage,  expandContent,  create_UUID, getStage,getReadLessons,getMessages, getUser, getMeditations, getUsersinArray, populateStage, isTeacher}
