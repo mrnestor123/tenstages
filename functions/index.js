@@ -17,5 +17,3 @@ app.use(express.json());
 const port = process.env.PORT || 8002;
 
 exports.app = functions.https.onRequest(app);
-
-

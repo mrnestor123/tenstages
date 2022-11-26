@@ -1,6 +1,5 @@
 const { request } = require('express');
-var { db,FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent, expandContent, getUserPaths} = require('./helpers.js')
-
+const { db, FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent, expandContent, getUserPaths} = require('./helpers.js')
 
 // live
 var friends = {}
@@ -63,7 +62,6 @@ async function updatefeed(req,res,next) {
         return res.status(200).json(mailbox[userid]);	
     }
 }
-
 
 // El usuario se conecta a la  app.
 // Le devolvemos su user y añadimos las acciones al mailbox
@@ -181,7 +179,6 @@ async function connect(req,res,next) {
     // voy a notificar a los que me tienen como amigo
 }
 
-
 function disconnect(req,res,next){
     const userid = req.params.userId
     delete friends[userid]
@@ -239,7 +236,6 @@ function removeFriend(req,res,next){
     }
 }   
 
-
 async function getAllStages(req,res,next){
     let stagesquery = await db.collection('stages').get()
     let stages = []
@@ -254,7 +250,6 @@ async function getAllStages(req,res,next){
 
     return res.status(200).json(stages);	
 }
-
 
 async function getStageCall(req,res,next){
    let stage = await getStage(Number(req.params.stagenumber))
@@ -301,7 +296,6 @@ async function user(req,res,next){
     }
 }
 
-
 async function getTeachers(req,res,next){
     let query = await db.collection('users').where('role','==','teacher').get();
     let teachers = []
@@ -314,7 +308,6 @@ async function getTeachers(req,res,next){
 
     return res.status(200).json(teachers)
 }
-
 
 async function expandUser(req,res,next){
     let userId = req.params.userId;
@@ -345,7 +338,6 @@ async function expandUser(req,res,next){
     return res.status(400).json({'error':'couldnt get the request'});
 }
 
-
 async function follow(req,res,next){
     
     const followingcod= req.params.followedId
@@ -370,7 +362,6 @@ async function follow(req,res,next){
     
     return res.status(200);
 }
-
 
 async function updatePhoto(req,res,next){
     try {
@@ -413,15 +404,12 @@ async function updatePhoto(req,res,next){
 
 }
 
-
-
 async function getPaths(req,res,next){
     let paths = await getUserPaths();
    
 
     return res.status(200).json(paths);
 }
-
 
 async function getNewContent(req,res,next){
     let query = await db.collection('content').where('isNew','==',true).get();
@@ -449,7 +437,6 @@ async function getNewContent(req,res,next){
 
 }   
 
-
 async function expandCourse(req,res,next){
     let query = await db.collection('content').where('path', '==', req.cod).get()
     let content = []
@@ -468,13 +455,8 @@ async function expandCourse(req,res,next){
 
 }
 
-
 // sacamos el curso y lo expandimos !!!!!!
-async function getCourse(req,res,next){
-
-
-}
-
+async function getCourse(req,res,next){}
 
 module.exports = {  
     getAllStages,

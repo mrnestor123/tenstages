@@ -1,6 +1,4 @@
-
 const { getUser, db, storage, FieldValue, create_UUID } = require("./helpers");
-
 
 async function getUserMessages(req,res,next){
     let coduser = req.params.userId;
@@ -156,10 +154,6 @@ async function getUserMessagesNew(req,res,next){
     
     return res.status(200).json(chats);
 }
-
-
-
-
 
 module.exports = {
     getUserMessages,

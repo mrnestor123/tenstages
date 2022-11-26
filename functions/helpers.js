@@ -61,7 +61,6 @@ async function getUser(userId,quick){
     return user;
 }
 
-
 async function getUsersinArray(cods){
     let docs = []
     let users = []
@@ -80,8 +79,6 @@ async function getUsersinArray(cods){
 
     return users 
 }
-
-
 
 async function populateStage(stage) {
     var lessonsquery = await db.collection('content').where('stagenumber', '==', stage.stagenumber).get();
@@ -137,11 +134,9 @@ async function getMessages(coduser, quick){
     return messages;
 }
 
-
 function isTeacher(user){
     return user.role && user.role =='teacher'
 }
-
 
 async function getReadLessons(coduser){
     let content = []
@@ -174,7 +169,6 @@ async function getContent(coduser){
     return content;
 }
 
-
 //FUNCIONES REUTILIZABLES
 function create_UUID(){
     var dt = new Date().getTime();
@@ -185,8 +179,6 @@ function create_UUID(){
     });
     return uuid;
 }
-
-
 
 async function getUserPaths(coduser){
     let query = await db.collection('paths').get() 
@@ -217,6 +209,20 @@ async function getUserPaths(coduser){
 
 }
 
-
-
-module.exports ={db,FieldValue,getContent,getUserPaths,  storage,  expandContent,  create_UUID, getStage,getReadLessons,getMessages, getUser, getMeditations, getUsersinArray, populateStage, isTeacher}
+module.exports = {
+    db,
+    FieldValue,
+    getContent,
+    getUserPaths,
+    storage,
+    expandContent,
+    create_UUID,
+    getStage,
+    getReadLessons,
+    getMessages,
+    getUser,
+    getMeditations,
+    getUsersinArray,
+    populateStage, 
+    isTeacher
+}
