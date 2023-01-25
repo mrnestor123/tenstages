@@ -1,8 +1,6 @@
 
 
-// hay que crear responsive textos
-
-
+// hay que crear responsive texts!!
 function DefaultText(){
     return{
         view:(vnode)=>{
@@ -27,7 +25,15 @@ function SeparatedHeader(){
             return m("h1.uk-heading-line",vnode.children)
         }
     }
-
 }
 
-export {DefaultText, Header,SeparatedHeader}
+// TODO: required attribute
+function FormLabel(){
+    return {
+        view:(vnode)=>{
+            return m("label.uk-form-label",{style:"width:100%!important"}, vnode.children)
+        }
+    }
+}
+
+export {DefaultText, Header, SeparatedHeader, FormLabel}

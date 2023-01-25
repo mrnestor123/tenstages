@@ -2,7 +2,7 @@
 /** 
     * @attrs (object) {
     size: small | medium | large 
-    row-gap | column-gap:  small | medium | large | collapse
+    rowgap | columngap:  small | medium | large | collapse
     divider: true | false
     match:(height) true|false
     masonry: true || false
@@ -144,6 +144,7 @@ function TextField() {
                         type: type ? types[type].type : 'text',
                         value: data[name],
                         width: vnode.attrs.width || undefined,
+                        onkeyup:vnode.attrs.onkeyup,
                         oninput: (e) => {
                             if(type =='checkbox'){ data[name] = e.target.checked}
                             else if (type == "number") { data[name] = Number(e.target.value) }
@@ -245,7 +246,7 @@ function Section() {
             return m("div",
                 {
                     class: clase,
-                    style:vnode.attrs.style
+                    style: vnode.attrs.style
                 }, vnode.children
             )
         }
@@ -361,7 +362,6 @@ function Container() {
 function Form() {
     //Para el futuro
     let types = ["uk-form-stacked", 'uk-form-horizontal']
-
 
     return {
         view: (vnode) => {
@@ -634,10 +634,50 @@ function TextEditor() {
 }
 
 
+function NavBar(){
+
+    return {
+        view:(vnode)=>{
+            return m("nav.uk-navbar-container",{style:vnode.attrs.style},
+                m("div.uk-container.uk-container-expand",
+                    m("div",{'uk-navbar':true},
+                        m("ul.uk-navbar-nav",
+                            vnode.children
+                        )
+                    )
+                )
+            )
+        }
+    }
+}
+
+function NavBarDropDown(){
+    return {
+        view:(vnode)=>{
+            return [
+                m("a", {href:'#'}, vnode.attrs.label),
+                m("div.uk-navbar-dropdown",[
+                    m("ul.uk-nav uk-navbar-dropdown-nav", vnode.attrs.items.map((item)=>{
+                        return m("li", m("a", {href:'#'}, item.label))
+                    }))
+                ])
+            ]
+        }
+    }
+}
+
+function NavBarItem(){
+    return {
+        view:(vnode)=>{
+
+        }
+    }
+}
 
 
 
 
 
 
-export { TextField, Button, Grid, Column, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }
+
+export { TextField, Button, Grid, Column,NavBar, NavBarDropDown,NavBarItem, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }

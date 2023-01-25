@@ -17,7 +17,6 @@ function isVideo(content){
     return content.type == 'video'
 }
 
-
 function isAdmin(user){
     return user && user.role  == 'admin'
 }

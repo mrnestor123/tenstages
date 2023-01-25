@@ -592,6 +592,126 @@ async function getChat(sender,receiver){
 }
 
 
+// DE MOMENTO SACAMOS EL CURSO AQUÍ Y LO AÑADIREMOS AL SERVER !!
+async function getCourse(cod){
+    let query = await db.collection('paths').where('cod','==',cod).get()
+
+    let course = {}
+    if(query.docs){
+
+        course = query.docs[0].data()
+
+        let announcementquery = await db.collection('paths').doc(query.docs[0].id).collection('announcements').get()
+
+        if(announcementquery.docs){
+            course.announcements = []
+            for(var doc  of announcementquery.docs){
+                course.announcements.push(doc.data())
+            }
+        }
+
+        // CADA COURSE DEBERÍA TENER SU CONTENIDO DENTRO ????
+        let contentquery = await db.collection('content').where('path','==',cod).get()
+        if(contentquery.docs){
+            course.content = []
+            for(var doc  of contentquery.docs){
+                course.content = doc.data()
+            }
+        }
+
+        // TODO: SACAR ESTUDIANTES
+        course.students = []
+
+        return course;
+    }
+}
 
 
-export { getLessons, getUserActions, getVersions,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+// HABRÁ QUE CAMBIAR  EL CURSO DE PATHS
+async function addAnnouncement(cod,announcement){
+    console.log('adding announcement',cod,announcement)
+    
+    let query = await db.collection('paths').where('cod','==',cod).get()
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('paths').doc(docID).collection('announcements').add(announcement).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+}
+
+
+async function updateCourse(course){
+    console.log('updating course',course)
+
+    let query = await db.collection('paths').where('cod','==',course.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('paths').doc(docID).update(course).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+
+}
+
+function sendMail(mail,type){
+
+    let url = `${API}/mail?type=${type}`
+
+    return api_get(url,'POST', mail)
+}
+
+
+async  function getTechniques(){
+    let query = await db.collection('techniques').get();
+
+    let techniques = []
+
+    if(query.docs){
+        for (let doc of query.docs) {
+            techniques.push(doc.data())
+        }
+    }
+    return techniques;
+}
+
+async function  addTechnique(technique){
+
+    let query = await db.collection('techniques').add(technique);
+
+    return true
+
+}
+
+
+
+async function updateTechnique(technique){
+
+    let query = await db.collection('techniques').where('cod','==',technique.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('techniques').doc(docID).update(technique).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+
+}
+//  TODO: HACER MÉTODO SAVECOURSE
+
+
+
+export { getLessons, getUserActions,addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

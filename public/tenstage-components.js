@@ -2,7 +2,7 @@
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
 import { stagenumbers, types } from './models.js';
 import { getImages, deleteImage, addPath, addContent, updatePath } from './server.js'
-import { FileUploader, create_UUID, isAudio } from './util.js'
+import { FileUploader, create_UUID, isAudio, dia, hora } from './util.js'
 
 //explicar como se utiliza para el futuro
 
@@ -380,21 +380,27 @@ function AddContent(){
         'type': 'meditation-practice',
         'content': {}
     }
-  
 
     let step = 1
 
 
     return {
         view: (vnode) => {
-            let {isTeacher,courses = [], coduser} = vnode.attrs
+            let {isTeacher,courses = [], courseId, coduser, addLabel} = vnode.attrs
+
+            if(courseId){
+                // cambiar el nombre de path
+                json.path = courseId
+            }
 
             return [
                 m(Button,
                     {
                         'target': '#modal-content',
+                        type: vnode.attrs.type
                     },
-                    "Content"),
+                    (addLabel ? 'Add Content' : 'Content')
+                    ),
                 m(Modal,
                     {
                         id: "modal-content",
@@ -425,8 +431,10 @@ function AddContent(){
                                 ),
 
                                 m(Column,{ width: '3-4' },
-                                    isTeacher ? [
+                                    isTeacher || courseId ? [
                                         m("label.uk-form-label", "Is it part of a course?"),
+                                        courseId ?
+                                        m("label.uk-bold",courseId):
                                         m(Select,{data: json, name: 'path'},[''].concat(courses.map((path)=>{
                                             return {'label':path.title,'value':path.cod}
                                         })))
@@ -442,8 +450,6 @@ function AddContent(){
                                     m("label.uk-form-label","Type"),
                                     m(Select,{data:json,name:'type'},types)
                                 ),
-
-                                
                                 
                                 !json.path 
                                 ? [
@@ -453,8 +459,7 @@ function AddContent(){
                                             { data: json, name: "stagenumber" },
                                             stagenumbers
                                         )
-                                    ),
-                                    
+                                    )
                                 ] : null,
 
                                 json.type.match('meditation-practice|recording|video') ?
@@ -492,7 +497,6 @@ function AddContent(){
 
                                     addContent(json);
                                     document.getElementById('closemodalmed').click();
-                                    console.log('added meditation !')
                                     
                                     m.route.set(`/editcontent/${json.cod}`)
 
@@ -535,6 +539,7 @@ function AddPath() {
             return [
                 m(Button,
                     {
+                        type: vnode.attrs.type,
                         'target': '#modal-path',
                     },
                     "Course"),
@@ -769,6 +774,96 @@ function Path(){
     }
 }
 
-export { MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide, LessonSlides,  ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse}
+
+
+
+function EditableField(){
+    return {
+        view:(vnode)=>{
+            let {data,name,type, isEditing} = vnode.attrs
+            // AÑADIR SUPPORT PARA HTML
+            return [
+                isEditing ? 
+                
+                type == 'html' ?
+                m(TextEditor,{data:data,name:name}):
+                m(TextField,{data:data,name:name,type:type}): vnode.children
+            ]
+        }
+    }
+}
+
+
+function ChatComponent(){
+    let data = {}
+    let sendMessage;
+    let user;
+    
+    // es probable que haya que pasar el username
+    function send(){
+        if(data.message){
+            let msg  = {
+                'text':data.message, 
+                cod:'', 
+                sender:user.coduser,
+                username:user.nombre,
+                date: new Date()
+            }
+        
+            sendMessage(msg)
+
+            data.message = ''
+        }
+    }
+    
+    return {
+        view:(vnode)=>{
+            let { messages, title} = vnode.attrs
+
+            user  = vnode.attrs.user
+            sendMessage = vnode.attrs.sendMessage
+
+            return m(".uk-card.uk-card-default",
+                m(CardHeader, m(".uk-card-title", title ? title :"Chat")),
+                m(CardBody,{style:"background:lightgrey;padding:0em 1em;"},
+                m(".uk-overflow-auto",{style:"height:400px"},
+                    m(Grid,{rowgap:'collapse'},
+                        messages.map((message)=>{
+                            return m(Row,
+                                m(".uk-card.uk-card-default.uk-card-body",{style:"padding:1em;margin:1em;"},
+                                    m(".uk-card-title",{style:"font-size:1.1em"}, message.username),
+                                    m(".uk-text-meta",dia(message.date) + ' ' + hora(message.date)),
+                                    m("p",message.text)
+                                )
+                            )
+                        })
+                    )
+                )),
+                m(".uk-card-footer",
+                    m(Grid,{columngap:'collapse'},
+                        m(Column,{width:'3-4'},
+                            m(TextField,{
+                                onkeyup:(e)=>{
+                                    if(e.keyCode == '13'){
+                                        send()
+                                    }
+                                },
+                                name:'message',label:'Message',data:data,name:'message'
+                            })
+                        ),
+                        m(Column,{width:'1-4'},
+                            m(Button,{
+                                type:'secondary',
+                                onclick:(e)=> send()
+                            },'Send')
+                        )
+                    )
+                )
+            )
+        }
+    }
+}
+
+export { MeditationSlide, LessonSlide,EditableField, ImagePicker,ChatComponent, FollowAlongSlide, LessonSlides, ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse}
 
 

@@ -45,7 +45,13 @@ class CourseEntity {
         this.events = json.events || []
         this.content = json.content || []
         
-
+        // Puntuación 
+        // this.score = json.score || 0
+        // reviews 
+        // published 
+        // this.published = json.published || false
+        // this.reviews = json.reviews || []
+        
     };
 
 

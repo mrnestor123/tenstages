@@ -1,4 +1,5 @@
 const { request } = require('express');
+const { service } = require('firebase-functions/v1/analytics');
 var { db,FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent, expandContent, getUserPaths} = require('./helpers.js')
 
 
@@ -24,13 +25,19 @@ async function updatefeed(req,res,next) {
         let actionsquery = [];
 
         let useractions = await db.collection('actions').where('coduser','==', userid).get();
-            
+        let userquery = await db.collection('users').where('coduser','==',userid).get()
+        let user;
+
+        if(userquery.docs){
+            user = userquery.docs[0].data()
+        }else{
+            user = {}
+        }
+
         if(useractions.docs){
             actionsquery = actionsquery.concat(useractions.docs)
         }
 
-        let user = await getUser(userid, true)
-            
         actionsquery.map((doc) => {
             let action = doc.data()
             // MEJORABLE
@@ -65,6 +72,47 @@ async function updatefeed(req,res,next) {
 }
 
 
+// añade sus datos en la colección userdata
+async function normalizeUser(user){
+    try {
+        let userData = await db.collection('userData').where('coduser','==', user.coduser).get();
+        
+        if(!userData.docs.length){
+            // añadimos el usuario a la colección de usuarios
+            let userRef = await db.collection('userData').add({'coduser':user.coduser})
+
+            console.log('USERREF',userRef.id)
+
+            for(var meditation of  user.meditations){
+                db.collection('userData').doc(userRef.id).collection('meditations').add(meditation)
+            }   
+
+            for(var notification of user.notifications){
+                db.collection('userData').doc(userRef.id).collection('notifications').add(notification)
+            }
+
+            for(var lesson of user.readlessons){
+                db.collection('userData').doc(userRef.id).collection('readlessons').add(lesson)
+            }
+
+            for(var content of user.doneContent){
+                db.collection('userData').doc(userRef.id).collection('doneContent').add(content)
+            }   
+
+            let actionsquery  = await db.collection('actions').where('coduser','==', user.coduser).get();
+
+            if(actionsquery.docs.length){
+                for(var action of actionsquery.docs){
+                    db.collection('userData').doc(userRef.id).collection('actions').add(action.data())    
+                }
+            }            
+        }
+    }   catch (error) {
+        console.log('error',error)
+    }
+}
+
+
 // El usuario se conecta a la  app.
 // Le devolvemos su user y añadimos las acciones al mailbox
 async function connect(req,res,next) {
@@ -84,17 +132,19 @@ async function connect(req,res,next) {
             //meter los usuarios aqui
             // SACAMOS LAS ACTIONS !!
             // HACE FALTA SACAR LOS USUARIOS AQUI ?????
+            /*
             if(following && following.length){
                 user.following = await getUsersinArray(following)
 
                 user.following.map((user)=> {
                     followedUsers[user.coduser] = user
                 })
-            }  
+            }  */
 
             // si el usuario es profesor, sacamos los archivos que haya añadido
             if(isTeacher(user)){
                 // los materiales q ue ha subido ??
+                /*
                 let docs = await storage.bucket(`gs://the-mind-illuminated-32dee.appspot.com`).getFiles({prefix:`userdocs/${user.coduser}`})
                 if(docs.length){
                     let printed = false;
@@ -105,16 +155,16 @@ async function connect(req,res,next) {
                             user.files.push(url[0])
                         }
                     }
-                }
+                }*/
 
                 user.addedcontent = await getContent(user.coduser)
 
-                user.addedcourses = await getUserPaths(user.coduser)
+               // user.addedcourses = await getUserPaths(user.coduser)
             }
 
             
-            
             // SACAMOS LOS CURSOS DEL USUARIO
+           /*
             if(user.joinedcourses  && user.joinedcourses.length){
                 let joinedcourses =  []
 
@@ -127,6 +177,20 @@ async function connect(req,res,next) {
 
                 user.joinedcourses = joinedcourses
             }
+
+            
+            if(user.retreats && user.retreats.length){
+                let retreats =  []
+
+                for(var cod of user.retreats){
+                    let query = await db.collection('retreats').where('cod','==',cod).get();
+                    if(query.docs && query.docs.length > 0){
+                        retreats.push(query.docs[0].data())
+                    }
+                }
+
+                user.retreats = retreats
+            }*/
             
             user.readlessons = await getReadLessons(user.coduser);
 
@@ -160,7 +224,11 @@ async function connect(req,res,next) {
                     user.notifications.push(notification)
                 }
             }
-            
+
+            // añadimos sus datos a una colección userData, refactorizamos el SERVIDOR !!!!
+            normalizeUser(user)
+
+            /*
             if(followsyou && followsyou.length){
                 user.followsyou = await getUsersinArray(followsyou)
                 friends[userId] = followsyou
@@ -168,17 +236,14 @@ async function connect(req,res,next) {
                     if (!suscriptions[friend]) suscriptions[friend]=[]
                     suscriptions[friend].push(userId)
                 })
-            }
+            }*/
 
             return res.status(200).json(user);	
         }
 
     }catch(e){ console.log('ERROR',e)}
     
-    console.log('QUE PASA AQUI ????')
-
     return res.status(400).json({'error':'User does not exist'})
-    // voy a notificar a los que me tienen como amigo
 }
 
 
@@ -374,8 +439,11 @@ async function follow(req,res,next){
 
 async function updatePhoto(req,res,next){
     try {
-        let photo = req.body.photo;
+        // CAMBIAR ESTO EN EL FUTURO POR REQ.BODY.PHOTO
+        let photo = req.body;
         let userId = req.params.userId;
+
+        console.log(req.body);
 
         let userdocs = await db.collection('users').where('coduser','==',userId).get()
 
@@ -391,6 +459,7 @@ async function updatePhoto(req,res,next){
             }
         }
 
+        // ESTOS COMENTARIOS NO SE UTILIZAN
         let comments = await db.collection('comments').where('coduser','==',userId).get()
 
         if(comments.docs && comments.docs.length){
@@ -399,21 +468,18 @@ async function updatePhoto(req,res,next){
             }
         }
 
-        
-        let chats = await db.collection('chats').where(`shortusers.${userId}`,'==',true).get()
-
+        let chats = await db.collection('chats').where(`users.${userId}`,'==',true).get()
         if(chats.docs.length){
             for(var chat of chats.docs){
-                await db.collection('chats').doc(chat.id).update({[`shortusers.${userId}.userimage`]:photo})
+                await db.collection('chats').doc(chat.id).update({[`users.${userId}.userimage`]:photo})
             }
         }
+
+        return res.status(200).json('Success');
     }catch(e){
-        console.log(e)
+        return res.status(400).json({'error':'couldnt upload images'});
     }
-
 }
-
-
 
 async function getPaths(req,res,next){
     let paths = await getUserPaths();
@@ -471,8 +537,29 @@ async function expandCourse(req,res,next){
 
 // sacamos el curso y lo expandimos !!!!!!
 async function getCourse(req,res,next){
+    let query = await db.collection('paths').where('cod','==',req.params.cod).get()
+    let courses = []
 
+    if(query.docs){
+        for(let doc of query.docs){
+            courses.push(doc.data())
+        }
+    }
 
+    return res.status(200).json(courses)
+}
+
+async function getCourses(req,res,next){
+    let query = await db.collection('paths').where('createdBy','!=',null).get()
+    let courses = []
+
+    if(query.docs){
+        for(let doc of query.docs){
+            courses.push(doc.data())
+        }
+    }
+
+    return res.status(200).json(courses)
 }
 
 
@@ -482,6 +569,7 @@ module.exports = {
     addFriend,
     action,
     disconnect,
+    getCourses,
     updatefeed,
     connect,
     getStageCall,
