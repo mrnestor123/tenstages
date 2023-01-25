@@ -10,23 +10,24 @@ admin.initializeApp({
 });
 
 //METER EL AUTHENTICATION Y EL STORAGE
-const db = admin.firestore()
-const storage = admin.storage()
+const db = admin.firestore();
+const storage = admin.storage();
 
+// necesitamos uno normal y uno expandido
 async function getStage(stagenumber) {
     var stagequery = await db.collection('stages').where('stagenumber', '==',stagenumber <  10 ? stagenumber: 1).get();
-    var stage = stagequery.docs[0].data()
+    var stage = stagequery.docs[0].data();
 
-    if(stage ) {
+    if(stage) {
         await populateStage(stage)
         return stage;
-    }else{
+    } else {
         return null;
     }
-}
+};
 
 async function getMeditations(userId){
-    let meditations = []
+    let meditations = [];
     var meditationsquery = await db.collection('meditations').where('coduser', '==', userId).get();
 
     if (meditationsquery.docs.length > 0) {
@@ -37,10 +38,10 @@ async function getMeditations(userId){
 
     //se podría hacer un sort por tiempo
     return meditations;
-}
+};
 
 // SACAR LOS SEGUIDORES Y LOS QUE TE SIGUEN AQUÍ ?????
-async function getUser(userId,quick){
+async function getUser(userId, quick){
     let query = await db.collection('users').where('coduser','==',userId).get();
     let user;
 
@@ -49,9 +50,9 @@ async function getUser(userId,quick){
         if(quick != true){
             // NO SACAMOS LOS CONTENIDOS ???
             if(isTeacher(user)){
-                user.students = await getUsersinArray(user.students)
+                user.students = await getUsersinArray(user.students);
             }
-            // stagenumber = 1 
+            // stagenumber = 1
             // stages {}
             user.stage = await getStage(user.stagenumber);
             user.meditations = await getMeditations(userId);
@@ -59,7 +60,7 @@ async function getUser(userId,quick){
     }
 
     return user;
-}
+};
 
 async function getUsersinArray(cods){
     let docs = []
@@ -67,7 +68,7 @@ async function getUsersinArray(cods){
 
     if(cods && cods.length){
         for(var i = 0; i < cods.length; i+=10){
-            let query = await db.collection('users').where('coduser','in', cods.splice(i,i+10)).get()
+            let query = await db.collection('users').where('coduser', 'in', cods.splice(i, i+10)).get()
             docs = docs.concat(query.docs)
         }
 
@@ -78,9 +79,9 @@ async function getUsersinArray(cods){
 
 
     return users 
-}
+};
 
-async function populateStage(stage) {
+async function populateStage(stage){
     var lessonsquery = await db.collection('content').where('stagenumber', '==', stage.stagenumber).get();
 
     stage.meditations = []
@@ -88,9 +89,9 @@ async function populateStage(stage) {
     stage.videos = []
     stage.lessons = []
     
-    for(var c of lessonsquery.docs){
+    for(var doc of lessonsquery.docs){
         //HAGO DOS VECES EL IF SE PODRÍA HACER METODO ADDMEDITATION, ADDLESSON, ADDGAME !!!
-        var content = c.data()
+        var content = doc.data()
         // TODO ESTO PODRÍA SER LO MISMO !!!
         if (content['position'] != null || content['type'] == 'meditation-game' ) {
             await expandContent(content)
@@ -100,8 +101,10 @@ async function populateStage(stage) {
             stage.lessons.push(content);
         }
     }
-}
+};
 
+// Esto habría que meterlo en el post de creacion de contenido
+// Con "Esto" ne refueri a user.nombre, user.image, user.coduser
 async function expandContent(content){
     // HACE FALTA SABER QUIEN LO HA CREADO EN CADA MOMENTO ??????
     // CACHEAR ESTAS LLAMADAS !!! 
@@ -112,7 +115,7 @@ async function expandContent(content){
         content['createdBy'].image = user.image
         content['createdBy'].coduser = user.coduser
     }
-}
+};
 
 async function getMessages(coduser, quick){
     let messages = []
@@ -132,11 +135,11 @@ async function getMessages(coduser, quick){
     }
 
     return messages;
-}
+};
 
 function isTeacher(user){
     return user.role && user.role =='teacher'
-}
+};
 
 async function getReadLessons(coduser){
     let content = []
@@ -150,16 +153,16 @@ async function getReadLessons(coduser){
     }
     
     return content;
-}
+};
 
 async function getContent(coduser){
     let content = []
     let res = await db.collection('content').where('createdBy','==', coduser).get()
 
     if(res && res.docs){
-        for(var c of res.docs){
-            if(c.data().position != null && c.data().path == null){
-                content.push(c.data())
+        for(var doc of res.docs){
+            if(doc.data().position != null && doc.data().path == null){
+                content.push(doc.data())
             }
         }
     }
@@ -167,7 +170,7 @@ async function getContent(coduser){
 
     
     return content;
-}
+};
 
 //FUNCIONES REUTILIZABLES
 function create_UUID(){
@@ -178,7 +181,7 @@ function create_UUID(){
         return (c=='x' ? r :(r&0x3|0x8)).toString(16);
     });
     return uuid;
-}
+};
 
 async function getUserPaths(coduser){
     let query = await db.collection('paths').get() 
@@ -207,7 +210,7 @@ async function getUserPaths(coduser){
 
     return paths;
 
-}
+};
 
 module.exports = {
     db,
@@ -225,4 +228,4 @@ module.exports = {
     getUsersinArray,
     populateStage, 
     isTeacher
-}
+};

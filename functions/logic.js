@@ -2,13 +2,13 @@ const { request } = require('express');
 const { db, FieldValue, storage, getStage, getUser, getReadLessons,  populateStage, getMeditations,  isTeacher, getUsersinArray, getContent, expandContent, getUserPaths} = require('./helpers.js')
 
 // live
-var friends = {}
-var suscriptions={}
+var friends = {};
+var suscriptions = {};
 // el mailbox te devolverá las acciones de hoy y las acciones de la última semana!!
-var mailbox={}
+var mailbox = {};
 
 // Devuelve las acciones del usuario
-async function updatefeed(req,res,next) {
+async function updatefeed(req, res, next) {
     console.log('QUE PASA AMIGO  !!!!')
     const userid = req.params.userId
     console.log('getting actions',req.params)
@@ -61,11 +61,11 @@ async function updatefeed(req,res,next) {
 
         return res.status(200).json(mailbox[userid]);	
     }
-}
+};
 
 // El usuario se conecta a la  app.
 // Le devolvemos su user y añadimos las acciones al mailbox
-async function connect(req,res,next) {
+async function connect(req, res, next) {
     try{
 
         const userId = req.params.userId
@@ -177,15 +177,15 @@ async function connect(req,res,next) {
 
     return res.status(400).json({'error':'User does not exist'})
     // voy a notificar a los que me tienen como amigo
-}
+};
 
-function disconnect(req,res,next){
+function disconnect(req, res, next){
     const userid = req.params.userId
     delete friends[userid]
-}
+};
 
 //el usuario hace una acción
-function action(req,res,next) {
+function action(req, res, next) {
     const userId= req.params.userId
     const action = req.body;      
 
@@ -214,9 +214,9 @@ function action(req,res,next) {
     //return res.status(200).json({'message':'ok', 'req':req.body, 'params':req.params});	
 
     //añadir la accion a la base de datos !
-}
+};
 
-function addFriend(req,res,next){
+function addFriend(req, res, next){
     const userid = req.params.userId
     const friendId = req.params.friendId
 
@@ -225,18 +225,18 @@ function addFriend(req,res,next){
     }else {
         friends[userid] = [userid]
     }
-}
+};
 
-function removeFriend(req,res,next){
+function removeFriend(req, res, next){
     const userid = req.params.userId
     const friendId = req.params.friendId
 
     if(friends[userid]){
         friends[userid].splice(friends[userid].findIndex((id) => id == friendId))
     }
-}   
+};  
 
-async function getAllStages(req,res,next){
+async function getAllStages(req, res, next){
     let stagesquery = await db.collection('stages').get()
     let stages = []
 
@@ -249,9 +249,10 @@ async function getAllStages(req,res,next){
     stages.sort((a,b)=> a.stagenumber - b.stagenumber)
 
     return res.status(200).json(stages);	
-}
+};
 
-async function getStageCall(req,res,next){
+// MECAWEN MI VIDA ????????
+async function getStageCall(req, res, next){
    let stage = await getStage(Number(req.params.stagenumber))
     
    if(stage){
@@ -259,44 +260,45 @@ async function getStageCall(req,res,next){
     }else{
         return res.status(400).json({'error':'Stage does not exist'})
     }
-}
+};
 
-async function getUsers(req,res,next){
+async function getUsers(req, res, next){
      //AÑADIR .where('role','!=','teachers')
      let users = await db.collection('users').get();
-     let userId = req.params.userId
-     let userslist = []
+     let userId = req.params.userId;
+     let userslist = [];
     
      //el usuario que saca la información
-     let loggeduser = await getUser(userId,true);
+     let loggeduser = await getUser(userId, true);
 
+     // a tomar por culo
      if(users.docs.length > 0){        
         for(let doc of users.docs){
-            let user = doc.data()
+            let user = doc.data();
             if(loggeduser.following && loggeduser.following.includes(user.coduser)){
                 user.followed = true;
             }
             userslist.push(user);
         }
 
-        return res.status(200).json(userslist)
-    }else{
-        return res.status(400).json({'error':'No se ha podido sacar los usuarios'})
+        return res.status(200).json(userslist);
+    } else {
+        return res.status(400).json({'error':'No se ha podido sacar los usuarios'});
     }
-}
+};
 
-async function user(req,res,next){
+async function user(req, res, next){
     let userId = req.params.userId
-    let user = await getUser(userId,true)
+    let user = await getUser(userId, true)
 
     if(user){
         return res.status(200).json(user);
     }else{
         return res.status(400).json({'error':'couldnt get the user'});
     }
-}
+};
 
-async function getTeachers(req,res,next){
+async function getTeachers(req, res, next){
     let query = await db.collection('users').where('role','==','teacher').get();
     let teachers = []
     
@@ -307,9 +309,9 @@ async function getTeachers(req,res,next){
     }
 
     return res.status(200).json(teachers)
-}
+};
 
-async function expandUser(req,res,next){
+async function expandUser(req, res, next){
     let userId = req.params.userId;
     let query = await db.collection('users').where('coduser','==',userId).get();
     let user;
@@ -336,9 +338,9 @@ async function expandUser(req,res,next){
     }
     
     return res.status(400).json({'error':'couldnt get the request'});
-}
+};
 
-async function follow(req,res,next){
+async function follow(req, res, next){
     
     const followingcod= req.params.followedId
     const data = req.body;      
@@ -361,9 +363,9 @@ async function follow(req,res,next){
     }
     
     return res.status(200);
-}
+};
 
-async function updatePhoto(req,res,next){
+async function updatePhoto(req, res, next){
     try {
         let photo = req.body.photo;
         let userId = req.params.userId;
@@ -402,17 +404,17 @@ async function updatePhoto(req,res,next){
         console.log(e)
     }
 
-}
+};
 
-async function getPaths(req,res,next){
+async function getPaths(req, res, next){
     let paths = await getUserPaths();
    
 
     return res.status(200).json(paths);
-}
+};
 
-async function getNewContent(req,res,next){
-    let query = await db.collection('content').where('isNew','==',true).get();
+async function getNewContent(req, res, next){
+    let query = await db.collection('content').where('isNew', '==', true).get();
     let newContent = []
 
     for(let doc of query.docs){
@@ -427,7 +429,7 @@ async function getNewContent(req,res,next){
             let stagedifference = a.stagenumber - b.stagenumber
             if(stagedifference == 0){
                 return a.position -b.position
-            }else{
+            } else {
                 return stagedifference
             }
         })
@@ -435,9 +437,9 @@ async function getNewContent(req,res,next){
 
     return res.status(200).json(newContent)
 
-}   
+};  
 
-async function expandCourse(req,res,next){
+async function expandCourse(req, res, next){
     let query = await db.collection('content').where('path', '==', req.cod).get()
     let content = []
 
@@ -453,10 +455,12 @@ async function expandCourse(req,res,next){
 
     return res.status(200).json(content)
 
-}
+};
 
 // sacamos el curso y lo expandimos !!!!!!
-async function getCourse(req,res,next){}
+async function getCourse(req, res, next){
+    return;
+};
 
 module.exports = {  
     getAllStages,
@@ -477,4 +481,4 @@ module.exports = {
     follow,
     updatePhoto,
     getPaths
-}
+};

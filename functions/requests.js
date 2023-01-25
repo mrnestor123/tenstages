@@ -1,9 +1,9 @@
-//AGRUPAR TODO EL CÓDIGO DE LAS REQUESTS !!
+// AGRUPAR TODO EL CÓDIGO DE LAS REQUESTS !!
 // Todo esto tiene que ir a controllers
 
 const { getUser, db, storage, create_UUID } = require("./helpers");
 
-async function getRequest(req,res,next){
+async function getRequest(req, res, next){
     let request
     let query = await db.collection('requests').where('cod','==', req.params.codrequest).get();
 
@@ -111,9 +111,9 @@ async function getRequest(req,res,next){
     }else{
         return res.status(400).json({'error':'couldnt get the request'});
     }
-}
+};
 
-async function updateRequest(req,res,next){
+async function updateRequest(req, res, next){
     let query = await db.collection('requests').where('cod', '==', request.cod).get()
     let docID = query.docs[0].id
 
@@ -123,14 +123,15 @@ async function updateRequest(req,res,next){
         // The document probably doesn't exist.
         console.error("Error updating document: ", error);
     });
-}
+};
 
+// deprecated
 async function normalizeRequest(id, request){
     await db.collection('requests').doc(id).update(request);
-}
+};
 
 // SACAMOS TODAS LAS REQUEST !!!!!
-async function getRequests(req,res,next){
+async function getRequests(req, res, next){
     var query = await db.collection('requests').get();
     var requests = []
 
@@ -155,11 +156,11 @@ async function getRequests(req,res,next){
     }
 
     return res.status(200).json(requests);	
-}
+};
 
-async function comment(req,res,next){
+async function comment(req, res, next){
     let comment = req.body.comment
     await db.collection('comments').add(comment)
-}
+};
 
-module.exports = { getRequest, getRequests, updateRequest, comment }
+module.exports = { getRequest, getRequests, updateRequest, comment };

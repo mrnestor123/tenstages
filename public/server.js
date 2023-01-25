@@ -16,10 +16,10 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-//const API = `https://public.digitalvalue.es:8002`
-const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
-//const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
-//const API = 'http://localhost:5001/app'
+
+//const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+
 
 
 var db = firebase.firestore()
