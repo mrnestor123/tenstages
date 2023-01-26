@@ -107,7 +107,7 @@ async function normalizeUser(user){
                 }
             }            
         }
-    }   catch (error) {
+    } catch (error) {
         console.log('error',error)
     }
 }
