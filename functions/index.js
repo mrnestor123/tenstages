@@ -6,7 +6,7 @@ import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
 import stages from './routes/stagesRoutes.js';
-import { addAction, getActions, getUser, getUsers } from './controllers/usersController.js';
+import { addAction, getActions, getUser, getUsers, updatePhoto } from './controllers/usersController.js';
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
 import { sendMessage } from './controllers/messagesController.js';
@@ -86,12 +86,13 @@ app.get("/expanduser/:userId",async (req, res) => {
     }
 });
 
-app.get("/updatephoto/:userId",(req, res) => {
-
-
-    
-    // METER MÉTODO UPDATEPHOTO !!
-    //return users.get(`/users/${req.params.userId}?connect=true`)
+app.get("/updatephoto/:userId",async (req, res) => {
+    try{
+        await updatePhoto(req.body, req.params.userId);
+        return res.status(200).json({message: 'photo updated'});
+    }catch(err){
+        return res.status(404).json({ message: err.message });
+    }
 });
 
 app.get('/teachers', async (req, res) => {
