@@ -1,5 +1,5 @@
 
-var {getRequests,getRequest,updateRequest, comment} = require('../requests.js')
+/*var {getRequests,getRequest,updateRequest, comment} = require('../requests.js')
 var {getUserMessages, getChat, sendMessage, getUserMessagesNew, getChatNew, sendMessageNew} = require('../chats.js')
 var logic = require('../logic.js')
 var  app =  require('../index.js')

@@ -24,6 +24,9 @@ export const getStages = async () => {
 
 // Lo queremos por stageId o por stageNumber ????
 export const getStage = async (stageNumber, expand) => {
+    
+    console.log('HOLA HOLA')
+    
     try {
         var stage; 
         var query = await db.collection('stages')

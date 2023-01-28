@@ -207,6 +207,8 @@ function action(req, res, next) {
         })
     }
 
+    console.log()
+
     db.collection('actions').add(action)
 
     //podría devolver ok si se ha subido y fallo si ha habido un fallo //TODO

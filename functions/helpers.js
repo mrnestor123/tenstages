@@ -1,6 +1,5 @@
 const { query } = require('express');
 var admin = require('firebase-admin');
-var FieldValue = admin.firestore.FieldValue;
 var servicekey = require('./firebase-key.json');
 
 admin.initializeApp({

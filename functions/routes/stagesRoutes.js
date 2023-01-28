@@ -1,5 +1,5 @@
 import express from 'express';
-import { getStages, getStage, createStage, updateStage, deleteStage } from '../controllers/stagesController';
+import { getStages, getStage} from '../controllers/stagesController.js';
 
 const router = express.Router();
 
@@ -25,3 +25,5 @@ router.get('/:stageNumber', async (req, res) => {
     }
 });
 
+
+export default router;

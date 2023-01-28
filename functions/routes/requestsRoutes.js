@@ -1,12 +1,13 @@
 import express from 'express';
-import { getRequests, getRequest, updateRequest, newComment, updateComment, deleteComment} from '../controllers/requestsController.js';
+import { getRequests, getRequest, updateRequest, newComment} from '../controllers/requestsController.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // Get all requests
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
     try {
-        const requests = getRequests();
+        const requests = await getRequests();
+        console.log('got  requests', requests)
         res.status(200).json(requests);
     } catch (err) {
         res.status(404).json({ message: err.message });
@@ -34,15 +35,17 @@ router.patch("/:requestId", (req, res) => {
 });
 
 // Create comment
-router.post("/:requestId/comments", (req, res) => {
+// en el comentario va la request id, no creo que sea lo mejor
+router.post("/comment", (req, res) => {
     try {
-        const request = newComment(req.params.requestId, req.body);
+        const request = newComment(req.body);
         res.status(200).json(request);
     } catch (err) {
         res.status(404).json({ message: err.message });
     }
 });
 
+/*
 // Update comment
 router.patch("/:requestId/comments/:commentId", (req, res) => {
     try {
@@ -61,4 +64,7 @@ router.delete("/:requestId/comments/:commentId", (req, res) => {
     } catch (err) {
         res.status(404).json({ message: err.message });
     }
-});
+});*/
+
+
+export default router;
