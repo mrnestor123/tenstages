@@ -21,8 +21,6 @@ router.get('/', async (req, res) => {
     // CAMBIAR EN  NUEVA VENTANA
 router.get('/:userId', async (req, res) => {
     try {
-        console.log('que pasa amigo', 'sacamos todos los usuarios')
-
         const role = req.query.role || null;
         const users = await getUsers(role);
        

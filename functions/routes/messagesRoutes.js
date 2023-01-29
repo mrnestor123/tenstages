@@ -34,14 +34,14 @@ router.get('/:sender/:receiver/new', async (req, res) => {
 });
 
 router.post('/sendmessage', async (req, res) => {
-    try{
+    try {
         const message = req.body;
         
         sendMessage(message);
 
         return res.status(200).json({message: "Message sent"});
         
-    }catch (err){
+    } catch (err) {
         res.status(404).json({ message: err.message });
     }
 });
