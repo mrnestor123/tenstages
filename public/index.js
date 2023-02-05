@@ -1,4 +1,4 @@
-import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser, getVersions, getAllContent, getSumups, addSumUp, getPaths, addPath, updatePath, getUserMessages, getStats, getUserActions, getTechniques, addTechnique } from './server.js'
+import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser, getVersions, getAllContent, getSumups, addSumUp, getPaths, addPath, updatePath, getUserMessages, getStats, getUserActions, getTechniques, addTechnique, deleteTechnique, updateTechnique } from './server.js'
 import { FileUploader, create_UUID, dia, hora } from './util.js'
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor, Icon } from './components.js'
 import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide, ContentCard, UserCard, FileView, AddContent, AddPath, Path, AddCourse, EditableField } from './tenstage-components.js'
@@ -6,14 +6,16 @@ import { isAdmin, isGame, isLesson, isMeditation, isVideo } from './helpers.js'
 import { DefaultText, Header } from './texts.js'
 import { CourseEntity, types, UserAction } from './models.js'
 import { EditCourse } from './tenstages-management.js'
-
+import { user, loginUser, isLoggedIn } from  './models/user.js'
 
 let primarycolor = '#E0D5B6'
 
 //  CREAR UNA CLASE USER !!!
 // IMPORTANTE !!
-// ESTO DEBERÍA ESTAR EN UN CONTROLADOR !!!!!!
-let user = {};
+// ESTO DEBERÍA ESTAR EN UN CONTROLADOR !!!!!!let User = {};
+
+/// COMPROBAMOS SI SE HA LOGUEADO
+isLoggedIn()
 
 function Layout() {
     let route = 'home'
@@ -24,18 +26,12 @@ function Layout() {
         let errormessage = undefined;
         
         async function log({type, email, password}){
-            console.log(type,email,password)
+            // Pasar todo a una función ??
             var result = await login({type:type, email: email, password: password})
 
-            console.log(result, result.user)
-            
             if(result.user || result.uid){
-                
                 let uid = result.uid || result.user.uid
-
-                localStorage.setItem('meditationcod', uid)
-             //   user  = await getUser(result.uid)
-                location.reload()
+                loginUser(uid)
             }else{
                 errormessage = result;
             }
@@ -57,7 +53,7 @@ function Layout() {
                                 "Username"
                             ),
                             //m(".uk-inline",
-                            //  m("span.uk-form-icon",{'uk-icon':'icon:user'}),
+                            //  m("span.uk-form-icon",{'uk-icon':'icon:User'}),
                             m(TextField, { data: data, name: "email", type: "input" }),
                             //),
                             m(FormLabel,
@@ -84,17 +80,6 @@ function Layout() {
     return {
         oninit:(vnode)=>{
             route = m.route.get().substring(1)
-
-            if(localStorage.getItem('meditationcod')){
-                //  REFACTORIZAR Y CREAR CLASE USER
-                getUser(localStorage.getItem('meditationcod')).then((usr)=>{
-                    if(usr){
-                        console.log('got user',usr)
-                        user = usr
-                        m.redraw()
-                    }
-                })
-            }
         },
         view: (vnode) => {
             return [
@@ -110,6 +95,8 @@ function Layout() {
                                     },
                                     m("a", "Home ")
                                 ),
+
+                                
                                 user.role == 'teacher' || user.role =='admin' ?
                                 m("li",
                                     {
@@ -337,19 +324,20 @@ function ContentManagement() {
             return {
                 view:(vnode)=>{
                     return m(Modal,{id:'add-technique'},
-                        
+                        m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'close-modal-technique' }),
                         m(ModalHeader, "Add Technique"),
                         m(ModalBody,
                             m(Form,
                                 m(Grid,
-                                    m(Column,{width:'1-2'},
+                                    m(Column,{width:'1-1'},
                                         m(FormLabel,  "Title"),
-                                        m(TextEditor,{
+                                        m(TextField,{
                                             data:data,
-                                            name:'title'
+                                            name:'title',
+                                            rows:2
                                         })
                                     ),
-                                    m(Column, {width:'1-2'},
+                                    m(Column, {width:'1-1'},
                                         m(FormLabel, "Description"),
                                         m(TextEditor,{
                                             data:data,
@@ -363,13 +351,14 @@ function ContentManagement() {
                                             name:'why'
                                         })
                                     ),
+                                    /*
                                     m(Column,{width:'1-2'},
                                         m(FormLabel, "What to do if distracted?"),
                                         m(TextEditor,{
                                             data:data,
                                             name:'distraction'
                                         })
-                                    ),
+                                    ),*/
                                     m(Column,{width:'1-2'},
                                         m(FormLabel, "When to move on?"),
                                         m(TextEditor,{
@@ -392,8 +381,12 @@ function ContentManagement() {
                             m(Button,{
                                 type:'primary',
                                 onclick:()=>{
+                                    data.cod = create_UUID()
                                     techniques.push(data)
                                     addTechnique(data)
+                                    data = {}
+                                    document.getElementById('close-modal-technique').click()
+                                    m.redraw()
                                 }}
                             ,'Save')
                         )
@@ -402,12 +395,40 @@ function ContentManagement() {
             }
         }
         
+        function sortByStageAndPosition(a,b){
+            
+            if(a.position && b.position  ==  null){
+                return -1 
+                
+            }
+            
+            if(b.position  && a.position == null) {
+                return 1   
+            }
+            
+            if(a.startingStage && b.startingStage){
+                if(a.startingStage == b.startingStage){
+                    return a.position - b.position
+                }else{
+                    return a.startingStage - b.startingStage
+                }
+            }
+
+           
+            console.log('sorting by position')
+            return b.position - a.position
+            
+        }
+
+
         return {
             view:(vnode)=>{
+
+                //console.log('techniques',techniques)
                 return [
                     m(Column,{width:'1-1'},
                         
-                        m("h3", "Techniques"),
+                         m("h3", "Techniques"),
                     
                         m("div", {style:"margin-bottom:20px;"}),
                     
@@ -418,98 +439,150 @@ function ContentManagement() {
                         
                         m(AddTechnique),
                     ), 
-                    m(Column,{width:'1-2'},
-                        techniques.map((technique,index)=>{
-                            return m(Card, 
-                                m(CardMedia,
-                                    m("div",
-                                        {
-                                            'uk-toggle': `target:#text-images-slider`,
-                                            style: "cursor:pointer"
-                                        },
-                                        technique.image ?
-                                            m("img", { src: technique.image }) :
-                                            m("div", { style: "min-height:200px;display:flex;justify-content:center" }, "Click to add an image")
-                                    ),
-                                    m(ImagePicker, { data: technique, name: "image", id: `text-images-slider` })
-                                ),
-                                m(CardHeader,  
-                                    m("h3",technique.title),
-                                    m("p", m.trust(technique.description))
-                                ),
 
-                                m(CardBody,
-                                    m(Grid,
-                                        m(Column,{width:'1-2'},
-                                            m("h4", "Why do we do it?"),
-                                            m(EditableField,{
-                                                data:technique,
-                                                name:'why',
-                                                type:'html',
-                                                isEditing: editingindex == index,
-                                                }, m("p",m.trust(technique.why))
-                                            )
-                                        ),
+                    techniques.sort(sortByStageAndPosition).map((technique,index)=>{
+                        let isEditing = editingindex == index
 
-                                        m(Column,{width:'1-2'},
-                                            m("h4", "What to do if distracted?"),
-                                            m(EditableField,{
-                                                data:technique,
-                                                name:'distraction',
-                                                type:'html',
-                                                isEditing: editingindex == index,
-                                            }, m("p",m.trust(technique.distraction))),
-                                        ),
+                        return m(Column,{width:'1-3'},m(Card, 
+                            m(CardMedia,
+                                m(ImagePicker, { data: technique, name: "image", id: `text-images-slider-${index}`
+                                /*onchange:(image)=>{
+                                    console.log('changing image',image)
+                                    technique.image = image
+                                }*/
+                            })
+                            ),
 
-                                        m(Column,{width:'1-2'},
-                                            m("h4", "When to move on?"),
+                            m(CardHeader,  
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'title',
+                                    isEditing: editingindex == index
+                                
+                                }, m("h3",technique.title)),
 
-                                            m(EditableField,{
-                                                data:technique,
-                                                name:'moveon',
-                                                type:'html',
-                                                isEditing: editingindex == index,
-                                            }, m("p",m.trust(technique.moveon))),
-                                        ),
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'description',
+                                    type:'html',
+                                    isEditing: editingindex == index
+                                },  m("p", m.trust(technique.description))),
 
-                                        m(Column,{width:'1-2'},
-                                            m("h4", "When do we return to it?"),
+                                m(Grid,
+                                    m(Column,{width:'1-2'},
+                                        m("h4", "Starting stage"),
+                                        m(EditableField,{
+                                        data:technique,
+                                        name:'startingStage',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    },m("strong", technique.startingStage))),
 
-                                            m(EditableField,{
-                                                data:technique,
-                                                name:'return',
-                                                type:'html',
-                                                isEditing: editingindex == index,
-                                            }, m("p",m.trust(technique.return))),
-                                        ),                                        
-                                    )
-                                    
-                                ),
-                                m(CardFooter,
-                                editingindex != index ?[
-                                    m("a.uk-button.uk-button-text",
-                                    { 
-                                        onclick: (e) => {
-                                            editingindex = index
-                                        }
-                                    },
-                                    "Edit")    
 
-                                ] :  [
+                                    m(Column,{width: '1-2'}, 
+                                        m("h4", "Ending stage"),
+                                        m(EditableField,{
+                                        data:technique,
+                                        name:'endingStage',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    },m("strong", technique.endingStage))),
 
-                                    // SAVE BUTTON
-                                    m(Button,{
-                                        onclick:(e)=>{
-                                            editingindex = null
-                                            updateTechnique(technique)
-                                        }
-                                    }, "Save")
-
-                                ]
+                                    m(Column,{width: '1-2'},
+                                        m("h4", "Position"),
+                                    m(EditableField,{
+                                        data:technique,
+                                        name:'position',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    }, m("strong", technique.position)))
                                 )
+                            ),
+                            
+                            m(CardBody,
+                                m(Grid,
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "Why do we do it?"),
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'why',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                            }, m("p",m.trust(technique.why))
+                                        )
+                                    ),
+
+                                    /*
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "What to do if distracted?"),
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'distraction',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.distraction))),
+                                    ),*/
+
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "When to move on?"),
+
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'moveon',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.moveon))),
+                                    ),
+
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "When do we return to it?"),
+
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'return',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.return))),
+                                    ),                                        
+                                )
+                                
+                            ),
+
+                            m(CardFooter,
+                            editingindex != index ?[
+                                m("a.uk-button.uk-button-text",
+                                { 
+                                    onclick: (e) => {
+                                        editingindex = index
+                                    }
+                                },
+                                "Edit")    
+                            ] :  [
+
+                                // SAVE BUTTON
+                                m(Button,{
+                                    type:'primary',
+                                    style:"margin-right:15px",
+                                    onclick:(e)=>{
+                                        editingindex = null
+                                        updateTechnique(technique)
+                                    }
+                                }, "Save"),
+
+                                m(Button,{
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        // DELETE BUTTON
+                                        editingindex = null
+                                        deleteTechnique(technique)
+                                    }
+                                },  "Delete")
+
+                            ]
                             )
-                        })
-                    )
+                        ))
+                    })
+                    
                 ]
             }
         }
@@ -2297,6 +2370,7 @@ function MainScreen() {
 
 function ContentView() {
     let content = {}
+
     return {
         oninit: (vnode) => {
             getContentbycod(vnode.attrs.cod).then((res) => {
@@ -2324,6 +2398,8 @@ function ContentView() {
     }
 }
 
+
+// ESTO no necesita el USER
 function ProfileView(){
     let user = {}
     let loaded = false
@@ -2682,6 +2758,7 @@ function ProfileView(){
     return {
         oninit:(vnode) => {
             // SOLO S I NO SE HA CARGADO EL USER !!!
+            // ESTO NO HACE FALTA
             getUser(vnode.attrs.cod).then((usr) => {
                 user = usr
                 console.log(user)
@@ -2702,6 +2779,8 @@ function ProfileView(){
                     actions.push(new UserAction(action))
                 })*/
             })
+
+
         },
         view:(vnode) => {
             return  m(Padding,
@@ -3254,6 +3333,10 @@ function TeacherManagement(){
     }
 }
 
+
+
+
+// QUITAR LAS RUTAS  DE  AQUÍ Y PONERLAS EN UN ARCHIVO APARTE ADEMAS  DE GETCURRENTUSER !!! 
 function getCurrentUser(){
     return user;
 }

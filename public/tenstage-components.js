@@ -6,6 +6,8 @@ import { FileUploader, create_UUID, isAudio, dia, hora } from './util.js'
 
 //explicar como se utiliza para el futuro
 
+
+let cachedImages = {}
 // se utiliza en conjunto con button, pasarle un data y name y un id.
 function ImagePicker() {
     var imagetoadd = {};
@@ -16,6 +18,22 @@ function ImagePicker() {
     let rndnmb = 0
 
     let loadingimages = true;
+    let showingModal = false;
+
+    function queryImages(stage, noStage){
+        if (cachedImages[stage] ) {
+            images = cachedImages[stage]
+            loadingimages= false
+            m.redraw()
+        }else{
+            getImages(stage, noStage).then((res) => { 
+                loadingimages = false;
+                images = res; 
+                cachedImages[stage] = res
+                m.redraw(); 
+            })
+        }
+    }
 
     return {
         oninit: (vnode) => {
@@ -24,20 +42,27 @@ function ImagePicker() {
             rndnmb = Math.floor(Math.random() * 100)
         },
         view: (vnode) => {
+            let {data,name}  = vnode.attrs
             //podemos añadirle un loading
+
             return [
+                m("div",
+                    {
+                        'uk-toggle': `target:#${vnode.attrs.id}`,
+                        style: "cursor:pointer",
+                        onclick:(e)=>{
+                           queryImages(selectedstage.num)
+                        }
+                    },
+                    data[name] ?
+                        m("img", { src: data[name] }) :
+                        m("div", { style: "min-height:200px;display:flex;justify-content:center" }, "Click to add an image")
+                ),
                 m("div",
                     {
                         'uk-modal': 'stack: true',
                         class: 'uk-modal-container',
-                        id: vnode.attrs.id,
-                        oncreate:(vnode)=>{
-                            getImages(selectedstage.num).then((res) => { 
-                                images = res;
-                                loadingimages = false;
-                                m.redraw() 
-                            });
-                        }
+                        id: vnode.attrs.id
                     },
                     m(".uk-modal-dialog.uk-margin-auto-vertical",
                         m("button.uk-modal-close-default", { 'uk-close': '' }),
@@ -48,7 +73,13 @@ function ImagePicker() {
                                         m(Button, {
                                             type:'primary',
                                             onclick: (e) => {
-                                                vnode.attrs.data[vnode.attrs.name] = images[selectedindex]
+                                                if(vnode.attrs.onchange){
+                                                    vnode.attrs.onchange(images[selectedindex])
+                                                }else{
+                                                    data[name] = images[selectedindex]
+                                                }
+                                                console.log(data[name])
+                                                m.redraw()
                                             },
                                             class: "uk-modal-close"
                                         }, "Select"),
@@ -69,11 +100,7 @@ function ImagePicker() {
                                             onchange: (e) => {
                                                 images = [];
                                                 loadingimages =true;
-                                                getImages(selectedstage["num"],  selectedstage['num']=='dynamicfiles').then((res) => { 
-                                                    loadingimages = false;
-                                                    images = res; 
-                                                    m.redraw(); 
-                                                })
+                                                queryImages(selectedstage.num)
                                             }
                                         }, stages)
                                     ),
@@ -82,7 +109,10 @@ function ImagePicker() {
                                         images.length > 0 ?
                                             m(Grid,
                                                 images.map((src, index) => {
-                                                    return m(Column, { width: '1-3',onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '' } ,
+                                                    return m(Column, { width: '1-3',
+                                                        onclick: (e) => selectedindex = index, 
+                                                        style: selectedindex == index ? 'border: 2px solid lightblue' : '' 
+                                                    } ,
                                                         src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                                         m("img", { src: src}) :
                                                         m(FileView,{file:src, style:"width:90%"})
@@ -775,8 +805,6 @@ function Path(){
 }
 
 
-
-
 function EditableField(){
     return {
         view:(vnode)=>{
@@ -787,12 +815,12 @@ function EditableField(){
                 
                 type == 'html' ?
                 m(TextEditor,{data:data,name:name}):
-                m(TextField,{data:data,name:name,type:type}): vnode.children
+                m(TextField,{data:data,name:name,type:type}): 
+                vnode.children
             ]
         }
     }
 }
-
 
 function ChatComponent(){
     let data = {}

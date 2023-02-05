@@ -1,0 +1,12 @@
+
+
+class StageEntity {
+
+
+
+
+}
+
+
+
+export {StageEntity}

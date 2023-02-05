@@ -10,6 +10,14 @@ import { ImagePicker, FileView, AddContent, EditableField, ChatComponent } from 
 import { FormLabel } from "./texts.js";
 import {create_UUID, FileUploader} from "./util.js";
 
+
+
+/*
+*   TODO: 
+*   Saber quien ha editado, y creado el contenido, y cuando 
+*   Reportar contenido, chats ? 
+*   Cuando el usuario crea un contenido, que se le asocie a él    
+*/
 function EditCourse(){
     let course = {};
 
@@ -420,6 +428,7 @@ function EditCourse(){
         }
     }
 }
+
 
 
 //  añadir aquí edit content

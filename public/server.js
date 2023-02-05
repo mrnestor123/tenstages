@@ -192,6 +192,7 @@ async function register(email, password) {
 
 
 // DEVUELVE EL USUARIO DE FIREBASE
+// esto se podría hacer en el server??
 async function login({ type, email, password }) {
     if (type == 'google' || type == 'facebook') {
         var provider;
@@ -287,6 +288,9 @@ async function getAllImages() {
     return images
 }
 
+
+let cachedimages = {}
+
 async function getImages(path,noStage) {
     var ref = storage.ref(noStage ? path : 'stage ' + path);
 
@@ -297,6 +301,7 @@ async function getImages(path,noStage) {
     for (let image of query.items) {
         images.push(await displayImage(image));
     }
+    
 
     return images
 
@@ -710,8 +715,24 @@ async function updateTechnique(technique){
     }
 
 }
+
+
+async function deleteTechnique(technique){
+    let query = await db.collection('techniques').where('cod','==',technique.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+        
+        db.collection('techniques').doc(docID).delete().then(function () {
+            alert("Document successfully deleted!");
+        }).catch(function (error) {
+            alert("Error deleting document: ", error);
+        })
+
+    }
+}
 //  TODO: HACER MÉTODO SAVECOURSE
 
 
 
-export { getLessons, getUserActions,addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+export { getLessons, getUserActions,deleteTechnique, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
