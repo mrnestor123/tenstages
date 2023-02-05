@@ -1,16 +1,15 @@
-import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser, getVersions, getAllContent, getSumups, addSumUp, getPaths, addPath, updatePath, getUserMessages, getStats, getUserActions, getTechniques, addTechnique, deleteTechnique, updateTechnique } from './server.js'
-import { FileUploader, create_UUID, dia, hora } from './util.js'
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor, Icon } from './components.js'
-import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide, ContentCard, UserCard, FileView, AddContent, AddPath, Path, AddCourse, EditableField } from './tenstage-components.js'
-import { isAdmin, isGame, isLesson, isMeditation, isVideo } from './helpers.js'
-import { DefaultText, Header } from './texts.js'
-import { CourseEntity, types, UserAction } from './models.js'
-import { EditCourse } from './tenstages-management.js'
-import { user, loginUser, isLoggedIn } from  './models/user.js'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, FormLabel, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from './components.js'
+import { isAdmin, isGame, isLesson, isMeditation, isVideo } from './controller/helpers.js'
+import { types, UserAction } from './model/user.js'
+import { isLoggedIn, loginUser, user } from './models/user.js'
+import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteContent, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getStages, getStats, getSumups, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, login, postRequest, updateContent, updateRequest, updateStage, updateTechnique, updateUser } from './server.js'
+import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, LessonSlides, MeditationSlide, Path } from './tenstage-components.js'
+import { DefaultText } from './texts.js'
+import { create_UUID, dia, FileUploader, hora } from './util.js'
 
 let primarycolor = '#E0D5B6'
 
-//  CREAR UNA CLASE USER !!!
+// CREAR UNA CLASE USER !!!
 // IMPORTANTE !!
 // ESTO DEBERÍA ESTAR EN UN CONTROLADOR !!!!!!let User = {};
 
@@ -2281,7 +2280,7 @@ function MainScreen() {
             }
         }
     }
-
+    
     return {
         oninit: (vnode) => {
             /*getContent(1).then((res) => {
@@ -3333,6 +3332,7 @@ function TeacherManagement(){
     }
 }
 
+<<<<<<< HEAD:public/index.js
 
 
 
@@ -3340,50 +3340,9 @@ function TeacherManagement(){
 function getCurrentUser(){
     return user;
 }
+=======
+>>>>>>> master:public/view/index.js
 
-export {getCurrentUser}
+export { ContentManagement, EditContent, MainScreen, ContentView, ProfileView, TeacherManagement }
 
 
-m.route(document.body, "/", {
-    "/": {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, MainScreen)
-        },
-    },
-
-    '/management': {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, ContentManagement)
-        }
-    },
-
-    "/editcontent/:cod": {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, EditContent)
-        },
-    },
-
-    '/contentview/:cod': {
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, ContentView)
-        }
-    },
-
-    '/profile/:cod' :{
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, ProfileView)
-        }
-    },
-
-    '/teacher-management':{
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, TeacherManagement)
-        }
-    },
-
-    '/editcourse/:cod':{
-        render:(vnode)=>{
-            return m(Layout, vnode.attrs, EditCourse)
-        }
-    }
-})

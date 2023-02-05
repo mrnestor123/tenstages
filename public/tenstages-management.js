@@ -4,11 +4,11 @@
 
 import { CardBody, CardMedia, Card, Column, Row, Grid, Padding, TextField, Select, Button, Section, Form, Modal, ModalHeader, ModalBody, ModalFooter, CardFooter, CardHeader, NavBar } from "./components.js";
 import { getCurrentUser } from "./index.js";
-import { stagenumbers } from "./models.js";
-import { addAnnouncement, getCourse, updateCourse } from "./server.js";
+import { stagenumbers } from "../models.js";
+import { addAnnouncement, getCourse, updateCourse } from "../controller/server.js";
 import { ImagePicker, FileView, AddContent, EditableField, ChatComponent } from "./tenstage-components.js";
 import { FormLabel } from "./texts.js";
-import {create_UUID, FileUploader} from "./util.js";
+import {create_UUID, FileUploader} from "../util.js";
 
 
 

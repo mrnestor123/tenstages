@@ -1,7 +1,7 @@
 
 import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-import { stagenumbers, types } from './models.js';
-import { getImages, deleteImage, addPath, addContent, updatePath } from './server.js'
+import { stagenumbers, types } from '../controller/stages.js';
+import { getImages, deleteImage, addPath, addContent, updatePath } from './controller/server.js'
 import { FileUploader, create_UUID, isAudio, dia, hora } from './util.js'
 
 //explicar como se utiliza para el futuro

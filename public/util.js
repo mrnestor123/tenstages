@@ -1,4 +1,4 @@
-import { uploadFile } from './server.js'
+import { uploadFile } from './controller/server.js'
 
 
 //FUNCIONES REUTILIZABLES
