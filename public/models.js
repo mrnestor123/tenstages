@@ -16,7 +16,7 @@ const types = [
 
 class UserEntity {
 
-    // hay  atributos solo únicos a un profesor !!
+    // hay atributos solo únicos a un profesor !!
     constructor(json){
         if(json){   // create json method to create a json from the user
             this.codUser = json.coduser;
