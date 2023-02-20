@@ -1,4 +1,4 @@
-import { uploadFile } from './controller/server.js'
+import { uploadFile } from './server.js'
 
 
 //FUNCIONES REUTILIZABLES
@@ -30,7 +30,7 @@ function FileUploader() {
                     let file = e.target.files[0]
                     if(file){
                         if(vnode.attrs.onupload){ vnode.attrs.onupload()}
-                        uploadFile(file,stage,path).then((url) => {
+                        uploadFile(path,stage).then((url) => {
                             data[name] = url
                             vnode.attrs.onsuccess ? vnode.attrs.onsuccess(url) : null
                             m.redraw()

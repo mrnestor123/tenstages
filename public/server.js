@@ -1,4 +1,5 @@
-import { api_get, omit } from "../util.js";
+import { user } from "./models.js";
+import { api_get, omit } from "./util.js";
 
 var firebaseConfig = {
     apiKey: "AIzaSyDWEW668iJRj-TIpRueiK2J3fhh-7aKd0M",
@@ -132,19 +133,19 @@ async function updatePath(path){
 
 
 //esto podría ser una barra de carga?
-async function uploadFile(file, stage, path) {
+async function uploadFile(bucket,file) {
     var store;
-    if(path){
-        store = storage.ref(`${path}/${file.name}`)
-    }else{
-        store = storage.ref('stage ' + stage + '/' + file.name);
-    }
+
+    store = storage.ref(`${bucket}/${file.name}`)
+    
+    
     //upload file
     //PASAR ESTO A OTRO SITIO ???
     var upload = await store.put(file);
     let url = await upload.ref.getDownloadURL();
 
-    console.log('got file',url)
+    console.log('UPLOADED',url)
+
 
     return url;
 
@@ -290,21 +291,49 @@ async function getAllImages() {
 
 let cachedimages = {}
 
-async function getImages(path,noStage) {
-    var ref = storage.ref(noStage ? path : 'stage ' + path);
+async function getFiles() {
+    let files =  await db.collection('files').get()
 
-    var images = []
+    // images serán. bucket y array de urls 
+    let images = {}
+
+    for(let file of files.docs){
+        let bucket = file.data().bucket
+        let urls = file.data().images
+        images[bucket] = urls
+    }
+
+    return images;
+}
+
+
+async function populateImages(){
+    let bucket = 'stage 10'
+    var ref = storage.ref(bucket);
+    var  images = []
+
     let query = await ref.listAll()
 
-
-    for (let image of query.items) {
+    for(let image of query.items){
         images.push(await displayImage(image));
     }
-    
 
-    return images
+    // find a  document with bucketname == stage 1 and add the images to it
+    let stage = await db.collection('files').where('bucket','==',bucket).get()
+    let docID;
+
+    console.log('adding to files', images)
+
+    if(stage.docs && stage.docs.length){
+        docID = stage.docs[0].id
+    }else{
+        docID = await db.collection('files').add({bucket:bucket}).id
+    }
+    
+    db.collection('files').doc(docID).update({images:images})
 
 }
+
 
 async function addLesson(lesson) {
     lesson.stagenumber = Number(lesson.stagenumber)
@@ -733,5 +762,19 @@ async function deleteTechnique(technique){
 //  TODO: HACER MÉTODO SAVECOURSE
 
 
+async function getTeachersContent(coduser){
+    let query = await db.collection('content').where('createdBy','==', coduser).get()
 
-export { getLessons, getUserActions,deleteTechnique, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+    if(query.docs){
+        let content = []
+        for(var doc of query.docs){
+            content.push(doc.data())
+        }
+
+        return content;
+    }
+}
+
+
+
+export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

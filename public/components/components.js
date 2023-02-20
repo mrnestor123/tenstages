@@ -1,4 +1,6 @@
 //Aquí meteré todos los componentes reutilizables
+
+
 /** 
     * @attrs (object) {
     size: small | medium | large 
@@ -46,6 +48,7 @@ function Grid() {
 }
 
 //se le podrá pasar algun atributo a row y column
+// TENDRÍA QUE SER FLEX-DIRECTION ROW !!
 function Row() {
     return {
         view: (vnode) => {
@@ -260,7 +263,9 @@ function Padding() {
 
     return {
         oninit: (vnode) => {
-            clase = (vnode.attrs.size ? 'uk-padding-' + vnode.attrs.size : 'uk-padding')
+            clase = (vnode.attrs.size ? 'uk-padding-' + vnode.attrs.size : 'uk-padding') +( 
+                vnode.attrs.onlyTop ? '  uk-padding-remove-horizontal':''
+            )
         },
         view: (vnode) => {
             return m("div",
@@ -282,12 +287,11 @@ function CardBadge() {
 function Modal() {
     let clase = ''
     return {
-        oninit: (vnode) => {
-
-        },
         view: (vnode) => {
             return m("div", {
                 id: vnode.attrs.id,
+                class: vnode.attrs.class,
+                style:vnode.attrs.style,
                 'uk-modal': true
             }, m(".uk-modal-dialog",
                 {
@@ -370,14 +374,7 @@ function Form() {
     }
 }
 
-function FormLabel() {
 
-    return {
-        view: (vnode) => {
-            return m("label.uk-form-label", vnode.attrs, vnode.children)
-        }
-    }
-}
 
 
 //Hacer un componente de TEXT
@@ -675,9 +672,33 @@ function NavBarItem(){
 }
 
 
+// TODO: TAV COMPONENT
+function Tab(){
+
+    return {
+        view:(vnode)=>{
+
+        }
+    }
+}
+
+
+/**
+ * @attrs 
+ * class: uk-label-success uk-label-warning  uk-label-danger
+ **/
+function Label(){
+    return{
+        view:(vnode)=>{
+            return m("span.uk-label", vnode.attrs)
+        }
+    }
+}
 
 
 
 
 
-export { TextField, Button, Grid, Column,NavBar, NavBarDropDown,NavBarItem, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }
+
+
+export { TextField, Button, Grid, Column,NavBar, NavBarDropDown,NavBarItem, Label, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, ModalFooter }

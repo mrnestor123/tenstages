@@ -1,6 +1,6 @@
 
 //funciones de ayuda
-
+// content.isGame()
 function isGame(content){
     return content.type == 'meditation-game'
 }

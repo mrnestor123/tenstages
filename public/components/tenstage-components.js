@@ -1,13 +1,14 @@
 
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-import { stagenumbers, types } from '../controller/stages.js';
-import { getImages, deleteImage, addPath, addContent, updatePath } from './controller/server.js'
-import { FileUploader, create_UUID, isAudio, dia, hora } from './util.js'
+import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader, Form} from './components.js'
+import { stagenumbers, types, user } from '../models.js';
+import { getFiles, deleteImage, addPath, addContent, updatePath } from '../server.js'
+import { FileUploader, create_UUID, isAudio, dia, hora } from '../util.js'
+import { Header2, SubHeader, FormLabel } from '../texts.js';
 
 //explicar como se utiliza para el futuro
 
+// COMPONENTES  COMUNES PARA TODA LA WEB
 
-let cachedImages = {}
 // se utiliza en conjunto con button, pasarle un data y name y un id.
 function ImagePicker() {
     var imagetoadd = {};
@@ -26,7 +27,7 @@ function ImagePicker() {
             loadingimages= false
             m.redraw()
         }else{
-            getImages(stage, noStage).then((res) => { 
+            getFiles(stage, noStage).then((res) => { 
                 loadingimages = false;
                 images = res; 
                 cachedImages[stage] = res
@@ -130,7 +131,6 @@ function ImagePicker() {
         }
     }
 }
-
 
 function LessonSlides(){
     let data,name
@@ -316,26 +316,64 @@ function FollowAlongSlide(){
 }
 
 function ContentCard(){
-    let  toAdd = {}
+    let toAdd = {}
+
+
+    let content = {}
+
+    let id = Math.floor(Math.random() * 100)
+
+    // CUANDO CLICAMOS A EDITAR SE NOS ABRE UN MODAL CON EL EDITOR
+
+    /*
+    function EditButton(){
+        return{
+            view:(vnode)=>{
+                return [
+                    m(Button,
+                        {
+                            'target': `#${id}`,
+                            type: 'secondary'
+                        },
+                        'Edit' 
+                    ),  
+                   
+                    
+                ]
+            }
+        }
+    }*/
 
     return {
         view:(vnode)=>{
-            let {content} = vnode.attrs
+            content = vnode.attrs.content
 
-           
-            return  m(".uk-card.uk-card-default",{style: content.position == undefined  ?" opacity:0.5":''},
-                content.image ?
-                m("uk-card-media-top",
-                    m("img", { src: content.image })
-                ) : null,
-                m(".uk-card-body",
-                    m("h4.uk-card-title", content.title),
-                    m("p", content.description)
-                ),
-                m(".uk-card-footer",
-                    m("a.uk-button.uk-button-text",{ onclick: (e) =>  m.route.set('/editcontent/' + (content.cod || content.codlesson))},"Edit")
+            return  [
+
+                m(".uk-card.uk-card-default",{style: content.position == undefined  ? " opacity:0.5":''},
+                
+                    m(".uk-card-body",
+                        m(Grid,{center:true, verticalalign:true, columngap:'small'},
+                            m(Column,{width:'3-4'},
+                                m("h4.uk-card-title", content.title),
+                                m("p", content.description)
+                            ),
+                            m(Column,{width:'1-4'},
+                                content.image  ?
+                                m("img", { src: content.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg", style: "width:100%" }) :null
+                            )
+                        )
+                    ),
+                    m(".uk-card-footer",
+                        m("a.uk-button.uk-button-text",{
+                            onclick:()=>{
+                                m.route.set(`/edit_create?cod=${content.cod}`)
+                            }
+                        },"Edit"),
+                        
+                    )
                 )
-            )
+            ]
         }
     }
 }
@@ -362,6 +400,7 @@ function UserCard(){
     }
 }
 
+// MUESTRA VIDEO O AUDIO !!! REALMENTE NO HACE FALTA !!
 function FileView() {
 
     let filename;
@@ -398,133 +437,104 @@ function FileView() {
     }
 }
 
-function AddContent(){
-    let json = {
-        'cod': '',
-        'title': '',
-        'description': '',
-        'image': '',
-        'duration': 1,
-        'stagenumber': 1,
-        'path':'',
-        'type': 'meditation-practice',
-        'content': {}
-    }
 
-    let step = 1
+// Crear o editar contenido !!
+function ContentEdit(){
+    let content = {}
 
+    return{
+        view:(vnode)=>{
+            let { id, isNew} = vnode.attrs
 
-    return {
-        view: (vnode) => {
-            let {isTeacher,courses = [], courseId, coduser, addLabel} = vnode.attrs
+            content = vnode.attrs.content
 
-            if(courseId){
-                // cambiar el nombre de path
-                json.path = courseId
-            }
-
-            return [
-                m(Button,
-                    {
-                        'target': '#modal-content',
-                        type: vnode.attrs.type
-                    },
-                    (addLabel ? 'Add Content' : 'Content')
+            return m(Modal,
+                {
+                    class:'uk-modal-full',
+                    id: id,
+                    style:"background-color:white;display:block;",
+                    center:true,
+                },
+                
+                m("button.uk-modal-close-full.uk-close-large", { 'uk-close': '', 'id': 'closemodalmed', style:"position:fixed;top:15px;right:15px;"}),
+                
+                m(Grid,{center:true,verticalalign:true, style:"width:100%;"},
+                    m(Column,{width:'1-3'},
+                        m(Padding,
+                            m("img",{style:"width:100%; border-radius:10px", src: './assets/buddha-sharing.webp'})
+                        )
                     ),
-                m(Modal,
-                    {
-                        id: "modal-content",
-                        center: true
-                    },
-                    m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'closemodalmed' }),
-                    m(".uk-modal-header", m(".uk-modal-title", "Add Content")),
-                    m(".uk-modal-body",
-                        m("p", { style: "text-align:center" }, "Input basic information"),
-                        m("form.uk-form-stacked.uk-grid-small", { 'uk-grid': '' },
+
+                    m(Column,{width:'2-3'},
+                        m(Header2, "Create Content"),
+                        m(SubHeader, "Add content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording."),
+                        m(Form,
+                            m(Grid,
                                 m(Row,
-                                    m("label.uk-form-label", "Title"),
-                                    m(TextField, { type: "input", data: json, name: "title" })
+                                    m(FormLabel, "Title"),
+                                    m(TextField, { type: "input", data: content, name: "title" })
                                 ),
                                 m(Row,
-                                    m("label.uk-form-label", "Description"),
-                                    m(TextField, { type: "input", data: json, name: "description" })
-                                ),
-                                m(Column, { width: '1-4' },
-                                    m("label.uk-form-label", "Image"),
-                                    json.image ? m("img", { src: json.image }) : null,
-                                    m(Button,
-                                        {
-                                            target: '#modal-meditationcontent',
-                                            type: "secondary"
-                                        }, !json.image ? "Upload image" : 'Change image'),
-                                    m(ImagePicker, { id: "modal-meditationcontent", data: json, name: "image" })
+                                    m(FormLabel, "Description"),
+                                    m(TextField, { type: "input", data: content, name: "description" })
                                 ),
 
-                                m(Column,{ width: '3-4' },
-                                    isTeacher || courseId ? [
-                                        m("label.uk-form-label", "Is it part of a course?"),
-                                        courseId ?
-                                        m("label.uk-bold",courseId):
-                                        m(Select,{data: json, name: 'path'},[''].concat(courses.map((path)=>{
-                                            return {'label':path.title,'value':path.cod}
-                                        })))
-                                    ] : [
-                                    m("label.uk-form-label", "Is it part of a path?"),
-                                    m(Select,{data: json, name: 'path'},[''].concat(courses.map((path)=>{
-                                        return {'label':path.title,'value':path.cod}
-                                    }))),
-                                    ]
-                                ),
-
-                                m(Column,{width:'1-4'},
-                                    m("label.uk-form-label","Type"),
-                                    m(Select,{data:json,name:'type'},types)
+                                m(Column,{width:'1-3'},
+                                    m(FormLabel,"Type"),
+                                    m(Select,{data:content,name:'type'},types)
                                 ),
                                 
-                                !json.path 
-                                ? [
-                                    m(Column, { width: '1-4' }, 
-                                        m("label.uk-form-label", "Stagenumber"),
-                                        m(Select,
-                                            { data: json, name: "stagenumber" },
-                                            stagenumbers
-                                        )
+                                m(Column, { width: '1-3' }, 
+                                    m(FormLabel, "Stage"),
+                                    m(Select,
+                                        { data: content, name: "stagenumber" },
+                                        stagenumbers
                                     )
-                                ] : null,
+                                ),
 
-                                json.type.match('meditation-practice|recording|video') ?
+                                content.type.match('meditation-practice|recording|video') ?
                                 m(Column, { width: '1-4' },
-                                        m("label.uk-form-label", "Duration"),
-                                        m(TextField,
-                                            {
-                                                data: json, name: "duration", type: "number"
-                                            }
-                                        )
-                                ) : null,
-                            ) 
-                    ),
-                    m(".uk-modal-footer.uk-text-right",
-                       // step > 1 ? m("button.uk-button.uk-button-default", { onclick: (e) => { step = 1; index = 0 } }, "Back") : null,
-                        m("button.uk-button.uk-button-primary",
-                            {
-                                onclick: (e) => {
-                                  
-                                    json.cod = create_UUID();
-
-                                    if(json.path){
-                                        delete json.stagenumber
-                                    }else {
-                                        if(json.stagenumber == 'none'){
-                                            json.stagenumber = 'none'
-                                        }else{
-                                            json.stagenumber = Number(json.stagenumber)
+                                    m(FormLabel, "Duration (MINUTES)"),
+                                    m(TextField,
+                                        {
+                                            data: content, name: "duration", type: "number"
                                         }
+                                    )
+                                ) : null,
+                                )
+                            ), 
+                                            
+                        m("div",{style:"height:20px"}),
+                        m(Button, {
+                            style:"margin-right:20px",
+                        
+                            type:"primary",
+                            onclick: (e) => {
+
+                                if(!content.title){
+                                    errorAlert({'title':'Title is required'})
+                                    return
+                                }
+
+                                if(!content.description){
+                                    errorAlert('Description is required')
+                                    return
+                                }
+
+                                if(isNew){
+                                    content.cod = create_UUID();
+                                  
+                                    
+                                    if(json.stagenumber == 'none'){
+                                        json.stagenumber = 'none'
+                                    }else{
+                                        json.stagenumber = Number(json.stagenumber)
                                     }
 
-                                    if(coduser){
-                                        json.createdBy = coduser
-                                    }
 
+
+                                    json.createdBy = user.codUser
+                                    
                                     addContent(json);
                                     document.getElementById('closemodalmed').click();
                                     
@@ -541,10 +551,54 @@ function AddContent(){
                                         'content': {}
                                     }
                                 }
-                            },
-                             "Create")
-                    )
-                )
+                            }
+                        },
+                        "Create"),
+
+                        m(Button,{
+                            type:'secondary',
+                            onclick:(e)=>{
+                                document.getElementById('closemodalmed').click();
+                            }
+                        }, "Cancel")
+                    ),
+                    
+                ),
+            )
+
+
+        }
+    }
+}
+
+// SE PODRÍA QUITAR ESTA FUNCIÓN
+function AddContent(){
+    let json = {
+        'cod': '',
+        'title': '',
+        'description': '',
+        'image': '',
+        'duration': 1,
+        'stagenumber': 1,
+        'path':'',
+        'type': 'meditation-practice',
+        'content': {}
+    }
+
+    let step = 1
+    let showModal = false;
+
+    return {
+        view: (vnode) => {
+            
+            return [
+                    
+                /*
+                m(ContentEdit,{
+                    content:json,
+                    isNew: true,
+                    id: "modal-content",
+                })*/
             ]
         }
     }
@@ -804,7 +858,6 @@ function Path(){
     }
 }
 
-
 function EditableField(){
     return {
         view:(vnode)=>{
@@ -892,6 +945,58 @@ function ChatComponent(){
     }
 }
 
-export { MeditationSlide, LessonSlide,EditableField, ImagePicker,ChatComponent, FollowAlongSlide, LessonSlides, ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse}
+
+function errorAlert(options={}){
+    var elem = document.createElement("div")
+
+    elem.style = 'position:fixed;inset:0px;z-index:100000'
+    elem.id = Math.random()*10000 + ''
+
+    document.body.appendChild(elem);
+
+    
+    // AÑADIR TRANSICIONES SIN SEMANTIC !!!
+    m.mount(elem, {
+        view:()=> m(AlertDialog,{
+            title:options.title || 'Error', message:options.message, close:(e)=> {
+            elem.remove()
+            options.then ? options.then() :null
+        }})
+    })
+}
+
+
+function AlertDialog(){
+    return {
+        view:(vnode)=>{
+            let {title,message, close} = vnode.attrs
+
+            return m("uk-modal.uk-open",{style:"position:fixed;inset:0px;z-index:100000;background-color:rgba(0,0,0,0.5);"},
+                m(".uk-modal-dialog.uk-margin-auto-vertical",
+                    m("div",{style:"border-radius:10px;min-width: 250px;font-size:1.1em; padding:1em;background-color:white; color:black;"},
+                        /*m("div",{style:"text-align:left"},
+                            m(Icon,{icon:'error', color:'red',size:'large'}),
+                        ),*/
+                        m(Header2, title),
+                        message ? m(SubHeader,{style: normaltext}, message) : null,
+                        m(Button,{
+                            type:'primary',
+                            onclick: close
+                        }, "OK"
+                    )
+                )
+            ))
+        }
+    }
+}
+
+
+
+
+
+
+
+
+export { MeditationSlide, LessonSlide,EditableField, ContentEdit, ImagePicker,ChatComponent, FollowAlongSlide, LessonSlides, ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse}
 
 

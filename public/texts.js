@@ -31,9 +31,41 @@ function SeparatedHeader(){
 function FormLabel(){
     return {
         view:(vnode)=>{
-            return m("label.uk-form-label",{style:"width:100%!important"}, vnode.children)
+            return m("label.uk-form-label",{
+                style:"width:100%!important;color: rgba(24, 24, 29, 0.7); display: block;margin-bottom: 10px;opacity: 0.7;font-size: 12px;line-height: 20px;font-weight: 500;text-transform: uppercase;"
+            }, vnode.children)
         }
     }
 }
 
-export {DefaultText, Header, SeparatedHeader, FormLabel}
+
+function SubHeader(){
+
+    return {
+        view:(vnode)=>{
+            return m("p",{
+                style:"color: rgba(0, 0, 0, .65);font-size: 16px;line-height: 24px;white-space: initial;",
+            },vnode.children
+            )
+        }
+    }
+}
+
+function Header2(){
+    return{
+        view:(vnode)=>{
+            return m("h2.uk-heading-line",vnode.children)
+        }
+    }
+}
+
+function Header3(){
+    return{
+        view:(vnode)=>{
+            return m("h3.uk-heading-line",vnode.children)
+        }
+    }
+}
+
+
+export {DefaultText, Header, SeparatedHeader, FormLabel, SubHeader, Header2, Header3}

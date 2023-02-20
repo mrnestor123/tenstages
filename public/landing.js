@@ -1,6 +1,6 @@
 // AÑADIR AQUÍ LA WEB
 
-import { Column, Grid, Row } from "./components"
+import { Column, Grid, Row } from "./components/components.js"
 
 function MainScreen(){
     return {

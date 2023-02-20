@@ -1,5 +1,5 @@
-import { Button, Form, FormLabel, Modal, ModalBody, ModalFooter, ModalHeader, TextField } from "./view/components.js"
-import { ContentManagement, ContentView, EditContent, MainScreen, ProfileView, TeacherManagement } from "./view/index.js"
+import { Button, Form,  Modal, ModalBody, ModalFooter, ModalHeader, TextField } from "./components/components.js"
+import {  MainScreen } from "./landing.js"
 
 
 // La página web puede tener otro html y otro enrutador !!
@@ -11,6 +11,7 @@ m.route(document.body, "/", {
         },
     },
 
+    /*
     '/management': {
         render: function (vnode) {
             return m(Layout, vnode.attrs, ContentManagement)
@@ -19,7 +20,7 @@ m.route(document.body, "/", {
 
     "/editcontent/:cod": {
         render: function (vnode) {
-            return m(Layout, vnode.attrs, EditContent)
+            return m(Layout, vnode.attrs, EditCreateContent)
         },
     },
 
@@ -43,10 +44,12 @@ m.route(document.body, "/", {
 
     '/editcourse/:cod':{
         render:(vnode)=>{
-            return m(Layout, vnode.attrs, EditContent)
+            return m(Layout, vnode.attrs, EditCreateContent)
         }
-    }
+    }*/
 })
+
+/// HACEMOS LOGIN SOLO EN TENSTAGES-MANAGEMENT !!
 
 function Layout() {
     let route = 'home'
@@ -61,17 +64,16 @@ function Layout() {
             var result = await login({type:type, email: email, password: password})
 
             console.log(result, result.user)
-            
-            if(result.user || result.uid){
-                
-                let uid = result.uid || result.user.uid
 
+            /*
+            if(result.user || result.uid){  
+                let uid = result.uid || result.user.uid
                 localStorage.setItem('meditationcod', uid)
              //   user  = await getUser(result.uid)
                 location.reload()
             }else{
                 errormessage = result;
-            }
+            }*/
         }
 
         return {
@@ -115,6 +117,7 @@ function Layout() {
     }
 
     return {
+        /*
         oninit:(vnode)=>{
             route = m.route.get().substring(1)
 
@@ -128,7 +131,7 @@ function Layout() {
                     }
                 })
             }
-        },
+        },*/
         view: (vnode) => {
             return [
                 m("nav.uk-navbar-container", { 'uk-navbar': '' },
@@ -143,6 +146,8 @@ function Layout() {
                                     },
                                     m("a", "Home ")
                                 ),
+
+                                /*
                                 user.role == 'teacher' || user.role =='admin' ?
                                 m("li",
                                     {
@@ -159,9 +164,11 @@ function Layout() {
                                         onclick: (e) => { route = 'teacher-management'; m.route.set('/teacher-management')}
                                     },
                                     m("a", "Teachers Management")
-                                ) : null
+                                ) : null*/
                             )
                         ),
+
+                        /*
                         m(".uk-navbar-right",
                             m(".uk-navbar-item",
                                 localStorage.getItem('meditationcod') ?
@@ -183,15 +190,23 @@ function Layout() {
                                 ),
                                 m(LoginModal)
                             )
-                        )
+                        )*/
                     )
                 ),
 
+
+                m(Button,{
+                   onclick:(e)=>{
+                        console.log(window.location)
+                        window.location.href= window.location.href + 'management.html'
+                    }
+                }, "Press to go to management page")
+                /*
                 vnode.children.map((child) => {
                     return m("main", m(Container,{size:'medium'},  [
                         m(child, vnode.attrs)
                     ] ))
-                }),
+                }),*/
 
                 //m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
 
@@ -199,10 +214,3 @@ function Layout() {
         }
     }
 }
-
-// MEJORAR ESTO !!
-function getCurrentUser(){
-    return user;
-}
-
-export {user,  getCurrentUser}
