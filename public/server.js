@@ -17,8 +17,8 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 
-//const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
-const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+//const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
 
 
 
@@ -128,10 +128,6 @@ async function updatePath(path){
 
 }
 
-
-
-
-
 //esto podría ser una barra de carga?
 async function uploadFile(file, stage, path) {
     var store;
@@ -190,7 +186,6 @@ async function register(email, password) {
         });
 }
 
-
 // DEVUELVE EL USUARIO DE FIREBASE
 async function login({ type, email, password }) {
     if (type == 'google' || type == 'facebook') {
@@ -211,6 +206,7 @@ async function login({ type, email, password }) {
                 return result.user
                 // ...
             }).catch((error) => {
+                console.log("Error when logging with external app", error.message)
                 return error.message
                 // ...
             });
@@ -218,14 +214,13 @@ async function login({ type, email, password }) {
         return auth.signInWithEmailAndPassword(email, password)
         .then((user) => {
             return user;
-            console.log(user)
         })
         .catch((error) => {
+            console.log("Error when logging with email", error.message)
             return error.message
         });
     }
 }
-
 
 ///DEVUELVE EL USUARIO DE LA APP
 async function getUser(cod){
@@ -235,8 +230,6 @@ async function getUser(cod){
 
   return user;
 }
-
-
 
 async function updateStage(stage) {
     console.log(stage)

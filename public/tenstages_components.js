@@ -101,8 +101,7 @@ function ImagePicker() {
     }
 }
 
-
-function LessonSlides(){
+function LessonSlides() {
     let data,name
 
     function goBackForward(index, back){
@@ -266,7 +265,7 @@ function MeditationSlide() {
     }
 }
 
-function FollowAlongSlide(){
+function FollowAlongSlide() {
 
     return { 
         view:(vnode) => {
@@ -285,7 +284,7 @@ function FollowAlongSlide(){
 
 }
 
-function ContentCard(){
+function ContentCard() {
     let  toAdd = {}
 
     return {
@@ -310,7 +309,7 @@ function ContentCard(){
     }
 }
 
-function UserCard(){
+function UserCard() {
     return {
         view:(vnode)=>{
             let {user} = vnode.attrs
@@ -368,7 +367,7 @@ function FileView() {
     }
 }
 
-function AddContent(){
+function AddContent() {
     let json = {
         'cod': '',
         'title': '',
@@ -596,7 +595,7 @@ function AddPath() {
     }
 }
 
-//  UN  PATH PUEDE TENER UNA IMAGEN ??
+// UN  PATH PUEDE TENER UNA IMAGEN ??
 function AddCourse() {
     let json = {
         'cod': '',
@@ -696,7 +695,7 @@ function AddCourse() {
 }
 
 // componente de path y curso  !!
-function Path(){
+function Path() {
     let isEditing  = false;
 
     let path;
@@ -769,6 +768,44 @@ function Path(){
     }
 }
 
-export { MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide, LessonSlides,  ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse}
+function LoginInput() {
+    let types = {
+        "textarea": { class: "uk-textarea" },
+        "input": { class: "uk-input", type: "text" },
+        "password": { class: "uk-input", type: "password" },
+        "number": { class: "uk-input", type: "number" },
+        'time': { class: 'uk-input', type:'time'},
+        'checkbox': { class: 'uk-checkbox', type:'checkbox'},
+        'date': {class:'uk-input',type:'date'}
+    }
+    console.log("entro")
+    return {
+        view: (vnode) => {
+            let { data, label, id, name, type = 'input', oninput } = vnode.attrs
+            return m(".input-container", [
+                m("input",
+                    {
+                        class: type ? types[type].class + " text-input" : types['input'].class + " text-input",
+                        id: id || undefined,
+                        type: type ? types[type].type : 'text',
+                        value: data[name],
+                        width: vnode.attrs.width || undefined,
+                        autocomplete: "off",
+                        oninput: (e) => {
+                            e.target.value != "" ? 
+                                e.target.nextElementSibling.classList.add("filled") :
+                                e.target.nextElementSibling.classList.remove("filled")
+                            data[name] = e.target.value;
+                            if (oninput) oninput(e)
+                        },
+                    }
+                ),
+                label && id ? m("label", { class:"login-label", for: id }, label) : null
+            ])
+        }
+    }
+}
+
+export { LoginInput, MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide, LessonSlides,  ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse }
 
 

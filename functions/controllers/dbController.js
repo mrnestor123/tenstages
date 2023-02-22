@@ -11,7 +11,7 @@ export const getVersions = async () => {
                 versions.push(doc.data());
             }
         }
-
+        
         return versions;
     } catch (err) {
         throw new Error(err);

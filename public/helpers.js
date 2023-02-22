@@ -22,4 +22,4 @@ function isAdmin(user){
     return user && user.role  == 'admin'
 }
 
-export {isGame,isLesson,isMeditation, isVideo, isAdmin}
+export {isGame, isLesson, isMeditation, isVideo, isAdmin}

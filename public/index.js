@@ -1,18 +1,18 @@
-import { getLessons, getLesson, addContent,addVersion, getImages, getStage, updateStage, getUsers, getContent, getStages, addStage, getContentbycod, updateContent, login, deleteUser, getUser, postRequest, getRequests, updateRequest, deleteContent, updateUser, getVersions, getAllContent, getSumups, addSumUp, getPaths, addPath, updatePath, getUserMessages, getStats, getUserActions } from './server.js'
-import { FileUploader, create_UUID, dia, hora } from './util.js'
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge, Modal, ModalBody, CardFooter, CardHeader, Container, ModalHeader, Form, FormLabel, ModalFooter, TextEditor, Icon } from './components.js'
-import { LessonSlide,LessonSlides, MeditationSlide, ImagePicker, FollowAlongSlide, ContentCard, UserCard, FileView, AddContent, AddPath, Path, AddCourse } from './tenstage-components.js'
-import { User } from './user.js'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Flex, Form, FormLabel, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from './components.js'
 import { isAdmin, isGame, isLesson, isMeditation, isVideo } from './helpers.js'
-import { DefaultText, Header } from './texts.js'
-import { CourseEntity, types, UserAction } from './models.js'
+import { CourseEntity, isLoggedIn, types, UserAction, user } from './models.js'
+import { addContent, addPath, addStage, addSumUp, addVersion, deleteContent, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getStages, getStats, getSumups, getUser, getUserActions, getUserMessages, getUsers, getVersions, login, postRequest, updateContent, updateRequest, updateStage, updateUser } from './server.js'
+import { AddContent, AddCourse, ContentCard, FileView, ImagePicker, LessonSlides, LoginInput, MeditationSlide, Path } from './tenstages_components.js'
+import { DefaultText } from './texts.js'
+import { create_UUID, dia, FileUploader, hora } from './util.js'
+//import { LandingPage } from './views/landing.js'
+import htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm'
 
 let primarycolor = '#E0D5B6'
 
 //  CREAR UNA CLASE USER !!!
-// IMPORTANTE !!
-let user = {};
-
+// IMPORTANTE !
+isLoggedIn()
 
 function Layout() {
     let route = 'home'
@@ -23,19 +23,17 @@ function Layout() {
         let errormessage = undefined;
         
         async function log({type, email, password}){
-            console.log(type,email,password)
-            var result = await login({type:type, email: email, password: password})
 
-            console.log(result, result.user)
+            var result = await login({type:type, email:email, password:password})
             
-            if(result.user || result.uid){
+            if(result.user || result.uid) {
                 
                 let uid = result.uid || result.user.uid
-
-                localStorage.setItem('meditationcod', uid)
-             //   user  = await getUser(result.uid)
+                console.log('meditationcod', uid)
+                localStorage.setItem('meditationcod', uid) // ?????? QUE COJONES ??????
+             // user  = await getUser(result.uid)
                 location.reload()
-            }else{
+            } else {
                 errormessage = result;
             }
         }
@@ -82,83 +80,106 @@ function Layout() {
 
     return {
         oninit:(vnode)=>{
-            route = m.route.get().substring(1)
-
-            if(localStorage.getItem('meditationcod')){
-                //  REFACTORIZAR Y CREAR CLASE USER
-                getUser(localStorage.getItem('meditationcod')).then((usr)=>{
-                    if(usr){
-                        console.log('got user',usr)
-                        user = usr
-                        m.redraw()
-                    }
-                })
-            }
+            MEDITA_PERRO();
+            route = m.route.get().substring(1);
         },
         view: (vnode) => {
             return [
-                m("nav.uk-navbar-container", { 'uk-navbar': '' },
-                    m("nav", { 'uk-navbar': '', style: "width:100%" },
-                        m(".uk-navbar-left",
-                            m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
-                            m("ul.uk-navbar-nav",
-                                m("li",
-                                    {
-                                        class: route == 'home' ? 'uk-active' : '',
-                                        onclick: (e) => { route = 'home'; m.route.set('/') }
-                                    },
-                                    m("a", "Home ")
-                                ),
-                                user.role == 'teacher' || user.role =='admin' ?
-                                m("li",
-                                    {
-                                        class: route == 'management' ? 'uk-active' : '',
-                                        onclick: (e) => { route = 'management'; m.route.set('/management') }
-                                    },
-                                    m("a", "Content")
-                                ) : null,
-
-                                user.role == 'teacher' || user.role =='admin' ?
-                                m("li",
-                                    {
-                                        class: route == 'teacher-management' ? 'uk-active' : '',
-                                        onclick: (e) => { route = 'teacher-management'; m.route.set('/teacher-management')}
-                                    },
-                                    m("a", "Teachers Management")
-                                ) : null
-                            )
-                        ),
-                        m(".uk-navbar-right",
-                            m(".uk-navbar-item",
-                                localStorage.getItem('meditationcod') ?
-                                m("a.material-icons",
-                                    {
-                                        onclick:(e) => {
-                                            m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                                        }
-                                    },
-                                    'person'
-                                )
-                                :
-                                m(Button,
-                                    {
-                                        type: "secondary",
-                                        target: '#login-modal'
-                                    },
-                                    "LOGIN"
-                                ),
-                                m(LoginModal)
-                            )
-                        )
-                    )
-                ),
+                // m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
+                //     m("nav.uk-navbar-container", { 'uk-navbar': '', style: "background-color: white" },
+                //         m("nav", { 'uk-navbar': '', style: "width:100%" },
+                //             m(".uk-navbar-left",
+                //                 m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto; padding: 0px 16px" })),
+                //                 m("ul.uk-navbar-nav",
+                //                     m("li",
+                //                         {
+                //                             class: route == 'home' ? 'uk-active' : '',
+                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
+                //                         },
+                //                         m("a", "Home ")
+                //                     ),
+                //                     m("li",
+                //                         {
+                //                             class: route == 'home' ? 'uk-active' : '',
+                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
+                //                         },
+                //                         m("a", "Philosophy ")
+                //                     ),
+                //                     m("li",
+                //                         {
+                //                             class: route == 'home' ? 'uk-active' : '',
+                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
+                //                         },
+                //                         m("a", "About us ")
+                //                     ),
+                //                     user.role == 'teacher' || user.role =='admin' ?
+                //                     m("li",
+                //                         {
+                //                             class: route == 'management' ? 'uk-active' : '',
+                //                             onclick: (e) => { route = 'management'; m.route.set('/management') }
+                //                         },
+                //                         m("a", "Content")
+                //                     ) : null,
+    
+                //                     user.role == 'teacher' || user.role =='admin' ?
+                //                     m("li",
+                //                         {
+                //                             class: route == 'teacher-management' ? 'uk-active' : '',
+                //                             onclick: (e) => { route = 'teacher-management'; m.route.set('/teacher-management')}
+                //                         },
+                //                         m("a", "Teachers Management")
+                //                     ) : null
+                //                 )
+                //             ),
+                //             m(".uk-navbar-right",
+                //                 m(".uk-navbar-item",
+                //                             m(Button,
+                //                                 {
+                //                                     type: "primary",
+                //                                     target: '',
+                //                                     style: "border-radius: 16px;"
+                //                                 },
+                //                                 "Download for free"
+                //                             )
+                //                 ),
+                //                 m(".uk-navbar-item",
+                //                     localStorage.getItem('meditationcod') ?
+                //                     m("a.material-icons",
+                //                         {
+                //                             onclick:(e) => {
+                //                                 m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
+                //                             }
+                //                         },
+                //                         'person'
+                //                     )
+                //                     :
+                //                     m(Button, {
+                //                             type: "secondary",
+                //                             target: '#login-modal'
+                //                         },
+                //                         "LOGIN"
+                //                     ),
+                //                     m(LoginModal)
+                //                 ),
+                //             )
+                //         )
+                //     ),
+                // ]),
+                m(TenStagesNavbar),
 
                 vnode.children.map((child) => {
-                    console.log(route)
-                    return m("main", m(Container,{size:'medium'}, user.coduser || route =='teacher-management' ? [
-                        m(child, vnode.attrs)
-                    ] : m(".ui.active.inline.centered.loader",{style:"margin-top:30px;"})))
+                    return [
+                        m("main", 
+                            m(Container, {size:'medium', style:'margin:0px;padding:0px;display:flex;flex-direction:column;max-width:100%'}, 
+                                user.coduser || route =='teacher-management' || true 
+                                    ? [ m(child, vnode.attrs) ] 
+                                    : m(".ui.active.inline.centered.loader",{style:"margin-top:30px;"})
+                            )
+                        )
+                    ]
                 }),
+
+                m(Footer)
 
                 //m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
 
@@ -166,7 +187,6 @@ function Layout() {
         }
     }
 }
-
 
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
@@ -1534,7 +1554,9 @@ function EditContent() {
                 }
             },
             view:(vnode) => {
+                
                 return  [
+                   
                     content.content ? [
                         m(Column, {width:'1-1'}, 
                             m("strong", "Before meditation")
@@ -1590,8 +1612,6 @@ function EditContent() {
                             m("span", {class:"material-icons"},"add_box")
 
                         ) : null,
-
-                   
                     
                 ]
             }
@@ -1761,8 +1781,8 @@ function EditContent() {
                 teachers = res.filter((user)=> user.role == 'teacher');
             })
         },
-        view: (vnode) => {
-            return content.title ?
+        view: (vnode) => {         
+            return [content.title ?
                 m(Padding,   
                 m("article.uk-article",
                     m("h1.uk-article-title",
@@ -1915,15 +1935,7 @@ function EditContent() {
                 )
                  ) :
                 null
-        }
-    }
-}
-
-function errorPageComponent() {
-
-    return {
-        view: () => {
-            return m("h1", "Error")
+                ]
         }
     }
 }
@@ -1953,8 +1965,8 @@ function MainScreen() {
                                 content.image ?
                                     m(CardMedia, m("img", { src: content.image }))
                                     : null,
-                                m(CardBody, m("h3", content.title)
-                                ))
+                                m(CardBody, m("h3", content.title))
+                            )
                         )
                     })
                 )
@@ -1978,70 +1990,6 @@ function MainScreen() {
                 m(Padding,{size:'large'},
                     m("img",{src:'./assets/website-under-construction.jpeg',style:"width:100%;height:auto;margin-top:100px"})
                 )
-
-                
-                /*
-                m(Padding,
-                    m(Row, m("div", { style: "font-family:Gotham Rounded; font-size:2em;text-align:center;" }, "Are you ready for enlightenment?")),
-                    m(Row, { style: "text-align:center" }, m(Button, { type: "primary", style: `margin-top:15px;background-color:${primarycolor};text-align:center;` }, "Join"))
-                ),
-                m(Column, { width: '3-3' },
-                    m(Section,
-                        { type: "muted" },
-                        m('div', { style: "padding-left:15px;" },
-                            m("h3", "Follow the guidelines")
-                        )
-                    )
-                ),
-                m(Row, m("div", { style: "font-family:Gotham Rounded;font-size:2em;text-align:center" }, "Different content for each stage ")),
-                stages.map((stage) => {
-                    return m(Button, {
-                        style: `margin-right:5px;${selectedstage == stage ? 'color:white;background-color:' + primarycolor : ''}`,
-                        onclick: (e) => {
-                            selectedstage = stage;
-                            getContent(stage).then((res) => {
-                                content = res;
-                                m.redraw();
-                                console.log(content)
-                            })
-                        }
-                    }, stage)
-                }),
-
-                m(Row,
-                    m("div", { style: "font-family:Gotham Rounded;font-size:2em;" }, "Lessons"),
-                    m(Content, { type: ['lesson', 'meditation'] })
-                ),
-
-                m(Row,
-                    m("div", { style: "font-family:Gotham Rounded;font-size:2em;" }, "Meditations"),
-                    m(Content, { type: ['meditation-practice', 'game'] })
-                ),
-
-                m(Row,
-                    m(Button,{
-                        onclick:(e) => {
-                            console.log('click')
-                            fetch(`https://localhost:8802/action/1234`, 
-                                {
-                                    headers: {
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json',
-                                    'Access-Control-Allow-Origin': 'http://localhost'
-                                    },
-                                    method: "POST",
-                                    body: JSON.stringify({a: 1, b: 2}
-                                )
-                            }).then((res)=> res.json())
-                            .then((res) => console.log('response',res)) 
-                        }
-                    }, "server")
-                    
-                )
-
-
-
-                    */
 
             )
         }
@@ -3167,10 +3115,224 @@ function CourseEdit(){
     }
 }
 
+function TenStagesNavbar() {
+    return {
+        view: () => {
+            return [
+                m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
+                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: white" },
+                        m("nav", { 'uk-navbar': '', style: "width:100%" },
+                            m(".uk-navbar-left",
+                                m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto" })),
+                                m("ul.uk-navbar-nav", {}, [
+                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Home")),
+                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
+                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
+                                ])
+                            ),
+                            m(".uk-navbar-right",
+                                m(".uk-navbar-item",
+                                    m(Button,
+                                        {
+                                            type: "primary",
+                                            target: '',
+                                            style: "border-radius: 16px;"
+                                        },
+                                        "Download for free"
+                                    )
+                                ),
+                                m(".uk-navbar-item",
+                                    localStorage.getItem('meditationcod') ?
+                                    m("a.material-icons",
+                                        {
+                                            onclick:(e) => {
+                                                m.route.set(`/login`)
+                                                //m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
+                                            }
+                                        },
+                                        'person'
+                                    )
+                                    :
+                                    m(Button,
+                                        {
+                                            type: "secondary",
+                                            onclick: () => { m.route.set('/login') }
+                                            //target: '#login-modal'
+                                        },
+                                        "LOGIN"
+                                    ),
+                                    //m(LoginModal)
+                                )
+                            )
+                        )
+                    )
+                ])
+            ]
+        }
+    }
+}
+
+function LandingPage() {
+    return {
+        view: (vnode) => {
+            return [
+                m("div", { style: "background-image:url('./assets/peak_background.svg'); background-size:cover; background-position:center; height:500px; margin:90px 0px 0px 0px; width:100%;display:flex;flex-direction:column;" }, [
+                    m("div", { style: "display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1" },[
+                        m("h1", { style: "text-align:center" }, "Welcome to TenStages"),
+                        m("p", { style: "text-align:center" }, "A platform to help you reach your full potential"),
+                        m("div", { style: "display:flex;justify-content:center" },
+                            m(Button,
+                                {
+                                    type: "primary",
+                                    onclick: (e) => {
+                                        m.route.set('/management')
+                                    }
+                                },
+                                "Start Now"
+                            )
+                        )
+                    ])
+                ]),
+                m(Section, {}, [
+                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
+                        m("h1", { style: "font-size:56px" }, "What is TenStages?"),
+                        m("p", { style: "font-size:20px;max-width:700px;margin-top:20px"}, "TenStages te cambia la vida flipao date cuenta que es lo mejor, descarga la app, que te lo digo yo. Que si flipao que meditas y se te va la olla de lo que mejora tu vida. Nuestro creador Zerni te lo asegura, que es como meterte un tripi nano, que te vuelves uno con la mama tierra jurao que si. Que brother imaginate tu volando y el resto andando, imaginatelo flipao que estás por encima del resto, a qué esperas para volar? Anda y descarga esta app que no te vas a arrepentir, que ya hay muchos volando, no te quedes atrás primo."),
+                    ]),
+                ]),
+                m(Section, {type:'muted'}, [
+                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
+                        m("h1", { style: "font-size:56px;" }, "≧◡≦"),
+                    ]),
+                ]),
+                m(Section, {}, [
+                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
+                        m("h1", { style: "font-size:56px;" }, "(づ｡◕‿‿◕｡)づ"),
+                    ]),
+                ]),
+                m(Section, {}, [
+                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center; background:#ECD79D' }, [
+                        m("h1", { style: "font-size:40px;margin-top:64px" }, "Contact Us"),
+                        m("p", { style:"font-size:20px; max-width:700px;margin-bottom:88px"}, "You can contact us at: ", m("a", {href:"mailto:"}, "mrnestor123@tenstages.app"))    
+                    ]),
+                ])
+            ]
+        }
+    }
+}
+
+function Footer() {
+    let styles = {
+        titles: 'font-size:14px;font-weight:700;letter-spacing:2.5px;padding-bottom:16px',
+        links: 'color:#5a6175;font-size:14px;letter-spacing:2.5px;padding-bottom:16px'
+    }
+    return {
+        view: () => {
+            return [
+                m(Row, {}, [
+                    m(Grid, {size:'small', match:true, childWidth:'1-3@m'}, [
+                        m(Card, {}, [
+                            m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                m("div", {style: styles.titles}, "DOWNLOAD THE APP"),
+                                m("a", {href:"/", style:"border:1.5px solid black;border-radius:16px;width:200px;height:60px;background-image:url('./assets/app-store.svg');background-size:cover; background-position:center;"}, ""),
+                                m("a", {href:"/", style:"margin-top:5px;border:1.5px solid black;border-radius:16px;width:200px;height:60px;background-image:url('./assets/google-play.svg');background-size:cover; background-position:center;"}, "")
+                            ])
+                        ]),
+                        m(Card, {}, [
+                            m(CardBody, {style:'display:flex; flex-direction:column;'}, [
+                                m("div", {style: styles.titles}, "TEN STAGES"),
+                                m("a", {href:"/", style: styles.links}, "SUSCRIBE"),
+                                m("a", {href:"/", style: styles.links}, "REDEEM A CODE"),
+                                m("a", {href:"/", style: styles.links}, "TEACHERS"),
+                                m("a", {href:"/", style: styles.links}, "WHAT IS MEDITATION?"),
+                                m("a", {href:"/", style: styles.links}, "WHAT ARE THE TEN STAGES?"),
+                            ])
+                        ]),
+                        m(Card, {}, [
+                            m(CardBody, {style:'display:flex; flex-direction:column;'}, [
+                                m("div", {style: styles.titles}, "ABOUT US"),
+                                m("a", {href:"/", style: styles.links}, "TENSTAGES TEAM"),
+                                m("a", {href:"/", style: styles.links}, "COURSES"),
+                                m("a", {href:"/", style: styles.links}, "CAREERS"),
+                            ])
+                        ])
+                    ])
+                ])
+            ]
+        }
+    }
+}
+
+function LoginPage() {
+    let data = {}
+    let errorMsg;
+    let quill;
+
+    async function log({type, email, password}){
+
+        var result = await login({type:type, email:email, password:password})
+        
+        if(result.user || result.uid) {
+            
+            let uid = result.uid || result.user.uid
+            console.log('meditationcod', uid)
+            localStorage.setItem('meditationcod', uid) // ?????? QUE COJONES ??????
+         // user  = await getUser(result.uid)
+            location.reload()
+        } else {
+            errorMsg = result;
+            console.log("error login", errorMsg)
+        }
+    }
+
+    return {
+        view: () => {
+            return [
+                m("div", { style: "background-image:url('./assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; margin: 95px 0px 0px 0px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
+                    m(Card, {type:"default", style:"border-radius:16px"}, [
+                        m(CardBody, {}, [
+                            m("h2", {style:"text-align:center; margin-bottom:25px"}, "Login"),
+                            m("form", { onsubmit: (e) => { e.preventDefault(); } },
+                                m(LoginInput, { label:'Email', type: "input", data: data, name: "email", id:"email"}),
+                                m(LoginInput, { label: "Password", type: "password", name: "password", id: "password", data: data }),
+                                m(".", {style: "margin-bottom:15px;"}, m("a", {href: "/forgot-password"},"Forgot your password?")),
+                                m(Flex, {direction:"row"}, [
+                                    m(Button, { style: "border-radius:20px;padding:0px 10px;height:48px;width:100%;", type: "primary", onclick: () => { login(); } }, "Login with email"),
+                                    m(Button, { onclick: () => log({type:'google'}), style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
+                                        m("img", {src:"./assets/icons8-google.svg"})
+                                    ]),
+                                    // m(Button, { style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
+                                    //     m("img", {src:"./assets/icons8-facebook.svg"})
+                                    // ]),
+                                ]),
+                                m(".", {style: "margin-top:15px;"}, "First time here? ", m("a", {href: "/register"}, "Register for free!")),
+                            )
+                        ])
+                    ])
+                ]),
+                m('div', {
+                    oncreate: () => {
+                        quill = new Quill('#editor', {theme: 'snow'});
+                        console.log('entro')
+                    },
+                    onclick: (e) => {
+                        let QuillDeltaToHtmlConverter = htmlConverter.QuillDeltaToHtmlConverter;
+                        let delta = quill.getContents();
+                        console.log(delta.ops)
+                        let converter = new QuillDeltaToHtmlConverter(delta.ops, {});
+                        console.log("converted", converter.convert())
+                    }, 
+                    id:'editor'}, m("p", "Edit this text"))
+            ]
+        }
+    }
+}
+
+
+
 m.route(document.body, "/", {
     "/": {
         render: function (vnode) {
-            return m(Layout, vnode.attrs, MainScreen)
+            return m(Layout, vnode.attrs, LandingPage)
         },
     },
 
@@ -3208,5 +3370,38 @@ m.route(document.body, "/", {
         render:(vnode)=>{
             return m(Layout, vnode.attrs,  CourseEdit)
         }
-    }
+    },
+    
+    '/login':{
+        render:(vnode)=>{
+            return m(Layout, vnode.attrs, LoginPage)
+        }
+    },
 })
+
+function MEDITA_PERRO() {
+    console.log(`
+                           _
+                        _ooOoo_
+                       o8888888o
+                       88" . "88
+                       (| -_- |)
+                       O\\  =  /O
+                    ____/\`---\'\\____
+                  .\'  \\\\|     |//  \`.
+                 /  \\\\|||  :  |||//  \\
+                /  _||||| -:- |||||_  \\
+                |   | \\\\\\  -  /'| |   |
+                | \\\\_|  \`\\\`---\'//  |_/ |
+                \\  .-\\__ \`-. -'__/-.  /
+              ___\`. .'  /--.--\  \`. .'___
+           ."" '<  \`.___\\_<|>_/___.' _> \\"".
+          | | :  \`- \\\`. ;\`. _/; .'/ /  .' ; |
+          \\  \\ \`-.   \\_\\_\`. _.'_/_/  -' _.' /
+===========\`-.\`___\`-.__\\ \\___  /__.-'_.'_.-'================
+
+`
+)
+}
+
+// 'bCBf5nJsSTaIK8R9N4JRztomKuk2'

@@ -1,9 +1,7 @@
 
-
 // hay que crear responsive textos
 
-
-function DefaultText(){
+function DefaultText() {
     return{
         view:(vnode)=>{
             return m("div.uk-text-default",vnode.children)
@@ -12,7 +10,7 @@ function DefaultText(){
 }
 
 // size can be small,medium, large,xlarge, 2xlarge
-function Header(){
+function Header() {
     return {
         view:(vnode)=>{
             return m(`h2.uk-heading-${vnode.attrs.size || 'small'}`,vnode.children)
@@ -21,7 +19,7 @@ function Header(){
 }
 
 // HAY QUE HACER LA SEPARACIÓN D E IZQUIERDA A DERECHA
-function SeparatedHeader(){
+function SeparatedHeader() {
     return {
         view:(vnode)=>{
             return m("h1.uk-heading-line",vnode.children)
@@ -30,4 +28,4 @@ function SeparatedHeader(){
 
 }
 
-export {DefaultText, Header,SeparatedHeader}
+export { DefaultText, Header, SeparatedHeader }

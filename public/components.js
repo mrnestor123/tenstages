@@ -1,36 +1,38 @@
-//Aquí meteré todos los componentes reutilizables
-/** 
-    * @attrs (object) {
-    size: small | medium | large 
-    row-gap | column-gap:  small | medium | large | collapse
-    divider: true | false
-    match:(height) true|false
-    masonry: true || false
-    center: true ||false
-    verticalalign: true || false
-    }
+// Componentes genéricos de UIkit para mithrilJS
+
+/**
+ * Componente Grid de UIkit
+ * @param { String } size  small | medium | large
+ * @param { String } rowgap  small | medium | large | collapse
+ * @param { String } columngap  small | medium | large | collapse
+ * @param { Boolean } divider true | false
+ * @param { Boolean } match true | false
+ * @param { Boolean } center true | false
+ * @param { Boolean } verticalalign true | false
+ * @param { String } childWidth 1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
+ * @param { Boolean } sortable  true | false
+ * @param { String } align  left | center | right
+ * @param { Boolean } masonry  true | false
 */
 function Grid() {
     let clase = ''
-    let sortable = [];
     return {
         oninit: (vnode) => {
 
-            let { divider, match, rowgap, columngap, size, center, align, sortable, verticalalign } = vnode.attrs
+            let { divider, match, rowgap, columngap, size, center, align, sortable, verticalalign, childWidth } = vnode.attrs
 
             clase = (match ? ' uk-grid-match' : '') +
-                (size ? ' uk-grid-' + size : '') +
-                (center ? ' uk-flex-center ' : '') +
-                (rowgap ? ' uk-grid-row-' + rowgap : '') +
-                (verticalalign ? 'uk-flex-middle' : '') + 
-                (columngap ? ' uk-grid-column-' + columngap : '') +
-                (divider ? ' uk-grid-divider' : '') +
-                (align ? ' uk-align-' + align : '')
+                    (size ? ' uk-grid-' + size : '') +
+                    (center ? ' uk-flex-center ' : '') +
+                    (rowgap ? ' uk-grid-row-' + rowgap : '') +
+                    (verticalalign ? 'uk-flex-middle' : '') + 
+                    (columngap ? ' uk-grid-column-' + columngap : '') +
+                    (divider ? ' uk-grid-divider' : '') +
+                    (align ? ' uk-align-' + align : '') + 
+                    (childWidth ? ' uk-child-width-' + childWidth : '')
 
             //Mejorable
             sortable = sortable ? ['uk-sortable', "handle: .uk-card"] : [undefined, undefined]
-
-
         },
         view: (vnode) => {
             return m("div", {
@@ -45,7 +47,9 @@ function Grid() {
 
 }
 
-//se le podrá pasar algun atributo a row y column
+/**
+ * Componente Row de UIkit
+ */
 function Row() {
     return {
         view: (vnode) => {
@@ -55,9 +59,35 @@ function Row() {
     }
 }
 
-/*
-    Idea set width for mobile, tablet, computer
-*/
+/**
+ * Componente Flex de UIkit
+ * @param {Boolean} inline true | false
+ * @param {String} horizAlign left | center | right | around | between
+ * @param {String} vertAlign stretch | top | middle | bottom
+ * @param {String} direction row | column | row-reverse | column-reverse
+ * @param {String} wrap wrap | nowrap | wrap-reverse
+ */
+function Flex() {
+    let clase = '';
+    return {
+        oninit: (vnode) => {
+            let { inline, hAlign, vAlign, direction, wrap } = vnode.attrs
+            clase = (inline ? 'uk-flex-inline' : 'uk-flex') +
+                (hAlign ? ' uk-flex-' + hAlign : '') +
+                (vAlign ? ' uk-flex-' + vAlign : '') +
+                (direction ? ' uk-flex-' + direction : '') +
+                (wrap ? ' uk-flex-' + wrap : '')
+        },
+        view: (vnode) => {
+            return m(`.uk-flex ${clase}`, vnode.attrs, vnode.children)
+        }
+    }
+}
+
+/**
+ * Componente Column de UIkit
+ * @param { String } width 1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
+ */
 function Column() {
     return {
         view: (vnode) => {
@@ -70,20 +100,28 @@ function Column() {
     }
 }
 
-
+/**
+ * Componente Card de UIkit
+ * @param { String } type  default | primary | secondary 
+ * @param { String } size  small | large
+ * @param { Boolean } hover true | false
+ */
 function Card() {
     return {
         view: (vnode) => {
             let { type, size, hover } = vnode.attrs
             return m('.uk-card ' +
-                (type ? 'uk-card-' + type + ' ' : 'uk-card-default ') +
+                (type ? 'uk-card-' + type + ' ' : '') +
                 (size ? 'uk-card-' + size + ' ' : '') +
-                (hover ? 'uk-card-hover' : ''),vnode.attrs, vnode.children)
+                (hover ? 'uk-card-hover' : ''), vnode.attrs, vnode.children)
 
         }
     }
 }
 
+/**
+ * Componente CardBody de UIkit
+ */
 function CardBody() {
     return {
         view: (vnode) => {
@@ -92,6 +130,10 @@ function CardBody() {
     }
 }
 
+/**
+ * Componente CardMedia de UIkit
+ * @param { String } position  top | bottom
+ */
 function CardMedia() {
     return {
         view: (vnode) => {
@@ -100,6 +142,9 @@ function CardMedia() {
     }
 }
 
+/**
+ * Componente CardHeader de UIkit
+ */
 function CardHeader() {
     return {
         view: (vnode) => {
@@ -108,7 +153,9 @@ function CardHeader() {
     }
 }
 
-
+/**
+ * Componente CardFooter de UIkit
+ */
 function CardFooter() {
     return {
         view: (vnode) => {
@@ -117,11 +164,11 @@ function CardFooter() {
     }
 }
 
-
-/*
-    para inputs y text-areas.
-    Se puede añadir más
-*/
+/**
+ * Componente CardTitle de UIkit
+ * @param { String } size  small | large
+ * Fala pegarle un repaso brutal
+ */
 function TextField() {
     let types = {
         "textarea": { class: "uk-textarea" },
@@ -135,15 +182,17 @@ function TextField() {
 
     return {
         view: (vnode) => {
-            let { data, name, type = 'input', oninput, style, rows, onchange } = vnode.attrs
-            return type != "textarea" ?
-                m("input",
+            let { data, id, name, type = 'input', oninput, style, rows } = vnode.attrs
+            return type != "textarea" ?                  
+                    m("input",
                     {
                         class: type ? types[type].class : types['input'].class,
-                        style: style || '',
+                        //style: style || '',
+                        id: id || undefined,
                         type: type ? types[type].type : 'text',
                         value: data[name],
                         width: vnode.attrs.width || undefined,
+                        autocomplete: "off",
                         oninput: (e) => {
                             if(type =='checkbox'){ data[name] = e.target.checked}
                             else if (type == "number") { data[name] = Number(e.target.value) }
@@ -166,11 +215,11 @@ function TextField() {
     }
 }
 
-/** 
- * *@attrs 
- *  type = default,primary,secondary,danger
- *  size = small, large
- *  width = uk-width-1-1
+/**
+ * Componente Button de UIkit
+ * @param { String } type  default | primary | secondary
+ * @param { String } size  small | large
+ * @param { String } width  1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
  */
 function Button() {
     let clase = '';
@@ -190,7 +239,6 @@ function Button() {
         }
     }
 }
-
 
 //children es un array de ['value':'x', 'label':1], tmb puede no llevar value y ser solo las labels [1,2,3,4]
 function Select() {
@@ -231,14 +279,18 @@ function Select() {
     }
 }
 
-/*
-    Hay que hacer los cuatro tipos de section: primary, muted, secondary, default
-*/
+/**
+ * Componente Section de UIkit
+ * @param { String } type  default | primary | secondary | muted
+ * @param { String } size  xsmall | small | large | xlarge
+ * @param { String } width  1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
+ * @param { String } style  style inline
+ */
 function Section() {
     let clase = 'uk-section'
     return {
         oninit: (vnode) => {
-            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section-muted')
+            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section')
                 + (vnode.attrs.width ? 'uk-width-' + vnode.attrs.width + ' ' : '')
         },
         view: (vnode) => {
@@ -252,8 +304,10 @@ function Section() {
     }
 }
 
-
-//padding can be small ,large, or you can not specify it
+/**
+ * Componente Padding de UIkit
+ * @param { String } size  small | large
+ */
 function Padding() {
     let clase = ''
 
@@ -332,25 +386,29 @@ function ModalClose() {
     }
 }
 
-/*
-    sizes == tiny, small, medium, large, huge
-*/
+/**
+ * Componente container de UIkit
+ * @param {String} size tiny | small | medium | large | huge
+ */
 function Container() {
     let size = '';
 
     return {
         oninit: (vnode) => {
-            vnode.attrs.size == 'tiny' ?
-                size = '.uk-container-xsmall' :
-                vnode.attrs.size == 'small' ?
-                    size = '.uk-container-small' :
-                    vnode.attrs.size == 'medium' ?
-                        size = '.uk-container-large' :
-                        vnode.attrs.size == 'large' ?
-                            size = '.uk-container-xlarge' :
-                            vnode.attrs.size == 'huge' ?
-                                size = '.uk-container-expand' :
-                                null
+            switch(vnode.attrs.size) {
+                case 'tiny':
+                    size = '.uk-container-xsmall'; break;
+                case 'small':
+                    size = '.uk-container-small'; break;
+                case 'medium':
+                    size = '.uk-container-large'; break;
+                case 'large':
+                    size = '.uk-container-xlarge'; break;
+                case 'huge':
+                    size = '.uk-container-expand'; break;
+                default:
+                    size = '';
+            }
         },
         view: (vnode) => {
             return m(`.uk-container${size}`, vnode.attrs, vnode.children)
@@ -393,61 +451,62 @@ function TextEditor() {
     let isLocalized=false
     let text
 
-    let topbuttons = [{
-        placeholder: 'Styles',
-        multiple: true,
-        buttons: [
-            { 'label': 'B', active: false, 'pressed': 'bold', icon: 'bold' },
-            { 'label': 'I', active: false, 'pressed': 'italic', icon: 'italic' },
-            { 'label': 'U', active: false, 'pressed': 'underline', icon: 'underline' },
-            { 'label': 'S', active: false, 'pressed': 'strikethrough', icon: 'strikethrough' }
-        ]
-    },
-    {
-        placeholder: 'Undo/redo',
-        buttons: [
-            { 'label': 'undo', 'pressed': 'undo', icon: 'undo' },
-            { 'label': 'redo', 'pressed': 'redo', icon: 'redo' },
-        ]
-    },
-    {
-        placeholder: 'Text Format',
-        buttons: [
-            { 'label': 'P', 'pressed': 'insertParagraph', icon: 'level down alternate' },
-            { 'label': 'P', 'pressed': 'formatBlock:p', icon: 'paragraph' },
-            { 'label': 'H1', 'pressed': 'formatBlock:H1' },
-            { 'label': 'H2', 'pressed': 'formatBlock:H2' },
-            { 'label': 'H3', 'pressed': 'formatBlock:H3' }
-        ]
-    },
-    {
-        placeholder: 'Font Size',
-        buttons: [
-            { 'label': 'SM', active: false, 'pressed': 'fontsize:1' },
-            { 'label': 'M', active: false, 'pressed': 'fontsize:3' },
-            { 'label': 'U', active: false, 'pressed': 'fontsize:5' }
-        ]
-    },
-    {
-        placeholder: 'Lists',
-        buttons: [
-            { 'label': 'UL', 'pressed': 'insertUnorderedList', 'icon': 'list ul' },
-            { 'label': 'OL', 'pressed': 'insertOrderedList', 'icon': 'list ol' }
-        ]
-    },
-    {
-        placeholder: 'Alignment',
-        multiple: false,
-        buttons: [
-            { 'label': '&#8676;', 'pressed': 'justifyLeft', icon: 'align left' },
-            { 'label': '&#8596;', 'pressed': 'justifyCenter', icon: 'align center' },
-            { 'label': '&#8677;', 'pressed': 'justifyRight', icon: 'align right' }
-        ]
-    },
-    {
-        placeholder: 'Clear Formatting',
-        buttons: [{ 'label': 'Borrar formato', 'pressed': 'removeFormat', 'icon': 'eraser' }]
-    }
+    let topbuttons = [
+        {
+            placeholder: 'Styles',
+            multiple: true,
+            buttons: [
+                { 'label': 'B', active: false, 'pressed': 'bold', icon: 'bold' },
+                { 'label': 'I', active: false, 'pressed': 'italic', icon: 'italic' },
+                { 'label': 'U', active: false, 'pressed': 'underline', icon: 'underline' },
+                { 'label': 'S', active: false, 'pressed': 'strikethrough', icon: 'strikethrough' }
+            ]
+        },
+        {
+            placeholder: 'Undo/redo',
+            buttons: [
+                { 'label': 'undo', 'pressed': 'undo', icon: 'undo' },
+                { 'label': 'redo', 'pressed': 'redo', icon: 'redo' },
+            ]
+        },
+        {
+            placeholder: 'Text Format',
+            buttons: [
+                { 'label': 'P', 'pressed': 'insertParagraph', icon: 'level down alternate' },
+                { 'label': 'P', 'pressed': 'formatBlock:p', icon: 'paragraph' },
+                { 'label': 'H1', 'pressed': 'formatBlock:H1' },
+                { 'label': 'H2', 'pressed': 'formatBlock:H2' },
+                { 'label': 'H3', 'pressed': 'formatBlock:H3' }
+            ]
+        },
+        {
+            placeholder: 'Font Size',
+            buttons: [
+                { 'label': 'SM', active: false, 'pressed': 'fontsize:1' },
+                { 'label': 'M', active: false, 'pressed': 'fontsize:3' },
+                { 'label': 'U', active: false, 'pressed': 'fontsize:5' }
+            ]
+        },
+        {
+            placeholder: 'Lists',
+            buttons: [
+                { 'label': 'UL', 'pressed': 'insertUnorderedList', 'icon': 'list ul' },
+                { 'label': 'OL', 'pressed': 'insertOrderedList', 'icon': 'list ol' }
+            ]
+        },
+        {
+            placeholder: 'Alignment',
+            multiple: false,
+            buttons: [
+                { 'label': '&#8676;', 'pressed': 'justifyLeft', icon: 'align left' },
+                { 'label': '&#8596;', 'pressed': 'justifyCenter', icon: 'align center' },
+                { 'label': '&#8677;', 'pressed': 'justifyRight', icon: 'align right' }
+            ]
+        },
+        {
+            placeholder: 'Clear Formatting',
+            buttons: [{ 'label': 'Borrar formato', 'pressed': 'removeFormat', 'icon': 'eraser' }]
+        }
     ]
     let data = {}
     let name = '';
@@ -595,21 +654,17 @@ function TextEditor() {
 }
 
 /**
- * @attrs 
- * icon :(string)=> el nombre  del icono, ex: search
- *  
- * color:(string)=> color para el icono. black[default]
+ * Componente para mostrar un icono
+ * @param {String} icon Nombre del icono
+ * @param {String} color Color del icono
+ * @param {function} onclick Función a ejecutar al hacer click
+ * @param {String} size Tamaño del icono
+ * @param {Number} opacity Opacidad del icono [0,1]
  * 
- * size:(string)=> small | medium[default] | large || huge
- * 
- * opacity:(double) => 1 [default]. Va de 0 a 1
- *   
  * El nombre del icono se saca de 
  * https://fonts.google.com/icons
- *
- **/
- function Icon(){
-    // link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+ */
+function Icon() {
     
     let sizes = {
         'mini':'font-size:14px',
@@ -633,11 +688,29 @@ function TextEditor() {
     }
 }
 
-
-
-
-
-
-
-
-export { TextField, Button, Grid, Column, Card, CardBody,TextEditor, CardHeader, CardMedia, Row, Select, Section,Icon, Padding, CardBadge, Modal, ModalBody, CardFooter, Container, ModalHeader, Form, FormLabel, ModalFooter }
+export { 
+    TextField, 
+    Button, 
+    Grid, 
+    Column, 
+    Card, 
+    CardBody,
+    TextEditor, 
+    CardHeader, 
+    CardMedia, 
+    Row, 
+    Select, 
+    Section,
+    Icon, 
+    Padding, 
+    CardBadge, 
+    Modal, 
+    ModalBody, 
+    CardFooter, 
+    Container, 
+    ModalHeader, 
+    Form, 
+    FormLabel, 
+    ModalFooter,
+    Flex
+}

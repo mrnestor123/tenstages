@@ -27,3 +27,19 @@ backend
 
 El problema de esto es ver la integración con firebase y como se puede hacer para que todo funcione correctamente.
  
+
+
+
+
+
+
+ https://tenstages.app ---> landing package --> index.html
+
+ https://management.tenstages.app  (teacher management) --> management.html
+    |
+    |
+    -----> Login (email, password) ---> Dashboard (teacher)
+
+
+https://tenstages.app --> index.HTML
+https://tenstages.app/management --> management.HTML
