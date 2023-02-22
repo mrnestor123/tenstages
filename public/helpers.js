@@ -1,6 +1,6 @@
 
 //funciones de ayuda
-
+// content.isGame()
 function isGame(content){
     return content.type == 'meditation-game'
 }
@@ -16,7 +16,6 @@ function isMeditation(content){
 function isVideo(content){
     return content.type == 'video'
 }
-
 
 function isAdmin(user){
     return user && user.role  == 'admin'

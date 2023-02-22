@@ -40,12 +40,13 @@ async function getMeditations(userId){
 };
 
 // SACAR LOS SEGUIDORES Y LOS QUE TE SIGUEN AQUÍ ?????
-async function getUser(userId, quick){
+async function getUser(userId, quick ){
     let query = await db.collection('users').where('coduser','==',userId).get();
     let user;
 
     if(query.docs.length){
         user = query.docs[0].data()
+
         if(quick != true){
             // NO SACAMOS LOS CONTENIDOS ???
             if(isTeacher(user)){

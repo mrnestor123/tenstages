@@ -1,188 +1,457 @@
-import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Flex, Form, FormLabel, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from './components.js'
-import { isAdmin, isGame, isLesson, isMeditation, isVideo } from './helpers.js'
-import { CourseEntity, isLoggedIn, types, UserAction, user } from './models.js'
-import { addContent, addPath, addStage, addSumUp, addVersion, deleteContent, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getStages, getStats, getSumups, getUser, getUserActions, getUserMessages, getUsers, getVersions, login, postRequest, updateContent, updateRequest, updateStage, updateUser } from './server.js'
-import { AddContent, AddCourse, ContentCard, FileView, ImagePicker, LessonSlides, LoginInput, MeditationSlide, Path } from './tenstages_components.js'
-import { DefaultText } from './texts.js'
-import { create_UUID, dia, FileUploader, hora } from './util.js'
-//import { LandingPage } from './views/landing.js'
-import htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm'
 
-let primarycolor = '#E0D5B6'
+// METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
+// EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
+import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path,  } from '../components/tenstages-components.js'
+import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../helpers.js'
+import { stagenumbers, types, user } from '../models.js'
+import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteContent, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getStages, getStats, getSumups, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateStage, updateTechnique, updateUser } from '../server.js'
+import { DefaultText, FormLabel, Header, Header2, SubHeader } from '../texts.js'
+import { create_UUID, dia, FileUploader, hora } from '../util.js'
+import { getTeachersContent } from "../server.js"
+import { Header3 } from "../texts.js"
+import { FileExplorer, showFileExplorer } from '../components/management-components.js'
 
-//  CREAR UNA CLASE USER !!!
-// IMPORTANTE !
-isLoggedIn()
 
-function Layout() {
-    let route = 'home'
-    // DE MOMENTO PASAMOS EL USUARIO ASI !!!
+//  HAY QUE MIRAR SI ESTÁ LOGUEADO
+/*
+*   TODO: 
+*   Saber quien ha editado, y creado el contenido, y cuando 
+*   Reportar contenido, chats ? 
+*   Cuando el usuario crea un contenido, que se le asocie a él    
+*/
+function EditCourse(){
+    let course = {};
 
-    function LoginModal() {
-        let data = {};
-        let errormessage = undefined;
-        
-        async function log({type, email, password}){
+    let menuitems = {
+        'Information':'information',
+        'Content':'content',
+        'Students':'students',
+        'Chat':'chat',
+        'Announcements':'announcements',
+        "Timeline":"timeline",
+    }
 
-            var result = await login({type:type, email:email, password:password})
-            
-            if(result.user || result.uid) {
-                
-                let uid = result.uid || result.user.uid
-                console.log('meditationcod', uid)
-                localStorage.setItem('meditationcod', uid) // ?????? QUE COJONES ??????
-             // user  = await getUser(result.uid)
-                location.reload()
-            } else {
-                errormessage = result;
+    let showing = 'information'
+    
+    function BasicInfo(){
+        let editing = false;
+        return {
+            view:(vnode)=>{
+                return m(Grid,
+                    m(Row,
+                        m(Button, {
+                            type:'primary',
+                            onclick: (e) => { 
+                                // TODO:  UPDATE course  
+                                // We have to remove content, students... !!   
+                                
+                                if(editing) {
+                                    updateCourse(course)
+                                }
+
+                                editing = !editing
+
+                            }
+                        }, editing ?  "Save" : "Edit"),
+                        
+                        editing ? 
+                        m(Button,{
+                            style:"margin-left:10px",
+                            type:'danger',
+                            onclick:(e)=>{editing = false; location.reload()
+                            }
+                        }, "Cancel") : null
+                    ),
+
+                    m(Row,  m(EditableField,{data:course,name:'title',isEditing:editing},  m("h3", course.title))),
+
+                    m(Form,m(Grid,{verticalalign:true},
+                        m(Column,{width:'1-3'},  
+                            m(FormLabel, "Price €"),
+                            m(EditableField,{data:course,name:'price',isEditing:editing,type:"number"}, m("div",course.price))
+                        ),
+                        m(Column,{width:'1-3'},  
+                            m(FormLabel, "Show students to other users? "),
+                            m(EditableField,{data:course,name:'showStudents',isEditing:editing,type:"checkbox"}, m("div",course.showStudents ? "Yes" : "No"))
+                        ),
+                        m(Column,{width:'1-3'},  
+                            m(FormLabel, "Allow people to chat? "),
+                            m(EditableField,{data:course,name:'allowChat',isEditing:editing,type:"checkbox"}, m("div",course.allowChat ? "Yes" : "No"))
+                        ),
+                        m(Column,{width:'1-2'},
+                            m(FormLabel, "Short description"),
+
+                            m(EditableField,{isEditing:editing, data:course,name:'description',type:'html'}, m("div",m.trust(course.description))),
+                        ),
+                        m(Column,{width:'1-2'},
+                            m(FormLabel, "Long description"),
+                            m(EditableField,{isEditing:editing, data:course,name:'description',type:'html'}, m("div",m.trust(course.longdescription))),
+
+                        )
+                    )
+                    )
+                ) 
+            }
+        }
+
+    }
+
+    function Announcements(){
+
+        function AddAnnouncement(){
+            let announcement = {}
+    
+            return {
+                view:(vnode)=>{
+                    return [
+
+                        m(Modal,{
+                            id:'modal-announcement',
+                        },
+                            m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'closemodalmed' }),
+                            m(ModalHeader, "Announcement"),
+                            m(ModalBody,
+                                m(Grid,{'column-gap':'small'},
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel,{required:true}, "Title"),
+                                        m(TextField,{data:announcement,name:'title'})
+                                    ),
+    
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel,{required:true}, "Description"),
+                                        m(TextField,{data:announcement,name:'description',type:"textarea"})
+                                    ),
+                                    
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "Start date"),
+                                        m(TextField,{type:'date',data:announcement,name:'startDate'})
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "Start time"),
+                                        m(TextField,{type:'time',data:announcement,name:'startTime'})
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "End date"),
+                                        m(TextField,{type:'date',data:announcement,name:'endDate'})
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "End time"),
+                                        m(TextField,{type:'time',data:announcement,name:'endTime'})
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "Repeat"),
+                                        m(Select,{data:announcement,name:'repeat'},[
+                                            {value:'none',label:'None'},
+                                            {value:'daily',label:'Daily'},
+                                            {value:'weekly',label:'Weekly'},
+                                            {value:'monthly',label:'Monthly'},
+                                        ])
+                                    ),
+    
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "Image"),
+                                        m(Button,{target:'#announcement-image',style:"width:100%", type:'secondary'}, "Select image"),
+                                        m(ImagePicker,{data:announcement,name:'image',id:'announcement-image'})
+                                    ),
+                                )
+                            ),
+                            m(ModalFooter,
+                                /*
+                                m(Button,{
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        // close modal
+                                        m.redraw()
+                                    }
+                                }, "Close"),*/
+    
+                                m(Button,{
+                                    type:'primary',
+                                    onclick:(e)=>{
+                                        announcement.cod = create_UUID();
+                                        
+                                        // save announcement
+                                        addAnnouncement(course.cod,announcement).then((res)=>{
+                                            document.getElementById('closemodalmed').click()
+                                            m.redraw()
+                                        })
+                                    }
+                                }, "Save"),
+                            )
+                        ),
+    
+                        m(Button,{
+                            target:'#modal-announcement',
+                            onclick:(e)=>{}, 
+                            type:"primary"
+                        }, "Create announcement")
+                    ]
+                }   
             }
         }
 
         return {
-            view: (vnode) => {
-                return m(Modal,
-                    {
-                        center: true,
-                        id: 'login-modal'
-                    },
-                    m(ModalHeader,
-                        "Login"
-                    ),
-                    m(ModalBody,
-                        m(Form,
-                            m(FormLabel,
-                                "Username"
-                            ),
-                            //m(".uk-inline",
-                            //  m("span.uk-form-icon",{'uk-icon':'icon:user'}),
-                            m(TextField, { data: data, name: "email", type: "input" }),
-                            //),
-                            m(FormLabel,
-                                "Password"
-                            ),
-                            m(TextField, { data: data, name: "password", type: "password" }),
-                            
-                            errormessage ? m("div",{style:"font-size:1.1em;color:red"}, errormessage) : null,
-                        )
-                    ),
-                    m(ModalFooter,
-                        m("uk-text-left",
-                            //CAMBIAR
-                            //m("button", { 'uk-icon': 'facebook', onclick: (e) => log({type:'facebook'}) }),
-                            m(Button, { onclick: (e) => log({type:'google'}), style:"background-color:red;color:white;font-weight:bold"}, "Login with google" )
-                        ),
-                        m(Button, { style: "float:right", onclick:(e) => log({type:'mail', email:data.email,password:data.password})}, "Login with MAIL")
-                    )
-                )
+            view:(vnode)=>{
+                return [
+                    m(AddAnnouncement),
+                    /*m(Button,
+                       
+                        
+                        m(SendMessage),
+                        
+                        
+                    )*/
+                    m("h3","My announcements"),
+
+                    course.announcements && course.announcements.length ?
+                    m(Grid,
+                        course.announcements.map((announcement)=>{
+                            return m(Column, { width: '1-3' },
+                                m(Card,
+                                    m(CardHeader, 
+                                        m("strong", announcement.title),
+                                        m("p", announcement.description)
+                                    ),
+                                    m(CardBody,
+                                        
+                                        m(Grid,
+
+                                            m(Column,{width:'1-2'},
+                                                m(FormLabel, "Start date"),
+                                                m("p",announcement.startDate),
+                                            ),
+                                            m(Column,{width:'1-2'},
+                                                m(FormLabel, "Start time"),
+                                                m("p",announcement.startTime),
+                                            ),
+                                            m(Column,{width:'1-2'},
+                                                m(FormLabel, "End date"),
+                                                m("p",announcement.endDate),
+                                            ),
+                                            m(Column,{width:'1-2'},
+                                                m(FormLabel, "End time"),
+                                                m("p",announcement.endTime),
+                                            ),
+                                            
+                                            m(Column ,{width:'1-2'},
+                                                m(FormLabel, "Repeat?"),
+                                                m("p",announcement.repeat || 'None'),
+                                            )
+                                        )
+                                    ),
+                                    m(CardFooter,
+                                        m(Button, {
+                                            type:'secondary',
+                                            onclick:(e)=>{
+                                               // m.route.set('/editannouncement/' + announcement.cod)
+                                            //    m.route.set('/editannouncement/' + announcement.cod)
+                                            // TODO: EDIT announcement
+                                            }
+                                        },"Edit"),
+                                        m(Button, {
+                                            type: "danger",
+                                            style: "margin-left:10px",
+                                            onclick: (e) => { 
+                                                // TODO: remove announcement
+                                                
+                                            }
+                                        }, "Remove")
+                                    )   
+                                )
+                            )
+                        }) 
+                    ):m("p",  "No announcements yet"),
+                ]
             }
         }
     }
 
-    return {
-        oninit:(vnode)=>{
-            MEDITA_PERRO();
-            route = m.route.get().substring(1);
-        },
-        view: (vnode) => {
-            return [
-                // m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
-                //     m("nav.uk-navbar-container", { 'uk-navbar': '', style: "background-color: white" },
-                //         m("nav", { 'uk-navbar': '', style: "width:100%" },
-                //             m(".uk-navbar-left",
-                //                 m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto; padding: 0px 16px" })),
-                //                 m("ul.uk-navbar-nav",
-                //                     m("li",
-                //                         {
-                //                             class: route == 'home' ? 'uk-active' : '',
-                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
-                //                         },
-                //                         m("a", "Home ")
-                //                     ),
-                //                     m("li",
-                //                         {
-                //                             class: route == 'home' ? 'uk-active' : '',
-                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
-                //                         },
-                //                         m("a", "Philosophy ")
-                //                     ),
-                //                     m("li",
-                //                         {
-                //                             class: route == 'home' ? 'uk-active' : '',
-                //                             onclick: (e) => { route = 'home'; m.route.set('/') }
-                //                         },
-                //                         m("a", "About us ")
-                //                     ),
-                //                     user.role == 'teacher' || user.role =='admin' ?
-                //                     m("li",
-                //                         {
-                //                             class: route == 'management' ? 'uk-active' : '',
-                //                             onclick: (e) => { route = 'management'; m.route.set('/management') }
-                //                         },
-                //                         m("a", "Content")
-                //                     ) : null,
-    
-                //                     user.role == 'teacher' || user.role =='admin' ?
-                //                     m("li",
-                //                         {
-                //                             class: route == 'teacher-management' ? 'uk-active' : '',
-                //                             onclick: (e) => { route = 'teacher-management'; m.route.set('/teacher-management')}
-                //                         },
-                //                         m("a", "Teachers Management")
-                //                     ) : null
-                //                 )
-                //             ),
-                //             m(".uk-navbar-right",
-                //                 m(".uk-navbar-item",
-                //                             m(Button,
-                //                                 {
-                //                                     type: "primary",
-                //                                     target: '',
-                //                                     style: "border-radius: 16px;"
-                //                                 },
-                //                                 "Download for free"
-                //                             )
-                //                 ),
-                //                 m(".uk-navbar-item",
-                //                     localStorage.getItem('meditationcod') ?
-                //                     m("a.material-icons",
-                //                         {
-                //                             onclick:(e) => {
-                //                                 m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                //                             }
-                //                         },
-                //                         'person'
-                //                     )
-                //                     :
-                //                     m(Button, {
-                //                             type: "secondary",
-                //                             target: '#login-modal'
-                //                         },
-                //                         "LOGIN"
-                //                     ),
-                //                     m(LoginModal)
-                //                 ),
-                //             )
-                //         )
-                //     ),
-                // ]),
-                m(TenStagesNavbar),
+    function Content(){
 
-                vnode.children.map((child) => {
-                    return [
-                        m("main", 
-                            m(Container, {size:'medium', style:'margin:0px;padding:0px;display:flex;flex-direction:column;max-width:100%'}, 
-                                user.coduser || route =='teacher-management' || true 
-                                    ? [ m(child, vnode.attrs) ] 
-                                    : m(".ui.active.inline.centered.loader",{style:"margin-top:30px;"})
+        return {
+            view:(vnode)=>{
+                return [
+                    m(AddContent,{courseId:course.cod, addLabel:true, type:'primary'}),
+
+                    m("h3", "Added content"),
+
+                    course.content && course.content.length > 0 ?
+                    course.content.map((content)=>{
+                        return m(Column, { width: '1-3' },
+                        m(Card,
+                            m(CardBody,
+                                m("label", cont.title),
+                                m("strong",cont.position),
+                            ),
+                            m(CardFooter,
+                                m(Button, {
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        m.route.set('/editcontent/' + cont.cod)
+                                    }
+                                },"View"),
+                                m(Button, {
+                                    type: "danger",
+                                    style: "margin-top:3px",
+                                    onclick: (e) => { 
+                                        cont.position = null; 
+                                        let contentwithmoreposition = filteredcontent.filter((c) => c.position > cont.position);
+                                        contentwithmoreposition.map((c)=> {
+                                            c.position-=1;
+                                            updateContent(c);
+                                        })
+
+                                        console.log(cont)
+
+                                        updateContent(cont); 
+                                    }
+                                }, "Remove")
                             )
                         )
-                    ]
-                }),
+                    )
+                    }): m("p","No content has been added yet"),
+                ]
+            }
+        }
+    }
 
-                m(Footer)
+    function Students(){
+        return {
+            view:(vnode)=>{
+                return [
+                    
+                    m("h3","Students"),
+                        
+                    course.students && course.students.length ? 
+                    m(Grid,
+                        course.students.map((student)=>{
+                            
+                            return m(Column, { width: '1-3' },
+                                m(Card,
+                                    m(CardHeader,
+                                        m("strong", student.name),
+                                        m("p", student.email)
+                                    ),
 
-                //m("footer", { style: "width:100%;background-color:black;min-height:100px;" }, "Footer")
+                                    m(CardFooter,
+                                    ),
+                                )
+                            )
+                        })
+                    ):m("p",  "No student has joined yet")
 
+                ]
+
+            }
+        }
+    }
+
+    function Chat(){
+        return {
+            view:(vnode)=>{
+                return [
+                    m(Grid,
+                        m(Column,{width:'1-2'},
+                            m(ChatComponent,{
+                                user: getCurrentUser(),
+                                title: "Course messages",
+                                messages:course.messages || [], 
+                                sendMessage:(message)=>{
+                                    if(!course.messages){
+                                        course.messages = []
+                                    }
+                                    course.messages.push(message)
+                                    
+                                    // HAY QUE AÑADIRLO AL CURSO !
+                                    m.redraw()   
+                                }
+                            })
+                        )
+                    )
+                ]
+            }
+        }
+    }
+
+    function Timeline(){
+        return {
+            view:(vnode)=>{
+                return [
+                    m("h3","Timeline"),
+                    m("p","No timeline yet")
+                ]
+            }
+         }
+    }
+
+    return {
+        oninit:(vnode)=>{
+            // sacamos  el curso
+            getCourse(vnode.attrs.cod).then((res)=>{
+                course =res
+                console.log(res);
+                m.redraw()
+            })
+        },
+        view:(vnode)=>{
+            return  m(Padding,
+                
+                m(NavBar,{style:"width:100%;border-bottom:1px solid #ccc"},
+                    Object.keys(menuitems).map((item)=>{
+                        return m("li",
+                        m("a",{
+                                style:(showing==menuitems[item]?'color:black':';opacity:0.5'),
+                                onclick:(e)=> showing = menuitems[item],
+                            },item)
+                        )
+                    })
+                ),
+
+                m(Section,{type:'muted',style:"padding-top:0px!important"},
+                    m(Padding, 
+                        showing == menuitems.Information ?
+                            m(BasicInfo):
+                        showing == menuitems.Announcements ?
+                            m(Announcements):
+                        showing == menuitems.Content ?
+                            m(Content):
+                        showing == menuitems.Students ?
+                            m(Students):
+                        showing == menuitems.Chat ?
+                            m(Chat) :
+                        showing  == menuitems.Timeline ?
+                            m(Timeline):
+                        null,
+                    
+                    )
+                ) 
+            )            
+        }
+    }
+}
+
+function ManagementMain(){
+    return {
+        view:(vnode)=>{
+            return [
+                m(Section,
+                    m(Padding,
+                        m(Grid,{center:true,verticalalign:true},
+                            m(Column,{width:'1-2', style:"text-align:center;"},
+                                m(Icon,{icon:'construction', size:'massive'})
+                            ),
+                            m(Column,{width:'1-2'},
+                                m(Header,
+                                    "TenStages Management"    
+                                ),
+                                m(SubHeader,
+                                    "Find more about tenstages my bro this is wonderful"    
+                                )
+                            )
+                        )
+                    )
+                )
             ]
         }
     }
@@ -190,7 +459,7 @@ function Layout() {
 
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
-    let filter = { 'stagenumber': 1, 'type': 'lessons' }
+    let filter = { 'stagenumber': 1, 'type': 'techniques' }
     let stages = []
     let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
 
@@ -202,11 +471,11 @@ function ContentManagement() {
 
     // PARA CREAR RECORDINGS Y MEDITACIONES DINÁMICAMENTE
     let paths = []
-    
     let games = []
     let versions =[]
     let users = []
     let videos = []
+    let techniques = []
 
     //para subir imágenes a la lección
     let index = 0;
@@ -250,6 +519,10 @@ function ContentManagement() {
                 stages.sort((a, b) => a.stagenumber - b.stagenumber)
             });
 
+            getTechniques().then((res)=>{
+                techniques = res
+            })
+
             getUsers().then((res) => {
                 users = res;
             })
@@ -292,6 +565,8 @@ function ContentManagement() {
                                         filteredcontent = meditations
                                     }else if(filter.type == 'lessons'){
                                         filteredcontent = lessons
+                                    }else if(filter.type == 'techniques'){
+                                        filteredcontent = techniques
                                     }else if(filter.type == 'games'){
                                         filteredcontent = games
                                     }else if(filter.type == 'paths'){
@@ -302,8 +577,8 @@ function ContentManagement() {
                                 }
                             },
                             user.role == 'admin' ? 
-                            ['lessons', 'stage', 'meditations','paths','videos', 'games', 'users', 'versions'] :
-                            ['lessons','stage','meditations','paths','videos']
+                            ['lessons', 'techniques', 'stage', 'meditations','paths','videos', 'games', 'users', 'versions'] :
+                            ['lessons','techniques', 'stage','meditations','paths','videos']
                         )
                     ),
                     m(Column, { width: '3-5' },
@@ -327,9 +602,11 @@ function ContentManagement() {
                         : 
                     filter.type == 'paths' ? 
                         m(PathsView)
-                    : [
-
-                    filter.type !='games' ?
+                    : 
+                    filter.type ==  'techniques' ?
+                        m(TechniquesView):
+                        [
+                        filter.type !='games' ?
                         m(ViewEditSumup) : null,
                         m(ContentView, { content: filteredcontent })
                     ]
@@ -338,6 +615,280 @@ function ContentManagement() {
         }
     }
 
+
+    function TechniquesView(){
+
+        let editingindex = null;
+        
+        function AddTechnique(){
+            let data = {}
+
+            return {
+                view:(vnode)=>{
+                    return m(Modal,{id:'add-technique'},
+                        m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'close-modal-technique' }),
+                        m(ModalHeader, "Add Technique"),
+                        m(ModalBody,
+                            m(Form,
+                                m(Grid,
+                                    m(Column,{width:'1-1'},
+                                        m(FormLabel,  "Title"),
+                                        m(TextField,{
+                                            data:data,
+                                            name:'title',
+                                            rows:2
+                                        })
+                                    ),
+                                    m(Column, {width:'1-1'},
+                                        m(FormLabel, "Description"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'description'
+                                        })
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "Why do we  do it?"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'why'
+                                        })
+                                    ),
+                                    /*
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "What to do if distracted?"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'distraction'
+                                        })
+                                    ),*/
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "When to move on?"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'moveon'
+                                        })
+                                    ),
+                                    m(Column,{width:'1-2'},
+                                        m(FormLabel, "When do we return to it?"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'moveon'
+                                        })
+                                    ),
+                                    
+                                )
+                            )
+                        ),
+                        m(ModalFooter,
+                            m(Button,{
+                                type:'primary',
+                                onclick:()=>{
+                                    data.cod = create_UUID()
+                                    techniques.push(data)
+                                    addTechnique(data)
+                                    data = {}
+                                    document.getElementById('close-modal-technique').click()
+                                    m.redraw()
+                                }}
+                            ,'Save')
+                        )
+                    )
+                }
+            }
+        }
+        
+        function sortByStageAndPosition(a,b){
+            
+            if(a.position && b.position  ==  null){
+                return -1 
+                
+            }
+            
+            if(b.position  && a.position == null) {
+                return 1   
+            }
+            
+            if(a.startingStage && b.startingStage){
+                if(a.startingStage == b.startingStage){
+                    return a.position - b.position
+                }else{
+                    return a.startingStage - b.startingStage
+                }
+            }
+
+           
+            console.log('sorting by position')
+            return b.position - a.position
+            
+        }
+
+
+        return {
+            view:(vnode)=>{
+
+                //console.log('techniques',techniques)
+                return [
+                    m(Column,{width:'1-1'},
+                        
+                         m("h3", "Techniques"),
+                    
+                        m("div", {style:"margin-bottom:20px;"}),
+                    
+                        m(Button,{
+                            target:'#add-technique',
+                            type:'secondary'
+                        }, 'Add New Technique',),
+                        
+                        m(AddTechnique),
+                    ), 
+
+                    techniques.sort(sortByStageAndPosition).map((technique,index)=>{
+                        let isEditing = editingindex == index
+
+                        return m(Column,{width:'1-3'},m(Card, 
+                            m(CardMedia,
+                                m(ImagePicker, { data: technique, name: "image", id: `text-images-slider-${index}`
+                                /*onchange:(image)=>{
+                                    console.log('changing image',image)
+                                    technique.image = image
+                                }*/
+                            })
+                            ),
+
+                            m(CardHeader,  
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'title',
+                                    isEditing: editingindex == index
+                                
+                                }, m("h3",technique.title)),
+
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'description',
+                                    type:'html',
+                                    isEditing: editingindex == index
+                                },  m("p", m.trust(technique.description))),
+
+                                m(Grid,
+                                    m(Column,{width:'1-2'},
+                                        m("h4", "Starting stage"),
+                                        m(EditableField,{
+                                        data:technique,
+                                        name:'startingStage',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    },m("strong", technique.startingStage))),
+
+
+                                    m(Column,{width: '1-2'}, 
+                                        m("h4", "Ending stage"),
+                                        m(EditableField,{
+                                        data:technique,
+                                        name:'endingStage',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    },m("strong", technique.endingStage))),
+
+                                    m(Column,{width: '1-2'},
+                                        m("h4", "Position"),
+                                    m(EditableField,{
+                                        data:technique,
+                                        name:'position',
+                                        type:'number',
+                                        isEditing: editingindex == index
+                                    }, m("strong", technique.position)))
+                                )
+                            ),
+                            
+                            m(CardBody,
+                                m(Grid,
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "Why do we do it?"),
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'why',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                            }, m("p",m.trust(technique.why))
+                                        )
+                                    ),
+
+                                    /*
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "What to do if distracted?"),
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'distraction',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.distraction))),
+                                    ),*/
+
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "When to move on?"),
+
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'moveon',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.moveon))),
+                                    ),
+
+                                    m(Column,{width:isEditing  ? '1-1': '1-2'},
+                                        m("h4", "When do we return to it?"),
+
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'return',
+                                            type:'html',
+                                            isEditing: editingindex == index,
+                                        }, m("p",m.trust(technique.return))),
+                                    ),                                        
+                                )
+                                
+                            ),
+
+                            m(CardFooter,
+                            editingindex != index ?[
+                                m("a.uk-button.uk-button-text",
+                                { 
+                                    onclick: (e) => {
+                                        editingindex = index
+                                    }
+                                },
+                                "Edit")    
+                            ] :  [
+
+                                // SAVE BUTTON
+                                m(Button,{
+                                    type:'primary',
+                                    style:"margin-right:15px",
+                                    onclick:(e)=>{
+                                        editingindex = null
+                                        updateTechnique(technique)
+                                    }
+                                }, "Save"),
+
+                                m(Button,{
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        // DELETE BUTTON
+                                        editingindex = null
+                                        deleteTechnique(technique)
+                                    }
+                                },  "Delete")
+
+                            ]
+                            )
+                        ))
+                    })
+                    
+                ]
+            }
+        }
+    }
     /*
     function AddLesson() {
         let step = 1;
@@ -859,10 +1410,10 @@ function ContentManagement() {
                                 json.content.map((content)=>
                                     m(TextField,{type:'input',data:content,name:'text'})
                                 ),
-                                m(Button,{onclick:(e)=> json.content.push({})},  
-                              
-                                
-                                "Add Content")
+                                m(Button,{
+                                    onclick:(e)=> json.content.push({})
+                                },  "Add Content")
+
                             ),
                         )
                     ),
@@ -1387,22 +1938,73 @@ function ContentManagement() {
     }
 
     function VersionsView(){
+
+        let showing = {}
+
+
+        function SendMail(){
+
+            let data = {}
+
+            // RECEIVERS SE ELEGIRÁ DE UNA LISTA
+
+
+            return {
+                view:(vnode)=>{
+                    return m(Section,
+                        m(Padding,
+                            m("h3","Send Update mail"),
+                            m(Form,
+                                m(Grid,
+                                m(Row,
+                                    m(FormLabel, "Subject"),
+                                    m(TextField,{placeholder:"Subject", data:data,name:'subject', onchange:(e)=>{showing.subject = e.target.value}}),
+                                ),
+                                m(Row,
+                                    m(FormLabel, "Receivers"),
+                                    m(TextField,{placeholder:"Receivers", data:data,name:'receivers', onchange:(e)=>{showing.receivers = e.target.value}}),
+                                ),
+
+
+                                m(Button,{
+                                    type:"primary",
+                                    onclick:(e)=>{
+                                        sendMail()
+                                    }
+                                }, "Send")
+                                
+                                )
+                        )
+                    ))
+                }
+            }
+        }
+
         return {
             view:(vnode)=>{
-                return m("dl",{class:"uk-description-list"},
-                    versions.map((version)=>{
-                        console.log(version)
-                        return [
-                            m("dt", version.description + ' version number:' + version.versionNumber),
-                            m("dd",
-                                m("ul",
-                                    version.content.map((content)=>{
-                                        return m("li",content.text)
-                                    })
-                                )
-                            )
-                        ]
-                    })
+                return m(Row,m(Grid,
+                    m(Column,{width:'1-2'},
+                       m(SendMail)
+                    ),
+                    m(Column,{width:'1-2'},
+                        m(Section,
+                            m("h3","Versions"),
+                            m("dl",{class:"uk-description-list"},versions.sort((a,b)=>b.versionNumber < a.versionNumber).map((version)=>{
+                                console.log(version)
+                                return [
+                                    m("dt", version.description + ' version number:' + version.versionNumber),
+                                    m("dd",
+                                        m("ul",
+                                            version.content.map((content)=>{
+                                                return m("li",content.text)
+                                            })
+                                        )
+                                    )
+                                ]
+                            }))
+                        )
+                    )
+                    )
                 )
             }
         }
@@ -1510,151 +2112,84 @@ function ContentManagement() {
     }
 }
 
-function EditContent() {
+// TAMBIÉN PODEMOS CREAR !!!
+function EditCreateContent() {
     let content = {}
     let editar = false;
     let stages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     let uploading = false;
 
+    let showing = 0;
+    let basic_info = 0;
+    let texts = 1;
+    let file = 2;
+
+    //para cuando creamos un componente
+    let json = {
+        'cod': '',
+        'title': '',
+        'description': '',
+        'image': '',
+        'duration': 1,
+        'stagenumber': 1,
+        'path':'',
+        'type': 'meditation-practice'
+    }
     let teachers = []
 
-    function MeditationContent() {
-        let aux ;
+    let isNew = false;
 
+    function File(){
         return {
-            oninit:(vnode)=>{
-                //HACER ESTO PARA LAS LESSONNS !!!!
-                let aux = 0;
-                if(content.content) {
-                    let contentlast=0
+            view:(vnode)=>{
+                // ARREGLAR ESTO !!!
+                content.content =  null
 
-                    Object.keys(content.content).map((key,index)=>{
-                        let aux = Number(key)
-                        console.log(aux,contentlast)
-                        if (key != 0 && aux - 1 != contentlast){
-                            content.content[Number(contentlast)+1] = content.content[key]
-                            delete content.content[key]
-                        }
+                return [
+                    content.type.match('meditation-practice|video|recording') ?
+                    m(Row,
+                        m(FormLabel, "Add a file to this content"),
+                        m("button.uk-button.uk-button-default", { 
+                            onclick: () => { showFileExplorer({'type':  content.type == 'video' ?  'video' : 'audio' }); 
+                        }}, 
+                            content.file ? "CHANGE FILE": "ADD FILE"
+                        ),
 
-                        contentlast = Number(key)
-                    })
-                }
+                        // HAY QUE MIRAR QUE ESTO SEA FILE !!!
+                        /*
+                        m(Column, {width: '1-2'},
+                            m("video", {src: content.video, 'controls': true})
+                        ),*/
 
-                if(content.followalong){
-                    let followalonglast = 0
-
-                    Object.keys(content.followalong).map((key)=>{
-                        let aux = Number(key)
-                        if (key != 0 && aux - 1 != followalonglast){
-                            content.followalong[Number(followalonglast)+1] = content.followalong[key]
-                            delete content.followalong[key]
-                        }
-                        followalonglast = Number(key)
-                    })
-                }
-            },
-            view:(vnode) => {
-                
-                return  [
-                   
-                    content.content ? [
-                        m(Column, {width:'1-1'}, 
-                            m("strong", "Before meditation")
-                        ),    
-                    
-                        Object.keys(content.content).map((key) => {
-                            return m(Column, { width: '1-4' },
-                                m(MeditationSlide, { data: content['content'], name: key, })
-                            )
-                        })
-                    ]: null,
-
-                    editar ? 
-                    m("a.uk-width-1-4@m",
-                        {
-                            'uk-icon': 'icon:plus',
-                            onclick: (e) => {      
-                                if(!content.content) {
-                                    content.content = {}
-                                }                      
-                                content.content[Object.keys(content.content).length] = { 'text': 'Edit this text', 'type': 'text' }
+                        // ESTO TENDRÍA QUE SER EL VISOR DE DOCUMENTOS NUESTRO !!!!
+                        /*
+                        m(FileUploader, {
+                            data: {},
+                            //path:content.path ? content.path.title : 'dynamicfiles',
+                            onupload:() => uploading = true,
+                            Dstage: content.stagenumber,
+                            name: "file",
+                            id: `meditation-file-chooser`,
+                            onsuccess: (src) => { 
+                                uploading = false;
+                                content.file = src;
+                                m.redraw(); 
                             }
-                        },
-                        "Add before text",
-                        m("span", {class:"material-icons"},"add_box")
-                    ) : null,
+                        }),*/
+                        content.file ?  m("div",m(FileView,{file:content.file,key:uploading ? 0 : 1,style: "width:50%;height:200px;"})) : null
+                    )  : null,
 
+                    
 
-
-                    // a lo mejor arriba es mejor !!!!!! !!!!! CONTENT.FILE ES COMÚN !!!!!!
-                    content.followalong ? [
-                        m(Column, {width:'1-1'}, m("strong","During meditation")),
-                        
-                      //  content.file ? m(Column,{width:'1-3'}, m(FileView,{file:content.file})): null,
-                        content.followalong ?
-                        Object.keys(content.followalong).map((key) => {
-                            return m(Column, { width: '1-4' },
-                                m(MeditationSlide, { data:content['followalong'],name:key})
-                            )
-                        }) : null
-                    ] : null,
-                    editar ? 
-                        m("a.uk-width-1-4@m",
-                            {
-                                onclick: (e) => { 
-                                    if(!content.followalong){
-                                        content.followalong = {}
-                                    }                            
-                                    content.followalong[Object.keys(content.followalong).length] = { 'text': 'Edit this text', 'type':'text'}
-                                }
-                            },
-                            "Add followalong text",
-                            m("span", {class:"material-icons"},"add_box")
-
-                        ) : null,
+                    m("div",{style:"height:20px"}),
                     
                 ]
             }
         }
     }
 
-    function LessonContent() {
-        return {
-            view:(vnode)=>{
-                return [
-                    /*m(Column,{
-                        width:'1-4'
-                    },
-                        m("strong", "Help text"),
-                        m(TextEditor, { 
-                            data: content, 
-                            name: "help", 
-                            type: "textarea", 
-                            rows: "3", 
-                        }),
-                    ),*/
-
-                    // TENDRIA QUE  SER LESSONSLIDES
-                    content.text ? m(LessonSlides,{data:content, name:'text'})
-                    : 
-                        null,
-                        editar ? 
-                        m(Button,
-                            {   
-                                onclick: (e) => {
-                                    if(!content.text){
-                                        content.text = []
-                                    }
-
-                                    content.text.push({ 'text': "Edit this text", 'image': "" })    
-                                }
-                            },"ADD SLIDE"
-                        ) : null
-                ]    
-            }
-        }
-    }
-
+    // SE HA PERDIDO LA FUNCIONALIDAD PARA LOS JUEGOS
+    // añadir !!!
     function GameContent() {
         return {
             view:(vnode) => {
@@ -1769,20 +2304,373 @@ function EditContent() {
         }
     }
 
+    function ImageSelector(){
+        return{
+            view:(vnode)=>{
+                let {src} = vnode.attrs
+
+                return [
+                    m("div",{
+                        style:`
+                            position:relative; 
+                            width:100%;
+                            max-width:100%;
+                            max-height:100%;
+                            height:300px;
+                            background-image:url(${src ? src : './assets/buddha-sharing.webp'});
+                            background-size:cover;
+                            background-position:center;
+                            border-radius:10px;
+                            cursor:pointer;`,
+                        
+                        onclick:(e)=>{
+                            showFileExplorer({'type': 'image'})
+                        }},
+                        m("div",{
+                            style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;",
+                        },m("p",{style:"color:white;text-align:center;"},
+                            "Press to change the image of the content"
+                        ))
+                    ),
+                ]
+            }
+        }
+    }
+
+    function BasicInfo(){
+        return {
+            view:(vnode)=>{
+                return m(Grid,
+                    m(Column,{width:'2-5'},
+                        m(Padding,
+                            // add i mage  inside  div
+                            m("div",{style:`
+                                position:relative; 
+                                width:100%;
+                                max-width:100%;
+                                max-height:100%;
+                                height:300px;
+                                background-image:url(${content.image ? content.image : './assets/buddha-sharing.webp'});
+                                background-size:cover;
+                                background-position:center;
+                                border-radius:10px;
+                                cursor:pointer;
+                                `,
+                            },m("div",{
+                                    style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;",
+                                },
+                                // TODO, MEJORAR: EL EDITOR DE IMÁGENES
+                                m("p",{style:"color:white"},
+                                    "Press to change the image of the content"
+                                )
+                                )
+                            ),
+                        )
+                    ),
+
+                    m(Column,{width:'3-5'},
+                        m(Form,
+                            m(Grid,
+                                m(Row,
+                                    m(FormLabel, "Title"),
+                                    m(TextField, { type: "input", data: content, name: "title" })
+                                ),
+                                m(Row,
+                                    m(FormLabel, "Description"),
+                                    m(TextField, { type: "input", data: content, name: "description" })
+                                ),
+
+                                m(Column,{width:'1-3'},
+                                    m(FormLabel,"Type"),
+                                    m(Select,{data:content,name:'type'},types)
+                                ),
+                                
+                                m(Column, { width: '1-3' }, 
+                                    m(FormLabel, "Stage"),
+                                    m(Select,
+                                        { data: content, name: "stagenumber" },
+                                        stagenumbers
+                                    )
+                                ),
+
+                                content.type.match('meditation-practice|recording|video') ?
+                                m(Column, { width: '1-4' },
+                                    m(FormLabel, "Duration (MINUTES)"),
+                                    m(TextField,
+                                        {
+                                            data: content, name: "duration", type: "number"
+                                        }
+                                    )
+                                ) : null,
+                                )
+                            ), 
+                                            
+                        m("div",{style:"height:20px"}),
+                    )
+                )
+            }
+        }
+    }
+
+    function Texts(){
+        
+        let page = 0
+    
+        let pages = 1;
+
+        function Slide() {
+            return {
+                view: (vnode) => {
+                    let { data, item, name } = vnode.attrs
+    
+                    return m(Card, { size: "small" },
+                        m(CardMedia,
+    
+                            data[name].image ? 
+                            m("a.ui.red.label",{onclick:(e)=>data[name].image = ''},"Delete  image"):null,
+        
+                            m(ImageSelector, {src:data[name].image, id:`#slide-images${name}`}),
+    
+                            /*m("img", {
+                                src: data[name].image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg",
+                                'uk-toggle': `target:#text-images${name}`,
+                                style: "cursor:pointer; width:100%"
+                            }),
+                            
+                            m(ImagePicker, { data: data[name], name: "image", id: `text-images${name}` })*/
+                        ),
+                        m(CardBody,
+                            { style: "padding:0px" },
+                            m(TextEditor, { data: data[name], name: "text", type: "textarea", rows: "10", style: "margin:0px;font-size:0.9em;padding:5px" }),
+                            m("strong","Help text"),
+                            m(TextEditor, {data:data[name], name:'help'}),
+                            m("div", { style: "position:absolute;right:5;top:5" },
+                                m("a", { 'uk-icon': 'icon:trash', style: "color:red", onclick: (e) => data.splice(name, 1) })
+                            ),
+                        ),
+                        m(Button,{style:"color:red",onclick:(e)=> data.splice(name, 1)}, "DELETE")
+                    )
+                }
+            }
+        }
+
+        return {
+            oninit:(vnode)=>{
+                // PARA UNIFICAR EL MODELO !!!
+                if(content.content && !content.text){
+
+                    if(!content.text){
+                        content.text = []
+                    }
+
+                    Object.keys(content.content).map((key)=>{
+                        content.text.push(content.content[key])
+                    })
+                }
+
+                if(content.text && content.text.length){
+                    pages = Math.ceil(content.text.length / 3)
+
+                    console.log('pages',pages,content.text)
+                }
+            },
+            view:(vnode)=>{
+                return [
+                    // CUANDO SEA TIPO ARTÍCULO, NO SERÁ UN SLIDE, SINO QUE SERÁ UN TEXTAREA CON HTML
+                    m(Row, 
+                        m("div",{style:"height:15px"}),
+                        m(FormLabel, {style:"margin-top:15px"},
+                            content.type == 'lesson' ?
+                            "Add slides to the lesson":
+                            `Add Text before the ${content.type == 'recording' ? 'recording': content.type =='meditation-practice' ? 'meditation':'video'}. 
+                            You can also add images inside the text`
+                        ),
+                        
+                        m(Button,{
+                            type:'default',
+                            onclick:(e)=>{
+                                if(!content.text){
+                                    content.text = []
+                                }
+                                
+                                content.text.push({ 'text': 'Edit this text', 'image': "" })                                
+                            }
+                        }, "Add slide"),
+                    ),
+
+                    m("div",{style:"height:20px"}),
+                    m(Grid, content.text ? [
+
+                        pages > 1  ? m(Row,m(Grid, 
+                            m(Column,{width:'1-3'},
+                            m(Icon,{
+                                icon:'chevron_left',
+                                style:"cursor:pointer" + (page == 0 ? ';color:grey':''),
+                                onclick:(e)=>{
+                                    if(page > 0){
+                                        page -= 3
+                                    }
+                                }
+                            }),
+                            ),
+                            m(Column,{width:'1-3'},
+                                Array.from(Array(pages).keys()).map((k,i)=>{
+                                return m("div",{
+                                    style:`width:15px;height:15px;margin-right:10px;max-width:15px;display:block;max-height:15px;border-radius:50%; background-color:${i == page/3 ? 'black':'white'};margin:5px;cursor:pointer; border:1px solid black;`,
+                                    onclick:(e)=>{
+                                        page = i * 3
+                                    },
+                                })}
+                            )),
+
+
+                            m(Column,{width:'1-3'},m(Icon,{
+                                icon:'chevron_right',
+                                style:"cursor:pointer" + (page == (pages-1)*3 ? ';color:grey':''),
+                                onclick:(e)=>{
+                                    if(page < (pages-1)*3){
+                                        page += 3
+                                    }
+                                }
+                            }))
+                        )) : null,
+
+                        content.text.slice(page, page+3).map((key,i) => {
+                            return m(Column, { width: '1-3' },
+                                m(Slide, { data: content.text, name: i })
+                            )
+                        })
+                    ] : null),
+
+                    m("div",{style:"height:200px"})
+                ]
+            }
+        }
+    }
+
     return {
         oninit: (vnode) => {
-            getContentbycod(vnode.attrs.cod).then((res) => {
-                content = res;
-                console.log(content)
-                m.redraw()
-            })
-
-            getUsers().then((res) => {
-                teachers = res.filter((user)=> user.role == 'teacher');
-            })
+            if(vnode.attrs.cod){
+                getContentbycod(vnode.attrs.cod).then((res) => {
+                    content = res;
+                    m.redraw()
+                })
+            }else{
+                isNew = true
+                content = json
+            }
+            // ESTO YA NO HACE FALTA !!
+            //getUsers().then((res) => {
+              //  teachers = res.filter((user)=> user.role == 'teacher');
+            //})
         },
-        view: (vnode) => {         
-            return [content.title ?
+        view: (vnode) => {
+            return content.title || isNew ? [
+                m(InfoText,{
+                    title: isNew ? 'Create content': 'Edit content',
+                    subtitle:'Add and edit content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording."),',
+                    video:'how-to-add-content'
+                }),
+                m(Container, {size:'large'},
+                    m(Padding,{onlyTop:true},
+                        m(Grid,{center:true,},
+                            m(Column,{width:'1-6'},
+                                
+                                m("ul.uk-tab-left",{'uk-tab':true, style:"min-height:50vh;"},
+                                    // link that goes to basic info and changes the showing parameter
+                                   m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
+
+                                    // link that goes to content and changes the showing parameter
+                                    m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
+
+                                    // showing  ==
+                                    m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
+                                )
+                            ),
+                            m(Column,{width:'5-6'},
+                                showing == basic_info ?
+                                m(BasicInfo): 
+                                showing == texts ? 
+                                m(Texts):
+                                m(File)
+                                
+                            )
+                        ),
+                    )
+                ),
+                m(Section,{style:"position:fixed;bottom:0px;left:0px;right:0px;padding:2em;display:flex;justify-content:end; align-items:end;", type:'secondary'},
+                    m(Button,{
+                        type:'secondary',
+                        style:"min-width:200px",
+                        onclick:(e)=>{
+                            if(isNew){
+                                m.route.set('/content')
+                            }else{
+                                window.location.reload()
+                            }
+                        }
+                    }, "Cancel"),
+
+
+
+                    m(Button, {
+                        style:"margin-right:20px;color:white;background-color:#1e87f0;margin-left:20px;min-width:200px;",
+                    
+                        type:"primary",
+                        onclick: (e) => {
+
+                            if(!content.title){
+                                errorAlert({'title':'Title is required'})
+                                return
+                            }
+
+                            if(!content.description){
+                                errorAlert('Description is required')
+                                return
+                            }
+
+                            if(isNew){
+                                content.cod = create_UUID();
+                            
+                                
+                                if(json.stagenumber == 'none'){
+                                    json.stagenumber = 'none'
+                                }else{
+                                    json.stagenumber = Number(json.stagenumber)
+                                }
+
+
+
+                                json.createdBy = user.codUser
+                                
+                                addContent(json);
+                                document.getElementById('closemodalmed').click();
+                                
+                                m.route.set(`/editcontent/${json.cod}`)
+
+                                json = {
+                                    'cod': '',
+                                    'title': '',
+                                    'description': '',
+                                    'image': '',
+                                    'duration': 1,
+                                    'stagenumber': 1,
+                                    'type': 'meditation-practice'
+                                }
+                            }else{
+
+                                updateContent(content); 
+                            }
+                        }
+                    },
+                    isNew ? "Create" : 'Save'),
+                
+   
+                        
+                
+                )
+            ]  : null
+            return content.title ?
                 m(Padding,   
                 m("article.uk-article",
                     m("h1.uk-article-title",
@@ -1924,80 +2812,27 @@ function EditContent() {
                             )
                         ),
                                     
-                        content.type == 'recording' ?
-                        null:
-                        content.type == 'meditation-practice' ? 
-                        m(MeditationContent) :
-                        content.type =='meditation-game' ? 
-                        m(GameContent) :
-                        m(LessonContent),                        
+                                                
                     )
                 )
                  ) :
                 null
-                ]
         }
     }
 }
 
-// a tomar por culo
-function MainScreen() {
-    let content = [];
-    let stages = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    let selectedstage = 1;
-
-    function Content() {
-        return {
-            view: (vnode) => {
-                return m(Grid,
-                    {
-                        match: true
-                    },
-                    content.filter((cont) => (cont.type == vnode.attrs.type[0] || cont.type == vnode.attrs.type[1]) && cont.position != null).sort((a, b) => a.position - b.position).map((content) => {
-                        return m(Column,
-                            { width: '1-5' },
-                            m(Card,
-                                {
-                                    hover: true,
-                                    style: "cursor:pointer;",
-                                    onclick: (e) => { m.route.set('/contentview/' + content.cod) }
-                                },
-                                content.image ?
-                                    m(CardMedia, m("img", { src: content.image }))
-                                    : null,
-                                m(CardBody, m("h3", content.title))
-                            )
-                        )
-                    })
-                )
-            }
-        }
-    }
+function errorPageComponent() {
 
     return {
-        oninit: (vnode) => {
-            /*getContent(1).then((res) => {
-                content = res;
-                m.redraw();
-            })*/
-        },
-        view: (vnode) => {
-            return m(Grid,
-                {
-                    center: true
-                },
-
-                m(Padding,{size:'large'},
-                    m("img",{src:'./assets/website-under-construction.jpeg',style:"width:100%;height:auto;margin-top:100px"})
-                )
-
-            )
+        view: () => {
+            return m("h1", "Error")
         }
     }
 }
 
 function ContentView() {
     let content = {}
+
     return {
         oninit: (vnode) => {
             getContentbycod(vnode.attrs.cod).then((res) => {
@@ -2025,7 +2860,8 @@ function ContentView() {
     }
 }
 
-function ProfileView() {
+// ESTO no necesita el USER
+function ProfileView(){
     let user = {}
     let loaded = false
     
@@ -2383,6 +3219,7 @@ function ProfileView() {
     return {
         oninit:(vnode) => {
             // SOLO S I NO SE HA CARGADO EL USER !!!
+            // ESTO NO HACE FALTA
             getUser(vnode.attrs.cod).then((usr) => {
                 user = usr
                 console.log(user)
@@ -2403,6 +3240,8 @@ function ProfileView() {
                     actions.push(new UserAction(action))
                 })*/
             })
+
+
         },
         view:(vnode) => {
             return  m(Padding,
@@ -2498,7 +3337,7 @@ function ProfileView() {
     }
 }
 
-function TeacherManagement() {
+function TeacherManagement(){
     let content = []
 
     let itemcount = 0;
@@ -2560,7 +3399,6 @@ function TeacherManagement() {
                     ]
                 }
             }
-
         }
 
         return {
@@ -2956,448 +3794,114 @@ function TeacherManagement() {
     }
 }
 
-function CourseEdit() {
-    let c;
-
-    return {
-        oninit:(vnode)=>{
-            // sacamos  el curso
-        
-            
-        },
+function InfoText(){
+    return{
         view:(vnode)=>{
-            
-            
-            return  m(Padding,   
-                m("article.uk-article",
-                    m("h1.uk-article-title",
-                        !editar ? content.title : m(TextField, { type: "input", data: content, name: "title" }),
-                        !editar ? 
-                        m("button.uk-button", {
-                            style:"background-color:green; color:white",
-                            'uk-icon': 'icon:file-edit', 
-                            onclick: () => editar = !editar },
-                            "Edit"
-                        ) : [
-                        user.role == 'admin' ?
-                        m("button.uk-button",
-                            {
-                                style:"color:white;background-color:red;margin-top:15px;margin-right:20px;",  
-                                onclick:(e)=>{
-                                    if(confirm('You are going to delete. Are you sure?')){
-                                        deleteContent(content)
-                                        m.route.set('/management')
-                                    }
-                                }
-                            },
-                            "Delete"
-                        ) : null,
-                        m("button.uk-button.uk-button-secondary",
-                            {
-                                style: "margin-top:15px",
-                                onclick: (e) => { 
-                                    updateContent(content); editar = false; 
-                                }
-                        },"SAVE"),
-                        m("button.uk-button.uk-button-default", {
-                            style: "margin-top:15px",
-                            onclick: (e) => { editar = false; location.reload() }
-                        }, "CANCEL")
-                        ]
-                    ),
-                    m("p.uk-article-meta", "Id:" + content.cod),
-                    m(Grid,
-                        {
-                            size: "medium",
-                            center: true
-                        },
-                        m(Column, { width: '1-4' },
-                        !editar ? m(".uk-text-lead", content.description) : 
-                        [
-                            m(".uk-text-bold", "Description"),
-                            m(TextField, { type: "input", data: content, name: "description", width: '1-2' })
-                        ],
-                        ),
-                        content.path ? 
-                        m(Column, { width: '1-4' },
-                            m(".uk-text-bold", 'Path'),
-                            m(".uk-text-bold", content.path.title)
-                        ) :
-                        [
-                            m(Column, { width: '1-4' },
-                                m(".uk-text-bold", 'Stage'),
-                                m(Select, { 
-                                    data: content, 
-                                    name: 'stagenumber', 
-                                    onchange: (e) => content.stagenumber = Number(e.target.value)
-                                }, stages)
-                            ),
+            let {video, title,subtitle} = vnode.attrs
 
-                            m(Column, { width: '1-4' },
-                                m(".uk-text-bold", '¿Is new Content?'),
-                                m("div",{style:"height:20px"}),
-                                m(TextField, { 
-                                    type:'checkbox',
-                                    data: content, 
-                                    name: 'isNew'
-                                }, stages)
-                            )
-                        ],
-
-                        content.type != 'meditation-game' ? 
-                        m(Column, { width: '1-4' },
-                            m(".uk-text-bold", 'Type'),
-                            m(Select, { data: content, name: 'type' }, types),
-                            content.type == 'meditation-practice'  || content.type == 'recording' || content.type =='video' ? [ 
-                                m(".uk-text-bold","Duration (minutes)"),
-                                m(TextField,{type:'input',data:content,name:'duration'}),
-                            ]: null,
-                        ) : null,
-
-                        content.type == 'meditation-practice' || content.type =='video' ? 
-                        m(Column, { width: '1-4' },
-                            m(".uk-text-bold", 'Created by'),
-                            !editar ? m(".uk-text-bold",content.createdBy || 'no one'):
-                            m(Select, { data: content, name: 'createdBy' }, 
-                            teachers.map((teacher)=>{ return{'label':teacher.nombre,'value':teacher.coduser}})
-                            ),
-                        ):null,
-
-                        
-                        content.type != 'meditation-game' ? 
-                        m(Row,
-                            editar ? [
-                                m("button.uk-button.uk-button-default", { onclick: () => { document.getElementById(`meditation-file-chooser`).click(); }}, 
-                                uploading ?  m("div",{"uk-spinner":''}) :
-                                content.file ? "CHANGE FILE": "ADD FILE"),
-                                m(FileUploader, {
-                                    data: {},
-                                    path:content.path ? content.path.title : 'dynamicfiles',
-                                    onupload:() => uploading = true,
-                                    Dstage: content.stagenumber,
-                                    name: "file",
-                                    id: `meditation-file-chooser`,
-                                    onsuccess: (src) => { 
-                                        uploading = false;
-                                        content.file = src;
-                                        m.redraw(); 
-                                    }
-                                }),
-                            ]: null,
-
-                            content.file ?  m("div",m(FileView,{file:content.file,key:uploading ? 0 : 1,style: "width:50%;height:200px;"})) : null
-                            
-                        ): null,
-
-
-                        m(Column, { width: "1-4" },
-                            m(Card,
-                                m(CardMedia,
-                                    m("div",
-                                        {
-                                            'uk-toggle': `target:#text-images-slider`,
-                                            style: "cursor:pointer"
-                                        },
-                                        content.image ? m("img", { src: content.image }) :
-                                            m("div", { style: "min-height:200px;display:flex;justify-content:center" }, "Click to add an image")
-                                    ),
-                                    m(ImagePicker, { data: content, name: "image", id: `text-images-slider` })
-                                ),
-                                m(CardBody,
-                                    m(".uk-text-bold", content.title.toUpperCase())
-                                )
-                            )
-                        ),                 
+            return m(Section,{style:"padding:0px"},
+                m(Container,{size:'large'},
+                    m("div",{style:"padding:30px 0px;"},
+                        m(Header2, title),
+                        m(SubHeader,  subtitle),
+                        m(Button, {type:'secondary'}, "EXPLANATORY VIDEO")
                     )
                 )
-                 )
+            )
         }
     }
 }
 
-function TenStagesNavbar() {
-    return {
-        view: () => {
-            return [
-                m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
-                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: white" },
-                        m("nav", { 'uk-navbar': '', style: "width:100%" },
-                            m(".uk-navbar-left",
-                                m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto" })),
-                                m("ul.uk-navbar-nav", {}, [
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Home")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
-                                ])
-                            ),
-                            m(".uk-navbar-right",
-                                m(".uk-navbar-item",
-                                    m(Button,
-                                        {
-                                            type: "primary",
-                                            target: '',
-                                            style: "border-radius: 16px;"
-                                        },
-                                        "Download for free"
-                                    )
-                                ),
-                                m(".uk-navbar-item",
-                                    localStorage.getItem('meditationcod') ?
-                                    m("a.material-icons",
-                                        {
-                                            onclick:(e) => {
-                                                m.route.set(`/login`)
-                                                //m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                                            }
-                                        },
-                                        'person'
-                                    )
-                                    :
-                                    m(Button,
-                                        {
-                                            type: "secondary",
-                                            onclick: () => { m.route.set('/login') }
-                                            //target: '#login-modal'
-                                        },
-                                        "LOGIN"
-                                    ),
-                                    //m(LoginModal)
-                                )
-                            )
-                        )
-                    )
-                ])
-            ]
-        }
-    }
-}
+function MyContent(){
+    let content = []
+    let loadedContent = false;
+    let selectedContent = {}
 
-function LandingPage() {
-    return {
-        view: (vnode) => {
-            return [
-                m("div", { style: "background-image:url('./assets/peak_background.svg'); background-size:cover; background-position:center; height:500px; margin:90px 0px 0px 0px; width:100%;display:flex;flex-direction:column;" }, [
-                    m("div", { style: "display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1" },[
-                        m("h1", { style: "text-align:center" }, "Welcome to TenStages"),
-                        m("p", { style: "text-align:center" }, "A platform to help you reach your full potential"),
-                        m("div", { style: "display:flex;justify-content:center" },
-                            m(Button,
-                                {
-                                    type: "primary",
-                                    onclick: (e) => {
-                                        m.route.set('/management')
-                                    }
-                                },
-                                "Start Now"
-                            )
-                        )
-                    ])
-                ]),
-                m(Section, {}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
-                        m("h1", { style: "font-size:56px" }, "What is TenStages?"),
-                        m("p", { style: "font-size:20px;max-width:700px;margin-top:20px"}, "TenStages te cambia la vida flipao date cuenta que es lo mejor, descarga la app, que te lo digo yo. Que si flipao que meditas y se te va la olla de lo que mejora tu vida. Nuestro creador Zerni te lo asegura, que es como meterte un tripi nano, que te vuelves uno con la mama tierra jurao que si. Que brother imaginate tu volando y el resto andando, imaginatelo flipao que estás por encima del resto, a qué esperas para volar? Anda y descarga esta app que no te vas a arrepentir, que ya hay muchos volando, no te quedes atrás primo."),
-                    ]),
-                ]),
-                m(Section, {type:'muted'}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
-                        m("h1", { style: "font-size:56px;" }, "≧◡≦"),
-                    ]),
-                ]),
-                m(Section, {}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
-                        m("h1", { style: "font-size:56px;" }, "(づ｡◕‿‿◕｡)づ"),
-                    ]),
-                ]),
-                m(Section, {}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center; background:#ECD79D' }, [
-                        m("h1", { style: "font-size:40px;margin-top:64px" }, "Contact Us"),
-                        m("p", { style:"font-size:20px; max-width:700px;margin-bottom:88px"}, "You can contact us at: ", m("a", {href:"mailto:"}, "mrnestor123@tenstages.app"))    
-                    ]),
-                ])
-            ]
-        }
-    }
-}
 
-function Footer() {
-    let styles = {
-        titles: 'font-size:14px;font-weight:700;letter-spacing:2.5px;padding-bottom:16px',
-        links: 'color:#5a6175;font-size:14px;letter-spacing:2.5px;padding-bottom:16px'
-    }
-    return {
-        view: () => {
-            return [
-                m(Row, {}, [
-                    m(Grid, {size:'small', match:true, childWidth:'1-3@m'}, [
-                        m(Card, {}, [
-                            m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                m("div", {style: styles.titles}, "DOWNLOAD THE APP"),
-                                m("a", {href:"/", style:"border:1.5px solid black;border-radius:16px;width:200px;height:60px;background-image:url('./assets/app-store.svg');background-size:cover; background-position:center;"}, ""),
-                                m("a", {href:"/", style:"margin-top:5px;border:1.5px solid black;border-radius:16px;width:200px;height:60px;background-image:url('./assets/google-play.svg');background-size:cover; background-position:center;"}, "")
-                            ])
-                        ]),
-                        m(Card, {}, [
-                            m(CardBody, {style:'display:flex; flex-direction:column;'}, [
-                                m("div", {style: styles.titles}, "TEN STAGES"),
-                                m("a", {href:"/", style: styles.links}, "SUSCRIBE"),
-                                m("a", {href:"/", style: styles.links}, "REDEEM A CODE"),
-                                m("a", {href:"/", style: styles.links}, "TEACHERS"),
-                                m("a", {href:"/", style: styles.links}, "WHAT IS MEDITATION?"),
-                                m("a", {href:"/", style: styles.links}, "WHAT ARE THE TEN STAGES?"),
-                            ])
-                        ]),
-                        m(Card, {}, [
-                            m(CardBody, {style:'display:flex; flex-direction:column;'}, [
-                                m("div", {style: styles.titles}, "ABOUT US"),
-                                m("a", {href:"/", style: styles.links}, "TENSTAGES TEAM"),
-                                m("a", {href:"/", style: styles.links}, "COURSES"),
-                                m("a", {href:"/", style: styles.links}, "CAREERS"),
-                            ])
-                        ])
-                    ])
-                ])
-            ]
-        }
-    }
-}
-
-function LoginPage() {
-    let data = {}
-    let errorMsg;
-    let quill;
-
-    async function log({type, email, password}){
-
-        var result = await login({type:type, email:email, password:password})
-        
-        if(result.user || result.uid) {
-            
-            let uid = result.uid || result.user.uid
-            console.log('meditationcod', uid)
-            localStorage.setItem('meditationcod', uid) // ?????? QUE COJONES ??????
-         // user  = await getUser(result.uid)
-            location.reload()
-        } else {
-            errorMsg = result;
-            console.log("error login", errorMsg)
-        }
-    }
-
-    return {
-        view: () => {
-            return [
-                m("div", { style: "background-image:url('./assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; margin: 95px 0px 0px 0px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
-                    m(Card, {type:"default", style:"border-radius:16px"}, [
-                        m(CardBody, {}, [
-                            m("h2", {style:"text-align:center; margin-bottom:25px"}, "Login"),
-                            m("form", { onsubmit: (e) => { e.preventDefault(); } },
-                                m(LoginInput, { label:'Email', type: "input", data: data, name: "email", id:"email"}),
-                                m(LoginInput, { label: "Password", type: "password", name: "password", id: "password", data: data }),
-                                m(".", {style: "margin-bottom:15px;"}, m("a", {href: "/forgot-password"},"Forgot your password?")),
-                                m(Flex, {direction:"row"}, [
-                                    m(Button, { style: "border-radius:20px;padding:0px 10px;height:48px;width:100%;", type: "primary", onclick: () => { login(); } }, "Login with email"),
-                                    m(Button, { onclick: () => log({type:'google'}), style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                        m("img", {src:"./assets/icons8-google.svg"})
-                                    ]),
-                                    // m(Button, { style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                    //     m("img", {src:"./assets/icons8-facebook.svg"})
-                                    // ]),
-                                ]),
-                                m(".", {style: "margin-top:15px;"}, "First time here? ", m("a", {href: "/register"}, "Register for free!")),
-                            )
-                        ])
-                    ])
-                ]),
-                m('div', {
-                    oncreate: () => {
-                        quill = new Quill('#editor', {theme: 'snow'});
-                        console.log('entro')
-                    },
-                    onclick: (e) => {
-                        let QuillDeltaToHtmlConverter = htmlConverter.QuillDeltaToHtmlConverter;
-                        let delta = quill.getContents();
-                        console.log(delta.ops)
-                        let converter = new QuillDeltaToHtmlConverter(delta.ops, {});
-                        console.log("converted", converter.convert())
-                    }, 
-                    id:'editor'}, m("p", "Edit this text"))
-            ]
-        }
-    }
-}
-
-m.route(document.body, "/", {
-    "/": {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, LandingPage)
-        },
-    },
-
-    '/management': {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, ContentManagement)
-        }
-    },
-
-    "/editcontent/:cod": {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, EditContent)
-        },
-    },
-
-    '/contentview/:cod': {
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, ContentView)
-        }
-    },
-
-    '/profile/:cod' :{
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, ProfileView)
-        }
-    },
-
-    '/teacher-management':{
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, TeacherManagement)
-        }
-    },
-
-    '/editcourse/:cod':{
-        render:(vnode)=>{
-            return m(Layout, vnode.attrs,  CourseEdit)
-        }
-    },
     
-    '/login':{
-        render:(vnode)=>{
-            return m(Layout, vnode.attrs, LoginPage)
+    return{
+        oninit:(vnode)=>{
+            getTeachersContent(localStorage.getItem('meditationcod')).then((res)=>{
+                content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                loadedContent = true;
+                m.redraw()
+                console.log(content)
+            })
+        },
+        view:(vnode)=>{
+            return [
+                m(InfoText,{
+                    title:'My content',
+                    subtitle:'Here you can create, and add content inside the Ten stages of the application. You can create articles, videos, lessons and meditations.',
+                    video:'how-to-add-content'
+                }),
+
+                m("div",{style:"height:20px"}),
+
+                loadedContent ?
+                m(Container,{size:'large'},
+                    m(Header3, 'My content'),
+                    
+                    m(Button,
+                        {
+                            onclick:(e)=>{
+                                m.route.set(`/edit_create`)
+                            },
+                            'target': '#modal-content',
+                            type: 'primary'
+                        },
+                        'Add Content' 
+                    ),  
+                    m("div",{style:"height:10px"}),
+                    
+
+                    m(Grid,{match:true},
+                        content.map((item)=>{
+                            return m(Column,{width:'1-3'},
+                                m(ContentCard,{
+                                    content:item
+                                })
+                            )
+                        })
+                    )
+                ): null
+            ]
         }
-    },
-})
-
-function MEDITA_PERRO() {
-    console.log(`
-                           _
-                        _ooOoo_
-                       o8888888o
-                       88" . "88
-                       (| -_- |)
-                       O\\  =  /O
-                    ____/\`---\'\\____
-                  .\'  \\\\|     |//  \`.
-                 /  \\\\|||  :  |||//  \\
-                /  _||||| -:- |||||_  \\
-                |   | \\\\\\  -  /'| |   |
-                | \\\\_|  \`\\\`---\'//  |_/ |
-                \\  .-\\__ \`-. -'__/-.  /
-              ___\`. .'  /--.--\  \`. .'___
-           ."" '<  \`.___\\_<|>_/___.' _> \\"".
-          | | :  \`- \\\`. ;\`. _/; .'/ /  .' ; |
-          \\  \\ \`-.   \\_\\_\`. _.'_/_/  -' _.' /
-===========\`-.\`___\`-.__\\ \\___  /__.-'_.'_.-'================
-
-`
-)
+    }
 }
+
+function MyMessages(){
+    return{
+        view:(vnode)=>{
+            return [
+                
+            ]
+        }
+    }
+}
+
+function FileExplorerPage(){
+    return {
+        view:(vnode)=>{
+            return [
+                m(InfoText,{
+                    title:'File Explorer',
+                    subtitle:'Here you can upload and manage your files. You can upload images, videos, audios and documents.',
+                }),
+
+                m("div",{style:"height:20px"}),
+
+                m(Container,{size:'large'},
+                    m(FileExplorer)
+
+                )
+
+
+            ]
+
+        }
+    }
+}
+
+export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, InfoText, FileExplorerPage}
+

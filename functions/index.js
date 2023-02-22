@@ -10,6 +10,7 @@ import { addAction, getActions, getUser, getUsers, updatePhoto } from './control
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
 import { sendMessage } from './controllers/messagesController.js';
+//PASAR ESTO A UNA VARIABLE DE ENTORNO
 
 const app = express();
 

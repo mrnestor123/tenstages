@@ -1,10 +1,13 @@
 
-import { TextField, Grid, Row, Column, Card, CardMedia, CardBody, Button, Select, Section, Padding, CardBadge,TextEditor, Modal, ModalBody, CardFooter, CardHeader } from './components.js'
-import { stagenumbers, types } from './models.js';
-import { getImages, deleteImage, addPath, addContent, updatePath } from './server.js'
-import { FileUploader, create_UUID, isAudio } from './util.js'
+import { stagenumbers, types, user } from '../models.js';
+import { addContent, addPath, getFiles, updatePath } from '../server.js';
+import { FormLabel, Header2, SubHeader } from '../texts.js';
+import { create_UUID, dia, FileUploader, hora } from '../util.js';
+import { Button, Card, CardBody, CardHeader, CardMedia, Column, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
 
 //explicar como se utiliza para el futuro
+
+// COMPONENTES  COMUNES PARA TODA LA WEB
 
 // se utiliza en conjunto con button, pasarle un data y name y un id.
 function ImagePicker() {
@@ -16,6 +19,22 @@ function ImagePicker() {
     let rndnmb = 0
 
     let loadingimages = true;
+    let showingModal = false;
+
+    function queryImages(stage, noStage){
+        if (cachedImages[stage] ) {
+            images = cachedImages[stage]
+            loadingimages= false
+            m.redraw()
+        }else{
+            getFiles(stage, noStage).then((res) => { 
+                loadingimages = false;
+                images = res; 
+                cachedImages[stage] = res
+                m.redraw(); 
+            })
+        }
+    }
 
     return {
         oninit: (vnode) => {
@@ -24,20 +43,27 @@ function ImagePicker() {
             rndnmb = Math.floor(Math.random() * 100)
         },
         view: (vnode) => {
+            let {data,name}  = vnode.attrs
             //podemos añadirle un loading
+
             return [
+                m("div",
+                    {
+                        'uk-toggle': `target:#${vnode.attrs.id}`,
+                        style: "cursor:pointer",
+                        onclick:(e)=>{
+                           queryImages(selectedstage.num)
+                        }
+                    },
+                    data[name] ?
+                        m("img", { src: data[name] }) :
+                        m("div", { style: "min-height:200px;display:flex;justify-content:center" }, "Click to add an image")
+                ),
                 m("div",
                     {
                         'uk-modal': 'stack: true',
                         class: 'uk-modal-container',
-                        id: vnode.attrs.id,
-                        oncreate:(vnode)=>{
-                            getImages(selectedstage.num).then((res) => { 
-                                images = res;
-                                loadingimages = false;
-                                m.redraw() 
-                            });
-                        }
+                        id: vnode.attrs.id
                     },
                     m(".uk-modal-dialog.uk-margin-auto-vertical",
                         m("button.uk-modal-close-default", { 'uk-close': '' }),
@@ -48,7 +74,13 @@ function ImagePicker() {
                                         m(Button, {
                                             type:'primary',
                                             onclick: (e) => {
-                                                vnode.attrs.data[vnode.attrs.name] = images[selectedindex]
+                                                if(vnode.attrs.onchange){
+                                                    vnode.attrs.onchange(images[selectedindex])
+                                                }else{
+                                                    data[name] = images[selectedindex]
+                                                }
+                                                console.log(data[name])
+                                                m.redraw()
                                             },
                                             class: "uk-modal-close"
                                         }, "Select"),
@@ -69,11 +101,7 @@ function ImagePicker() {
                                             onchange: (e) => {
                                                 images = [];
                                                 loadingimages =true;
-                                                getImages(selectedstage["num"],  selectedstage['num']=='dynamicfiles').then((res) => { 
-                                                    loadingimages = false;
-                                                    images = res; 
-                                                    m.redraw(); 
-                                                })
+                                                queryImages(selectedstage.num)
                                             }
                                         }, stages)
                                     ),
@@ -82,7 +110,10 @@ function ImagePicker() {
                                         images.length > 0 ?
                                             m(Grid,
                                                 images.map((src, index) => {
-                                                    return m(Column, { width: '1-3',onclick: (e) => selectedindex = index, style: selectedindex == index ? 'border: 2px solid lightblue' : '' } ,
+                                                    return m(Column, { width: '1-3',
+                                                        onclick: (e) => selectedindex = index, 
+                                                        style: selectedindex == index ? 'border: 2px solid lightblue' : '' 
+                                                    } ,
                                                         src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                                         m("img", { src: src}) :
                                                         m(FileView,{file:src, style:"width:90%"})
@@ -101,7 +132,7 @@ function ImagePicker() {
     }
 }
 
-function LessonSlides() {
+function LessonSlides(){
     let data,name
 
     function goBackForward(index, back){
@@ -154,8 +185,7 @@ function LessonSlide() {
                 { size: "small" },
                 m(CardMedia,
                     data[index].image ? 
-                    m("a.ui.red.label",{onclick:(e)=>data[index].image = ''},"Delete  image"):null,
-
+                    m("a.ui.red.label",{ onclick: (e) => data[index].image = '' }, "Delete image") : null,
                     m("img", {
                         src: item.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg",
                         'uk-toggle': `target:#text-images${index}`,
@@ -265,7 +295,7 @@ function MeditationSlide() {
     }
 }
 
-function FollowAlongSlide() {
+function FollowAlongSlide(){
 
     return { 
         view:(vnode) => {
@@ -284,32 +314,70 @@ function FollowAlongSlide() {
 
 }
 
-function ContentCard() {
-    let  toAdd = {}
+function ContentCard(){
+    let toAdd = {}
+
+
+    let content = {}
+
+    let id = Math.floor(Math.random() * 100)
+
+    // CUANDO CLICAMOS A EDITAR SE NOS ABRE UN MODAL CON EL EDITOR
+
+    /*
+    function EditButton(){
+        return{
+            view:(vnode)=>{
+                return [
+                    m(Button,
+                        {
+                            'target': `#${id}`,
+                            type: 'secondary'
+                        },
+                        'Edit' 
+                    ),  
+                   
+                    
+                ]
+            }
+        }
+    }*/
 
     return {
         view:(vnode)=>{
-            let {content} = vnode.attrs
+            content = vnode.attrs.content
 
-           
-            return  m(".uk-card.uk-card-default",{style: content.position == undefined  ?" opacity:0.5":''},
-                content.image ?
-                m("uk-card-media-top",
-                    m("img", { src: content.image })
-                ) : null,
-                m(".uk-card-body",
-                    m("h4.uk-card-title", content.title),
-                    m("p", content.description)
-                ),
-                m(".uk-card-footer",
-                    m("a.uk-button.uk-button-text",{ onclick: (e) =>  m.route.set('/editcontent/' + (content.cod || content.codlesson))},"Edit")
+            return  [
+
+                m(".uk-card.uk-card-default",{style: content.position == undefined  ? " opacity:0.5":''},
+                
+                    m(".uk-card-body",
+                        m(Grid,{center:true, verticalalign:true, columngap:'small'},
+                            m(Column,{width:'3-4'},
+                                m("h4.uk-card-title", content.title),
+                                m("p", content.description)
+                            ),
+                            m(Column,{width:'1-4'},
+                                content.image  ?
+                                m("img", { src: content.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg", style: "width:100%" }) :null
+                            )
+                        )
+                    ),
+                    m(".uk-card-footer",
+                        m("a.uk-button.uk-button-text",{
+                            onclick:()=>{
+                                m.route.set(`/edit_create?cod=${content.cod}`)
+                            }
+                        },"Edit"),
+                        
+                    )
                 )
-            )
+            ]
         }
     }
 }
 
-function UserCard() {
+function UserCard(){
     return {
         view:(vnode)=>{
             let {user} = vnode.attrs
@@ -331,6 +399,7 @@ function UserCard() {
     }
 }
 
+// MUESTRA VIDEO O AUDIO !!! REALMENTE NO HACE FALTA !!
 function FileView() {
 
     let filename;
@@ -367,131 +436,105 @@ function FileView() {
     }
 }
 
-function AddContent() {
-    let json = {
-        'cod': '',
-        'title': '',
-        'description': '',
-        'image': '',
-        'duration': 1,
-        'stagenumber': 1,
-        'path':'',
-        'type': 'meditation-practice',
-        'content': {}
-    }
-  
+// Crear o editar contenido !!
+function ContentEdit(){
+    let content = {}
 
-    let step = 1
+    return{
+        view:(vnode)=>{
+            let { id, isNew} = vnode.attrs
 
+            content = vnode.attrs.content
 
-    return {
-        view: (vnode) => {
-            let {isTeacher,courses = [], coduser} = vnode.attrs
-
-            return [
-                m(Button,
-                    {
-                        'target': '#modal-content',
-                    },
-                    "Content"),
-                m(Modal,
-                    {
-                        id: "modal-content",
-                        center: true
-                    },
-                    m("button.uk-modal-close-default", { 'uk-close': '', 'id': 'closemodalmed' }),
-                    m(".uk-modal-header", m(".uk-modal-title", "Add Content")),
-                    m(".uk-modal-body",
-                        m("p", { style: "text-align:center" }, "Input basic information"),
-                        m("form.uk-form-stacked.uk-grid-small", { 'uk-grid': '' },
-                                m(Row,
-                                    m("label.uk-form-label", "Title"),
-                                    m(TextField, { type: "input", data: json, name: "title" })
-                                ),
-                                m(Row,
-                                    m("label.uk-form-label", "Description"),
-                                    m(TextField, { type: "input", data: json, name: "description" })
-                                ),
-                                m(Column, { width: '1-4' },
-                                    m("label.uk-form-label", "Image"),
-                                    json.image ? m("img", { src: json.image }) : null,
-                                    m(Button,
-                                        {
-                                            target: '#modal-meditationcontent',
-                                            type: "secondary"
-                                        }, !json.image ? "Upload image" : 'Change image'),
-                                    m(ImagePicker, { id: "modal-meditationcontent", data: json, name: "image" })
-                                ),
-
-                                m(Column,{ width: '3-4' },
-                                    isTeacher ? [
-                                        m("label.uk-form-label", "Is it part of a course?"),
-                                        m(Select,{data: json, name: 'path'},[''].concat(courses.map((path)=>{
-                                            return {'label':path.title,'value':path.cod}
-                                        })))
-                                    ] : [
-                                    m("label.uk-form-label", "Is it part of a path?"),
-                                    m(Select,{data: json, name: 'path'},[''].concat(courses.map((path)=>{
-                                        return {'label':path.title,'value':path.cod}
-                                    }))),
-                                    ]
-                                ),
-
-                                m(Column,{width:'1-4'},
-                                    m("label.uk-form-label","Type"),
-                                    m(Select,{data:json,name:'type'},types)
-                                ),
-
-                                
-                                
-                                !json.path 
-                                ? [
-                                    m(Column, { width: '1-4' }, 
-                                        m("label.uk-form-label", "Stagenumber"),
-                                        m(Select,
-                                            { data: json, name: "stagenumber" },
-                                            stagenumbers
-                                        )
-                                    ),
-                                    
-                                ] : null,
-
-                                json.type.match('meditation-practice|recording|video') ?
-                                m(Column, { width: '1-4' },
-                                        m("label.uk-form-label", "Duration"),
-                                        m(TextField,
-                                            {
-                                                data: json, name: "duration", type: "number"
-                                            }
-                                        )
-                                ) : null,
-                            ) 
+            return m(Modal,
+                {
+                    class:'uk-modal-full',
+                    id: id,
+                    style:"background-color:white;display:block;",
+                    center:true,
+                },
+                
+                m("button.uk-modal-close-full.uk-close-large", { 'uk-close': '', 'id': 'closemodalmed', style:"position:fixed;top:15px;right:15px;"}),
+                
+                m(Grid,{center:true,verticalalign:true, style:"width:100%;"},
+                    m(Column,{width:'1-3'},
+                        m(Padding,
+                            m("img",{style:"width:100%; border-radius:10px", src: './assets/buddha-sharing.webp'})
+                        )
                     ),
-                    m(".uk-modal-footer.uk-text-right",
-                       // step > 1 ? m("button.uk-button.uk-button-default", { onclick: (e) => { step = 1; index = 0 } }, "Back") : null,
-                        m("button.uk-button.uk-button-primary",
-                            {
-                                onclick: (e) => {
-                                  
-                                    json.cod = create_UUID();
 
-                                    if(json.path){
-                                        delete json.stagenumber
-                                    }else {
-                                        if(json.stagenumber == 'none'){
-                                            json.stagenumber = 'none'
-                                        }else{
-                                            json.stagenumber = Number(json.stagenumber)
+                    m(Column,{width:'2-3'},
+                        m(Header2, "Create Content"),
+                        m(SubHeader, "Add content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording."),
+                        m(Form,
+                            m(Grid,
+                                m(Row,
+                                    m(FormLabel, "Title"),
+                                    m(TextField, { type: "input", data: content, name: "title" })
+                                ),
+                                m(Row,
+                                    m(FormLabel, "Description"),
+                                    m(TextField, { type: "input", data: content, name: "description" })
+                                ),
+
+                                m(Column,{width:'1-3'},
+                                    m(FormLabel,"Type"),
+                                    m(Select,{data:content,name:'type'},types)
+                                ),
+                                
+                                m(Column, { width: '1-3' }, 
+                                    m(FormLabel, "Stage"),
+                                    m(Select,
+                                        { data: content, name: "stagenumber" },
+                                        stagenumbers
+                                    )
+                                ),
+
+                                content.type.match('meditation-practice|recording|video') ?
+                                m(Column, { width: '1-4' },
+                                    m(FormLabel, "Duration (MINUTES)"),
+                                    m(TextField,
+                                        {
+                                            data: content, name: "duration", type: "number"
                                         }
+                                    )
+                                ) : null,
+                                )
+                            ), 
+                                            
+                        m("div",{style:"height:20px"}),
+                        m(Button, {
+                            style:"margin-right:20px",
+                        
+                            type:"primary",
+                            onclick: (e) => {
+
+                                if(!content.title){
+                                    errorAlert({'title':'Title is required'})
+                                    return
+                                }
+
+                                if(!content.description){
+                                    errorAlert('Description is required')
+                                    return
+                                }
+
+                                if(isNew){
+                                    content.cod = create_UUID();
+                                  
+                                    
+                                    if(json.stagenumber == 'none'){
+                                        json.stagenumber = 'none'
+                                    }else{
+                                        json.stagenumber = Number(json.stagenumber)
                                     }
 
-                                    if(coduser){
-                                        json.createdBy = coduser
-                                    }
 
+
+                                    json.createdBy = user.codUser
+                                    
                                     addContent(json);
                                     document.getElementById('closemodalmed').click();
-                                    console.log('added meditation !')
                                     
                                     m.route.set(`/editcontent/${json.cod}`)
 
@@ -506,10 +549,54 @@ function AddContent() {
                                         'content': {}
                                     }
                                 }
-                            },
-                             "Create")
-                    )
-                )
+                            }
+                        },
+                        "Create"),
+
+                        m(Button,{
+                            type:'secondary',
+                            onclick:(e)=>{
+                                document.getElementById('closemodalmed').click();
+                            }
+                        }, "Cancel")
+                    ),
+                    
+                ),
+            )
+
+
+        }
+    }
+}
+
+// SE PODRÍA QUITAR ESTA FUNCIÓN
+function AddContent(){
+    let json = {
+        'cod': '',
+        'title': '',
+        'description': '',
+        'image': '',
+        'duration': 1,
+        'stagenumber': 1,
+        'path':'',
+        'type': 'meditation-practice',
+        'content': {}
+    }
+
+    let step = 1
+    let showModal = false;
+
+    return {
+        view: (vnode) => {
+            
+            return [
+                    
+                /*
+                m(ContentEdit,{
+                    content:json,
+                    isNew: true,
+                    id: "modal-content",
+                })*/
             ]
         }
     }
@@ -534,6 +621,7 @@ function AddPath() {
             return [
                 m(Button,
                     {
+                        type: vnode.attrs.type,
                         'target': '#modal-path',
                     },
                     "Course"),
@@ -595,7 +683,7 @@ function AddPath() {
     }
 }
 
-// UN  PATH PUEDE TENER UNA IMAGEN ??
+//  UN  PATH PUEDE TENER UNA IMAGEN ??
 function AddCourse() {
     let json = {
         'cod': '',
@@ -695,7 +783,7 @@ function AddCourse() {
 }
 
 // componente de path y curso  !!
-function Path() {
+function Path(){
     let isEditing  = false;
 
     let path;
@@ -768,6 +856,138 @@ function Path() {
     }
 }
 
+function EditableField(){
+    return {
+        view:(vnode)=>{
+            let {data,name,type, isEditing} = vnode.attrs
+            // AÑADIR SUPPORT PARA HTML
+            return [
+                isEditing ? 
+                
+                type == 'html' ?
+                m(TextEditor,{data:data,name:name}):
+                m(TextField,{data:data,name:name,type:type}): 
+                vnode.children
+            ]
+        }
+    }
+}
+
+function ChatComponent(){
+    let data = {}
+    let sendMessage;
+    let user;
+    
+    // es probable que haya que pasar el username
+    function send(){
+        if(data.message){
+            let msg  = {
+                'text':data.message, 
+                cod:'', 
+                sender:user.coduser,
+                username:user.nombre,
+                date: new Date()
+            }
+        
+            sendMessage(msg)
+
+            data.message = ''
+        }
+    }
+    
+    return {
+        view:(vnode)=>{
+            let { messages, title} = vnode.attrs
+
+            user  = vnode.attrs.user
+            sendMessage = vnode.attrs.sendMessage
+
+            return m(".uk-card.uk-card-default",
+                m(CardHeader, m(".uk-card-title", title ? title :"Chat")),
+                m(CardBody,{style:"background:lightgrey;padding:0em 1em;"},
+                m(".uk-overflow-auto",{style:"height:400px"},
+                    m(Grid,{rowgap:'collapse'},
+                        messages.map((message)=>{
+                            return m(Row,
+                                m(".uk-card.uk-card-default.uk-card-body",{style:"padding:1em;margin:1em;"},
+                                    m(".uk-card-title",{style:"font-size:1.1em"}, message.username),
+                                    m(".uk-text-meta",dia(message.date) + ' ' + hora(message.date)),
+                                    m("p",message.text)
+                                )
+                            )
+                        })
+                    )
+                )),
+                m(".uk-card-footer",
+                    m(Grid,{columngap:'collapse'},
+                        m(Column,{width:'3-4'},
+                            m(TextField,{
+                                onkeyup:(e)=>{
+                                    if(e.keyCode == '13'){
+                                        send()
+                                    }
+                                },
+                                name:'message',label:'Message',data:data,name:'message'
+                            })
+                        ),
+                        m(Column,{width:'1-4'},
+                            m(Button,{
+                                type:'secondary',
+                                onclick:(e)=> send()
+                            },'Send')
+                        )
+                    )
+                )
+            )
+        }
+    }
+}
+
+
+function errorAlert(options={}){
+    var elem = document.createElement("div")
+
+    elem.style = 'position:fixed;inset:0px;z-index:100000'
+    elem.id = Math.random()*10000 + ''
+
+    document.body.appendChild(elem);
+
+    
+    // AÑADIR TRANSICIONES SIN SEMANTIC !!!
+    m.mount(elem, {
+        view:()=> m(AlertDialog,{
+            title:options.title || 'Error', message:options.message, close:(e)=> {
+            elem.remove()
+            options.then ? options.then() :null
+        }})
+    })
+}
+
+
+function AlertDialog(){
+    return {
+        view:(vnode)=>{
+            let {title,message, close} = vnode.attrs
+
+            return m("uk-modal.uk-open",{style:"position:fixed;inset:0px;z-index:100000;background-color:rgba(0,0,0,0.5);"},
+                m(".uk-modal-dialog.uk-margin-auto-vertical",
+                    m("div",{style:"border-radius:10px;min-width: 250px;font-size:1.1em; padding:1em;background-color:white; color:black;"},
+                        /*m("div",{style:"text-align:left"},
+                            m(Icon,{icon:'error', color:'red',size:'large'}),
+                        ),*/
+                        m(Header2, title),
+                        message ? m(SubHeader,{style: normaltext}, message) : null,
+                        m(Button,{
+                            type:'primary',
+                            onclick: close
+                        }, "OK"
+                    )
+                )
+            ))
+        }
+    }
+}
+
 function LoginInput() {
     let types = {
         "textarea": { class: "uk-textarea" },
@@ -806,6 +1026,22 @@ function LoginInput() {
     }
 }
 
-export { LoginInput, MeditationSlide, LessonSlide, ImagePicker, FollowAlongSlide, LessonSlides,  ContentCard , UserCard, FileView, AddContent, AddPath, Path,  AddCourse }
-
+export {
+    MeditationSlide,
+    LessonSlide,
+    EditableField,
+    ContentEdit,
+    ImagePicker,
+    ChatComponent,
+    FollowAlongSlide,
+    LessonSlides,
+    ContentCard,
+    UserCard,
+    FileView,
+    AddContent,
+    AddPath,
+    Path,
+    AddCourse,
+    LoginInput
+};
 

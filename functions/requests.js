@@ -11,7 +11,6 @@ async function getRequest(req, res, next){
 
     if(query.docs.length){
         request = query.docs[0].data()
-        console.log('got request ', request)
 
         // QUITAR EN EL FUTURO !!!!!!!
         if(request.userimage == undefined || request.username == undefined){
@@ -25,7 +24,8 @@ async function getRequest(req, res, next){
 
         let commentsfirst = await db.collection('comments').where('codrequest','==', req.params.codrequest).get();
 
-        // EN EL FUTURO SOLO EStARÁ ESTO !!
+        // EN EL FUTURO SOLO ESTARÁ ESTO !!
+        // SE UTILIZAN  SOLO LOS COMENTARIOS DE LA BASE DE DATOS COMMENTS
         if(commentsfirst.docs && commentsfirst.docs.length){
             request.comments = []
 
@@ -94,11 +94,9 @@ async function getRequest(req, res, next){
                     await db.collection('comments').add(comment)
                 }
 
-
                 let shortComments = commentstoChange.map((c)=> c.cod)
 
-                console.log(shortComments)
-
+                
                 db.collection('requests').doc(query.docs[0].id).update({'shortComments': shortComments})
 
             }
@@ -140,7 +138,7 @@ async function getRequests(req, res, next){
     for (let doc of query.docs) {
         //HABRA QUE HACER ESTO MÁS EFICIENTE 
         let request = doc.data();
-        if(request.cod){
+        if(request.cod && !request.stagenumber){
             //habra alguna manera más optima de sacar esto ??
             if(!request.username){
                 let user = await getUser(request.coduser,true)
@@ -155,11 +153,15 @@ async function getRequests(req, res, next){
         }
     }
 
+    console.log('requests',requests.length)
+
     return res.status(200).json(requests);	
 };
 
 async function comment(req, res, next){
     let comment = req.body.comment
+
+    // UTILIZAMOS ESTO O LO OTRO ???
     await db.collection('comments').add(comment)
 };
 

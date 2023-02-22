@@ -1,3 +1,4 @@
+/**
 // Componentes genéricos de UIkit para mithrilJS
 
 /**
@@ -688,6 +689,17 @@ function Icon() {
     }
 }
 
+/* @attrs 
+ * class: uk-label-success uk-label-warning  uk-label-danger
+ **/
+function Label(){
+    return{
+        view:(vnode)=>{
+            return m("span.uk-label", vnode.attrs)
+        }
+    }
+}
+
 export { 
     TextField, 
     Button, 
@@ -712,5 +724,6 @@ export {
     Form, 
     FormLabel, 
     ModalFooter,
-    Flex
-}
+    Flex,
+    Label,
+} 

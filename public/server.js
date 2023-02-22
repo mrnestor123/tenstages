@@ -1,3 +1,4 @@
+import { user } from "./models.js";
 import { api_get, omit } from "./util.js";
 
 var firebaseConfig = {
@@ -129,19 +130,19 @@ async function updatePath(path){
 }
 
 //esto podría ser una barra de carga?
-async function uploadFile(file, stage, path) {
+async function uploadFile(bucket,file) {
     var store;
-    if(path){
-        store = storage.ref(`${path}/${file.name}`)
-    }else{
-        store = storage.ref('stage ' + stage + '/' + file.name);
-    }
+
+    store = storage.ref(`${bucket}/${file.name}`)
+    
+    
     //upload file
     //PASAR ESTO A OTRO SITIO ???
     var upload = await store.put(file);
     let url = await upload.ref.getDownloadURL();
 
-    console.log('got file',url)
+    console.log('UPLOADED',url)
+
 
     return url;
 
@@ -187,6 +188,7 @@ async function register(email, password) {
 }
 
 // DEVUELVE EL USUARIO DE FIREBASE
+// esto se podría hacer en el server??
 async function login({ type, email, password }) {
     if (type == 'google' || type == 'facebook') {
         var provider;
@@ -280,20 +282,52 @@ async function getAllImages() {
     return images
 }
 
-async function getImages(path,noStage) {
-    var ref = storage.ref(noStage ? path : 'stage ' + path);
 
-    var images = []
+let cachedimages = {}
+
+async function getFiles() {
+    let files =  await db.collection('files').get()
+
+    // images serán. bucket y array de urls 
+    let images = {}
+
+    for(let file of files.docs){
+        let bucket = file.data().bucket
+        let urls = file.data().images
+        images[bucket] = urls
+    }
+
+    return images;
+}
+
+
+async function populateImages(){
+    let bucket = 'stage 10'
+    var ref = storage.ref(bucket);
+    var  images = []
+
     let query = await ref.listAll()
 
-
-    for (let image of query.items) {
+    for(let image of query.items){
         images.push(await displayImage(image));
     }
 
-    return images
+    // find a  document with bucketname == stage 1 and add the images to it
+    let stage = await db.collection('files').where('bucket','==',bucket).get()
+    let docID;
+
+    console.log('adding to files', images)
+
+    if(stage.docs && stage.docs.length){
+        docID = stage.docs[0].id
+    }else{
+        docID = await db.collection('files').add({bucket:bucket}).id
+    }
+    
+    db.collection('files').doc(docID).update({images:images})
 
 }
+
 
 async function addLesson(lesson) {
     lesson.stagenumber = Number(lesson.stagenumber)
@@ -585,6 +619,156 @@ async function getChat(sender,receiver){
 }
 
 
+// DE MOMENTO SACAMOS EL CURSO AQUÍ Y LO AÑADIREMOS AL SERVER !!
+async function getCourse(cod){
+    let query = await db.collection('paths').where('cod','==',cod).get()
+
+    let course = {}
+    if(query.docs){
+
+        course = query.docs[0].data()
+
+        let announcementquery = await db.collection('paths').doc(query.docs[0].id).collection('announcements').get()
+
+        if(announcementquery.docs){
+            course.announcements = []
+            for(var doc  of announcementquery.docs){
+                course.announcements.push(doc.data())
+            }
+        }
+
+        // CADA COURSE DEBERÍA TENER SU CONTENIDO DENTRO ????
+        let contentquery = await db.collection('content').where('path','==',cod).get()
+        if(contentquery.docs){
+            course.content = []
+            for(var doc  of contentquery.docs){
+                course.content = doc.data()
+            }
+        }
+
+        // TODO: SACAR ESTUDIANTES
+        course.students = []
+
+        return course;
+    }
+}
 
 
-export { getLessons, getUserActions, getVersions,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getImages, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+// HABRÁ QUE CAMBIAR  EL CURSO DE PATHS
+async function addAnnouncement(cod,announcement){
+    console.log('adding announcement',cod,announcement)
+    
+    let query = await db.collection('paths').where('cod','==',cod).get()
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('paths').doc(docID).collection('announcements').add(announcement).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+}
+
+
+async function updateCourse(course){
+    console.log('updating course',course)
+
+    let query = await db.collection('paths').where('cod','==',course.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('paths').doc(docID).update(course).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+
+}
+
+function sendMail(mail,type){
+
+    let url = `${API}/mail?type=${type}`
+
+    return api_get(url,'POST', mail)
+}
+
+
+async  function getTechniques(){
+    let query = await db.collection('techniques').get();
+
+    let techniques = []
+
+    if(query.docs){
+        for (let doc of query.docs) {
+            techniques.push(doc.data())
+        }
+    }
+    return techniques;
+}
+
+async function  addTechnique(technique){
+
+    let query = await db.collection('techniques').add(technique);
+
+    return true
+
+}
+
+
+
+async function updateTechnique(technique){
+
+    let query = await db.collection('techniques').where('cod','==',technique.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+
+        db.collection('techniques').doc(docID).update(technique).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
+
+}
+
+
+async function deleteTechnique(technique){
+    let query = await db.collection('techniques').where('cod','==',technique.cod).get()
+
+    if(query.docs){
+        let docID = query.docs[0].id
+        
+        db.collection('techniques').doc(docID).delete().then(function () {
+            alert("Document successfully deleted!");
+        }).catch(function (error) {
+            alert("Error deleting document: ", error);
+        })
+
+    }
+}
+//  TODO: HACER MÉTODO SAVECOURSE
+
+
+async function getTeachersContent(coduser){
+    let query = await db.collection('content').where('createdBy','==', coduser).get()
+
+    if(query.docs){
+        let content = []
+        for(var doc of query.docs){
+            content.push(doc.data())
+        }
+
+        return content;
+    }
+}
+
+
+
+export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
