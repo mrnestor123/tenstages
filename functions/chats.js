@@ -1,8 +1,6 @@
-
 const { getUser, db, storage, FieldValue, create_UUID } = require("./helpers");
 
-
-async function getUserMessages(req,res,next){
+async function getUserMessages(req, res, next){
     let coduser = req.params.userId;
 
     let groupedMessages = {}
@@ -48,10 +46,10 @@ async function getUserMessages(req,res,next){
     })
     
     return res.status(200).json(groupedMessages);
-}
+};
 
 // EN ESTE BORRAMOS LO QUE NOS SOBRA ???
-async function sendMessageNew(req,res,next){
+async function sendMessageNew(req, res, next){
     let message = req.body
     let chat = await db.collection('chats').where(`shortusers.${message.sender}`,
      '==', true).where(`shortusers.${message.receiver}`,'==',true).get()
@@ -102,9 +100,9 @@ async function sendMessageNew(req,res,next){
     }
     
     return res.status(200);
-}
+};
 
-async function getChatNew(req,res,next){
+async function getChatNew(req, res, next){
 
     let sender = req.params.sender;
     let receiver = req.params.receiver;
@@ -135,9 +133,9 @@ async function getChatNew(req,res,next){
     
     
     return res.status(400).json({'error':'not found'});
-}
+};
 
-async function getUserMessagesNew(req,res,next){
+async function getUserMessagesNew(req, res, next){
     let chats = []
     let msgquery = await db.collection('chats').where(`shortusers.${req.params.userId}`,'==', true).get()
 
@@ -155,15 +153,11 @@ async function getUserMessagesNew(req,res,next){
     console.log('got chats ',chats)
     
     return res.status(200).json(chats);
-}
-
-
-
-
+};
 
 module.exports = {
     getUserMessages,
     getChatNew,
     sendMessageNew,
     getUserMessagesNew
-}
+};

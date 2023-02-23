@@ -7,6 +7,9 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 
+# Ignore secrets
+functions/secrets
+
 # Firebase cache
 .firebase/
 
@@ -64,3 +67,6 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# ignore mierdas de mac
+.DS_Store

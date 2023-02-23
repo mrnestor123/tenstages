@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "test"
   },
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/mrnestor123/tenstages#readme",
   "dependencies": {
-    "firebase": "^9.6.7"
+    "firebase": "^9.6.7",
+    "quill-delta-to-html": "^0.12.1"
   }
 }

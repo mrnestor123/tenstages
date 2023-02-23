@@ -11,6 +11,9 @@
         "source": "**",
         "function": "app"
       }
-    ]
+    ],
+    "functions": {
+      "engines": {"node": "16"}
+    }
   }
 }
