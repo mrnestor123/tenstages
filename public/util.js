@@ -1,8 +1,8 @@
-import { uploadFile } from './controller/server.js'
+import { uploadFile } from './server.js'
 
 
 //FUNCIONES REUTILIZABLES
-function create_UUID(){
+function create_UUID() {
     var dt = new Date().getTime();
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = (dt + Math.random()*16)%16 | 0;
@@ -11,7 +11,6 @@ function create_UUID(){
     });
     return uuid;
 }
-
 
 /*
   Componente reutilizable para subir imágenes
@@ -30,7 +29,7 @@ function FileUploader() {
                     let file = e.target.files[0]
                     if(file){
                         if(vnode.attrs.onupload){ vnode.attrs.onupload()}
-                        uploadFile(file,stage,path).then((url) => {
+                        uploadFile(path,stage).then((url) => {
                             data[name] = url
                             vnode.attrs.onsuccess ? vnode.attrs.onsuccess(url) : null
                             m.redraw()
@@ -101,14 +100,14 @@ const hora = (f) => new Date(f).toLocaleTimeString({ hour: '2-digit', minute: '2
 const dia = (f) => new Date(f).toLocaleDateString()
 
 
-function isAudio(path){
+function isAudio(path) {
     return path.toLowerCase().match('.m4a|.mp3')
 }
 
-function isVideo(path){
+function isVideo(path) {
     return path.toLowerCase().match('.mp4|.mov')
 }
 
 
 
-export { FileUploader, create_UUID, api_get,omit, hora,dia, isAudio, isVideo}
+export { FileUploader, create_UUID, api_get,omit, hora, dia, isAudio, isVideo}
