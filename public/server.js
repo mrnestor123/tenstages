@@ -1,5 +1,5 @@
 import { user } from "./models.js";
-import { api_get, omit } from "./util.js";
+import { api_get, omit } from "./util/util.js";
 
 var firebaseConfig = {
     apiKey: "AIzaSyDWEW668iJRj-TIpRueiK2J3fhh-7aKd0M",
@@ -17,8 +17,13 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
-//const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+
+// const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+// const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+
+const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
+
+
 
 var db = firebase.firestore()
 var storage = firebase.storage();
