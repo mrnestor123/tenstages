@@ -1,5 +1,5 @@
-import { Button, Form,  Modal, ModalBody, ModalFooter, ModalHeader, TextField, Container} from "./components/components.js"
-import { LandingPage, Footer, TenStagesNavbar, LoginPage } from "./views/landing.js"
+import { Button, Form,  Modal, ModalBody, ModalFooter, ModalHeader, TextField, Container} from "../components/components.js"
+import { LandingPage, Footer, TenStagesNavbar, LoginPage } from "./landing.js"
 
 
 // La página web puede tener otro html y otro enrutador !!

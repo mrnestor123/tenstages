@@ -1,6 +1,6 @@
-import { Button, Container } from "./components/components.js"
+import { Button, Container } from "../components/components.js"
 import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage} from "./views/management.js"
-import { isLoggedIn, user } from "./models.js"
+import { isLoggedIn, user } from "../models.js"
 
 
 // FALTA AÑADIR LA PÁGINA DE LOGIN

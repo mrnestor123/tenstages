@@ -2,8 +2,8 @@
 
 import { stagenumbers, user } from '../models.js';
 import { getFiles, uploadFile } from '../server.js';
-import { Header3 } from '../texts.js';
-import { isVideo } from '../util.js';
+import { Header3 } from '../util/texts.js';
+import { isVideo } from '../util/util.js';
 import { Button, Column, Grid, Label, Row, Select } from './components.js';
 
 // COMPONENTES PARA LA PÁGINA DE MANAGEMENT
