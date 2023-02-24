@@ -47,21 +47,25 @@ export const getUser = async (userId, expand, connect) => {
             .where('coduser', '==', userId)
             .get();
 
+            
         if (query.docs.length) {
             user = query.docs[0].data();
+            console.log('getting user',  user)
+
             if (expand || connect) {
                 if (user.role === 'teacher') {
                     user.addedcontent = await getUserCreatedContent(userId);
-                    user.addedcourses = await getUserPaths(userId);
+                    // DE MOMENTO LOS CURSOS NO LOS AÑADIMOS !!
+                    //user.addedcourses = await getUserPaths(userId);
                     // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACARLOS !!!!
                     user.students = await getUsersinArray(user.students);
                 }
                 user.meditations = await getMeditations(userId);
             }
+
             if (connect) {
                 user.stage = await getStage(user.stagenumber);
-                user.joinedcourses =
-                    user.joinedcourses && user.joinedcourses.length
+                user.joinedcourses = user.joinedcourses && user.joinedcourses.length
                         ? await expandJoinedCourses(user.joinedcourses)
                         : [];
                 user.readlessons = await getUserReadLessons(userId);
