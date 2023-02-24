@@ -766,6 +766,33 @@ async function getTeachersContent(coduser){
     }
 }
 
+async function getSettings(){
+    let  query = await  db.collection('settings').get()
+    let settings = {}
+
+    if(query.docs && query.docs.length){
+        settings = query.docs[0].data()
+    }
+
+    return settings;
+}
+
+async function updateSettings(settings){
+
+
+    // update current settings
+    let query = await db.collection('settings').get()
+
+    if(query.docs && query.docs.length){
+        // update first doc in query  
+        let docID = query.docs[0].id
+
+        db.collection('settings').doc(docID).update(settings).then(function () {
+            alert("Document successfully updated!");
+        })
+    }
+}
+
 
 
 export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }

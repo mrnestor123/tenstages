@@ -26,6 +26,12 @@ m.route(document.body, "/", {
         },
     },
 
+    '/settings': {
+        render: function (vnode){
+            return m(Layout, vnode.attrs,SettingsPage)
+        }
+    },
+
     '/contentview/:cod': {
         render: (vnode) => {
             return m(Layout, vnode.attrs, ContentView)
@@ -102,7 +108,12 @@ function Layout(){
     {
         'name': 'Send  email',
         'route': '/send-email'
+    },
+    {
+        'name': 'Settings',
+        'route': '/settings'
     }]
+
 
     let checkIfLogged = false;
 
