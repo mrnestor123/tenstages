@@ -3903,5 +3903,7 @@ function FileExplorerPage(){
     }
 }
 
-export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, InfoText, FileExplorerPage}
+
+
+export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, InfoText, FileExplorerPage }
 
