@@ -1,6 +1,6 @@
 import { Button, Container } from "../components/components.js"
-import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage} from "./views/management.js"
-import { isLoggedIn, user } from "../models.js"
+import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage} from "./management.js"
+import { isLoggedIn, user } from "../models/models.js"
 
 
 // FALTA AÑADIR LA PÁGINA DE LOGIN
@@ -28,7 +28,7 @@ m.route(document.body, "/", {
 
     '/settings': {
         render: function (vnode){
-            return m(Layout, vnode.attrs,SettingsPage)
+            return m(Layout, vnode.attrs, SettingsPage)
         }
     },
 

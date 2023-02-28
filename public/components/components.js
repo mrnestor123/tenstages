@@ -112,7 +112,7 @@ function Card() {
         view: (vnode) => {
             let { type, size, hover } = vnode.attrs
             return m('.uk-card ' +
-                (type ? 'uk-card-' + type + ' ' : '') +
+                (type ? 'uk-card-' + type + ' ' : 'uk-card-default ') +
                 (size ? 'uk-card-' + size + ' ' : '') +
                 (hover ? 'uk-card-hover' : ''), vnode.attrs, vnode.children)
 
@@ -291,7 +291,7 @@ function Section() {
     let clase = 'uk-section'
     return {
         oninit: (vnode) => {
-            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section')
+            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section-default')
                 + (vnode.attrs.width ? 'uk-width-' + vnode.attrs.width + ' ' : '')
         },
         view: (vnode) => {

@@ -1,5 +1,5 @@
-import { user } from "./models.js";
-import { api_get, omit } from "./util/util.js";
+import { user } from "../models/models.js";
+import { api_get, omit } from "../util/util.js";
 
 var firebaseConfig = {
     apiKey: "AIzaSyDWEW668iJRj-TIpRueiK2J3fhh-7aKd0M",
@@ -18,12 +18,9 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 
-// const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
 // const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
-
-const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
-
-
+//const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
 
 var db = firebase.firestore()
 var storage = firebase.storage();
@@ -132,10 +129,10 @@ async function updatePath(path){
 }
 
 //esto podría ser una barra de carga?
-async function uploadFile(bucket,file) {
+async function uploadFile(bucket,file, folder) {
     var store;
 
-    store = storage.ref(`${bucket}/${file.name}`)
+    store = storage.ref(`${folder}/${file.name}`)
     
     
     //upload file
@@ -143,8 +140,19 @@ async function uploadFile(bucket,file) {
     var upload = await store.put(file);
     let url = await upload.ref.getDownloadURL();
 
-    console.log('UPLOADED',url)
+    console.log('got url', url)
 
+    let query = await db.collection('files').where('bucket','==', bucket).get()
+
+    if(query && query.docs.length == 0){
+        await db.collection('files').add({bucket:bucket,files:[url]})
+    }else{
+        let docID = query.docs[0].id
+
+        await db.collection('files').doc(docID).update({
+            files: firebase.firestore.FieldValue.arrayUnion(url)
+        })
+    }
 
     return url;
 
@@ -287,19 +295,22 @@ async function getAllImages() {
 
 let cachedimages = {}
 
+// LAS SACA TODAS
 async function getFiles() {
-    let files =  await db.collection('files').get()
+    let query =  await db.collection('files').get()
 
     // images serán. bucket y array de urls 
-    let images = {}
+    let files = {}
 
-    for(let file of files.docs){
+    for(let file of query.docs){
         let bucket = file.data().bucket
-        let urls = file.data().images
-        images[bucket] = urls
+        let urls = file.data().files || file.data().images
+        if(bucket.match(`stage|${localStorage.getItem('meditationcod')}`)){
+            files[bucket] = urls
+        }
     }
 
-    return images;
+    return files;
 }
 
 
@@ -800,4 +811,8 @@ async function updateSettings(settings){
 
 
 
-export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser }
+export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser,
+
+    getSettings,
+    updateSettings
+}
