@@ -45,7 +45,19 @@
     <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.23.0/firebase-storage.js"></script>
     
-    <script type="module" src='./landing/landing-routes.js'></script>
+    <script ></script>
 
+    <script>
+        // Cargamos distintas versiones
+        var head = document.getElementsByTagName('head')[0];
+        var js = document.createElement("script");
+        js.type = "text/javascript";
+        js.type = 'module'
+        if (window.location.href.match(/management/ig))
+            js.src = "./management/management-routes.js";
+        else
+            js.src = "./landing/landing-routes.js";
+        head.appendChild(js);
+    </script>
 
 </body>

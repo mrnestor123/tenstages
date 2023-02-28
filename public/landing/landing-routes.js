@@ -81,12 +81,12 @@ function Layout() {
             return [
                 m(TenStagesNavbar),
 
-                m(Button,{
-                   onclick:(e)=>{
-                        console.log(window.location)
-                        window.location.href= window.location.href + 'management.html'
-                    }
-                }, "Press to go to management page"),
+                // m(Button,{
+                //    onclick:(e)=>{
+                //         console.log(window.location)
+                //         window.location.href= window.location.href + 'management.html'
+                //     }
+                // }, "Press to go to management page"),
                 
                 vnode.children.map((child) => {
                     return m("main", [
