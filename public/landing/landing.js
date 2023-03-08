@@ -96,7 +96,7 @@ function LandingPage() {
                         m("h1", { style: "font-size:56px;" }, "(づ｡◕‿‿◕｡)づ"),
                     ]),
                 ]),
-                m(Section, {}, [
+                m(Section, { style:"padding:0px" }, [
                     m(Flex, {direction:'column', hAlign:'center', style:'align-items:center; background:#ECD79D' }, [
                         m("h1", { style: "font-size:40px;margin-top:64px" }, "Contact Us"),
                         m("p", { style:"font-size:20px; max-width:700px;margin-bottom:88px"}, "You can contact us at: ", m("a", {href:"mailto:"}, "mrnestor123@tenstages.app"))    
@@ -172,6 +172,7 @@ function LoginPage() {
     }
 
     return {
+        oninit: () => { window.scrollTo(0,0) },
         view: () => {
             return [
                 m("div", { style: "background-image:url('./assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; margin: 95px 0px 0px 0px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [

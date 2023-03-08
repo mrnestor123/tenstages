@@ -1,11 +1,7 @@
 import { Button, Container } from "../components/components.js"
 import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage} from "./management.js"
 import { isLoggedIn, user } from "../models/models.js"
-
-
-// FALTA AÑADIR LA PÁGINA DE LOGIN
-
-
+import { AdminManagement } from "./admin-management.js"
 
 m.route(document.body, "/", {   
     "/": {
@@ -73,6 +69,12 @@ m.route(document.body, "/", {
             return m(Layout, vnode.attrs, FileExplorerPage)
         },
     },
+
+    "/admin": {
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, AdminManagement)
+        }
+    }
 })
 
 
@@ -128,9 +130,8 @@ function Layout(){
             })
         },
         view:(vnode)=> {
-            console.log('loggeed in', user)
             return [
-                m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
+                 m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
                     m("nav", { 'uk-navbar': '', style: "width:100%" },
                         m(".uk-navbar-left",
                             m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
@@ -173,8 +174,7 @@ function Layout(){
                         )
                     )
                 ),
-               // !user.codUser ? 
-               // m("div","YOU NEED TO BE LOGGED TO VIEW THIS CONTENT") :
+                
                 vnode.children.map((child) => {
                     return m("main",
                          m(child, vnode.attrs)

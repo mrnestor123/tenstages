@@ -1,7 +1,6 @@
 import functions from 'firebase-functions';
 import express from 'express';
 import cors from 'cors';
-
 import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
@@ -10,6 +9,8 @@ import { addAction, getActions, getUser, getUsers, updatePhoto } from './control
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
 import { sendMessage } from './controllers/messagesController.js';
+import { normalize_server } from './normalize_server.js';
+
 //PASAR ESTO A UNA VARIABLE DE ENTORNO
 
 const app = express();
@@ -25,19 +26,6 @@ app.use('/users', users);
 app.use('/stages', stages)
 app.use('/messages', messages);
 app.use('/requests',requests);
-
-import admin from 'firebase-admin';
-//¡import servicekey from './firebase-key.json' assert  {type: 'json'}
-
-admin.initializeApp({
-    credential: admin.credential.cert('./firebase-key.json'),
-    databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',
-    storageBucket: 'the-mind-illuminated-32dee.appspot.com'
-});
-
-export const db = admin.firestore();
-export const storage = admin.storage();
-export const FieldValue = admin.firestore.FieldValue;
 
 
 /*
@@ -127,6 +115,16 @@ app.get('/user/:userId', async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 });
+
+
+app.get('/normalize', async (req, res) => {
+    try{
+        normalize_server()
+    }catch(err){
+        return res.status(400).json({ message: err.message });
+    }
+});
+
 
 app.get('/request/:cod', async(req,res)=>{
     try{

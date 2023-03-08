@@ -1,16 +1,15 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
+import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
-import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path,  } from '../components/tenstages-components.js'
-import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../util/helpers.js'
-import { stagenumbers, types, user } from '../models/models.js'
-import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteContent, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
-import { DefaultText, FormLabel, Header, Header2, SubHeader,Header3 } from '../util/texts.js'
-import { create_UUID, dia, FileUploader, hora } from '../util/util.js'
-import { getTeachersContent } from "../api/server.js"
-import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
 import { showAlert } from '../components/dialogs.js'
+import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
+import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path } from '../components/tenstages-components.js'
+import { stagenumbers, types, user } from '../models/models.js'
+import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../util/helpers.js'
+import { DefaultText, FormLabel, Header, Header3, SubHeader } from '../util/texts.js'
+import { create_UUID, dia, hora } from '../util/util.js'
 
 
 //  HAY QUE MIRAR SI ESTÁ LOGUEADO
@@ -2125,7 +2124,6 @@ function EditCreateContent() {
         'path':'',
         'type': 'meditation-practice'
     }
-    let teachers = []
 
     let isNew = false;
 
@@ -2469,14 +2467,35 @@ function EditCreateContent() {
                 }
 
                 if(content.text && content.text.length){
-                    pages = Math.ceil(content.text.length / 3)
+                    pages = Math.ceil(content.text.length / 4)
                 }
-
-                console.log('pages',  pages,page)
             },
             view:(vnode)=>{
                 return [
                     m(Grid, [
+                        m(Row,
+                        m("div",{style:"display:flex;flex-direction:row; align-items:center; width:100%;"},
+                            m(Button,{
+                                style:"width:150px;margin-right:10px;",
+                                type:'default',
+                                onclick:(e)=>{
+                                    if(!content.text){
+                                        content.text = []
+                                    }
+                                    
+                                    content.text.push({ 'text': 'Edit this text', 'image': "" })         
+                                
+                                    pages = Math.ceil(content.text.length / 3)
+                                }
+                            }, "Add slide"),   
+                            m(FormLabel, {style:"margin-top:15px"},
+                                content.type == 'lesson' ?
+                                "Add slides to the lesson":
+                                `Add Text before the ${content.type == 'recording' ? 'recording': content.type =='meditation-practice' ? 'meditation':'video'}. 
+                                You can also add images inside the text`
+                            ),
+                        )),
+                            
                         content.text ? [
                             // CAMBIAR ESTO POR NAVIGATION
                             pages > 1  ? m(Row, m("ul",{class:"uk-dotnav"},
@@ -2490,47 +2509,15 @@ function EditCreateContent() {
                                     },
                                     m("a",{})
                                 )})
-                            )):m("div",{style:"height:15px"}),
+                            )):m(Row),
 
                             content.text.slice(page*4, (page*4)+4).map((key,i) => {
                                 return m(Column, { width: '1-4' },
                                     m(Slide, { data: content.text, name: i })
                                 )
-                            }),
-                        
-                        // only add  if it is on last page
-
-                       
-                    ] : null,
-
-                    page == pages - 1 ?
-                    m(Column,{width:'1-4'}, 
-                        m("div",{style:"height:15px"}),
-                        m(FormLabel, {style:"margin-top:15px"},
-                            content.type == 'lesson' ?
-                            "Add slides to the lesson":
-                            `Add Text before the ${content.type == 'recording' ? 'recording': content.type =='meditation-practice' ? 'meditation':'video'}. 
-                            You can also add images inside the text`
-                        ),
-                        
-                        m(Button,{
-                            type:'default',
-                            onclick:(e)=>{
-                                if(!content.text){
-                                    content.text = []
-                                }
-                                
-                                content.text.push({ 'text': 'Edit this text', 'image': "" })         
-                            
-                                pages = Math.ceil(content.text.length / 3)
-                            }
-                        }, "Add slide"),
-                    ) : null,
-
-                    m("div",{style:"height:200px"})
-                    
-                
-                    ]),
+                            })
+                        ] : null  
+                ])
                 ]
             }
         }
@@ -3938,5 +3925,5 @@ function SettingsPage(){
     }
 }   
 
-export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages,  FileExplorerPage}
+export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, FileExplorerPage }
 

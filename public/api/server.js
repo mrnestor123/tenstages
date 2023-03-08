@@ -292,7 +292,6 @@ async function getAllImages() {
     return images
 }
 
-
 let cachedimages = {}
 
 // LAS SACA TODAS
@@ -312,7 +311,6 @@ async function getFiles() {
 
     return files;
 }
-
 
 async function populateImages(){
     let bucket = 'stage 10'
@@ -340,7 +338,6 @@ async function populateImages(){
     db.collection('files').doc(docID).update({images:images})
 
 }
-
 
 async function addLesson(lesson) {
     lesson.stagenumber = Number(lesson.stagenumber)

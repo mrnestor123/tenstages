@@ -47,30 +47,47 @@ export const getUser = async (userId, expand, connect) => {
             .where('coduser', '==', userId)
             .get();
 
+
+        if(connect){
+            console.log('connecting', userId)
+        }
             
         if (query.docs.length) {
-            user = query.docs[0].data();
-            console.log('getting user',  user)
+            user = query.docs[0].data();    
+
+            let userDataID;
 
             if (expand || connect) {
+                let userDataquery = await db.collection('userData').where('coduser','==', userId).get();
+
+                if(userDataquery.docs.length){
+                    userDataID = userDataquery.docs[0].id;
+                    console.log('id',userDataID)
+                }
+                
                 if (user.role === 'teacher') {
                     user.addedcontent = await getUserCreatedContent(userId);
                     // DE MOMENTO LOS CURSOS NO LOS AÑADIMOS !!
                     //user.addedcourses = await getUserPaths(userId);
-                    // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACARLOS !!!!
+                    // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACAR LOS STUDENTS !!!
                     user.students = await getUsersinArray(user.students);
                 }
-                user.meditations = await getMeditations(userId);
+
+                // Cuando  hacemos  expand, no deberían de hacer falta las meditations !!
+                if(userDataID) user.meditations = await getMeditations(userDataID);
             }
 
             if (connect) {
                 user.stage = await getStage(user.stagenumber);
                 user.joinedcourses = user.joinedcourses && user.joinedcourses.length
-                        ? await expandJoinedCourses(user.joinedcourses)
-                        : [];
-                user.readlessons = await getUserReadLessons(userId);
-                user.doneContent = await getUserDoneContent(userId);
-                user.notifications = await getUserNotifications(userId);
+                    ? await expandJoinedCourses(user.joinedcourses)
+                    : [];
+
+                if(userDataID){
+                    user.readlessons = await getUserReadLessons(userDataID);
+                    user.doneContent = await getUserDoneContent(userDataID);
+                    user.notifications = await getUserNotifications(userDataID);
+                }
             }
 
             /// Para  que funcionen app  antiguas
@@ -80,8 +97,10 @@ export const getUser = async (userId, expand, connect) => {
             }
         }
 
+
         return user;
     } catch (err) {
+        console.log('error',err)
         throw new Error(err);
     }
 };
@@ -338,7 +357,7 @@ const getUserPaths = async (userId) => {
             .where('createdBy', '==', userId)
             .get();
 
-        if (query.docs.length) {
+        if (query.docs &&  query.docs.length) {
             for (var doc of query.docs) {
                 paths.push(doc.data());
             }
@@ -350,15 +369,16 @@ const getUserPaths = async (userId) => {
     }
 };
 
-const getMeditations = async (userId) => {
+const getMeditations = async (docId) => {
     try {
         let meditations = [];
         let query = await db
+            .collection('userData')
+            .doc(docId)
             .collection('meditations')
-            .where('coduser', '==', userId)
             .get();
 
-        if (query.docs.length) {
+        if (query.docs && query.docs.length) {
             for (var doc of query.docs) {
                 meditations.push(doc.data());
             }
@@ -389,17 +409,22 @@ const expandJoinedCourses = async (joinedCourses) => {
     }
 };
 
-const getUserReadLessons = async (userId) => {
+const getUserReadLessons = async (docId) => {
     try {
         let lessons = [];
         let query = await db
-            .collection('lessons')
-            .where('coduser', '==', userId)
-            .get();
+            .collection('userData')
+            .doc(docId)
+            .collection('readLessons')
 
-        if (query.docs.length) {
+        // READLESSONS ES UN ARRAY
+        // debería ser cada uno un documento ??
+        if (query.docs && query.docs.length) {
             for (var doc of query.docs) {
-                lessons.push(doc.data());
+                let data = doc.data()
+                if(data.lessons){
+                    lessons = data.lessons
+                }
             }
         }
 
@@ -409,38 +434,42 @@ const getUserReadLessons = async (userId) => {
     }
 };
 
-const getUserDoneContent = async (userId) => {
+const getUserDoneContent = async (docId) => {
     try {
         let doneContent = [];
-        let query = await db
-            .collection('doneContent')
-            .where('doneBy', '==', userId)
-            .get();
 
-        if (query.docs.length) {
+        let query = await db
+            .collection('userData')
+            .doc(docId)
+            .collection('doneContent');
+
+        if (query.docs &&  query.docs.length) {
             for (var doc of query.docs) {
                 doneContent.push(doc.data());
             }
         }
+
         return doneContent;
     } catch (err) {
         throw new Error(err);
     }
 };
 
-const getUserNotifications = async (userId) => {
+const getUserNotifications = async (docId) => {
     try {
         let notifications = [];
         let query = await db
+            .collection('userData')
+            .doc(docId)
             .collection('notifications')
-            .where('coduser', '==', userId)
             .get();
 
-        if (query.docs.length) {
+        if (query.docs && query.docs.length) {
             for (var doc of query.docs) {
                 notifications.push(doc.data());
             }
         }
+
         return notifications;
     } catch (err) {
         throw new Error(err);
@@ -472,51 +501,6 @@ const getUsersinArray = async (cods) => {
     }
 };
 
-const getUserData = async (userId) => {
-    try {
-        let query = await db
-            .collection('userData')
-            .where({ coduser: userId })
-            .get();
-
-        if (query.docs) {
-            // HAY QUE AÑADIRLAS A UN ARRAY
-            let notifications = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('notifications')
-                .get();
-            let meditations = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('meditations')
-                .get();
-            let readLessons = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('readlessons')
-                .get();
-            let doneContent = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('doneContent')
-                .get();
-            let joinedCourses = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('joinedCourses')
-                .get();
-
-            let userData = {};
-
-            return userData;
-        }
-
-        return user.data();
-    } catch (err) {
-        throw new Error(err);
-    }
-};
 
 // TEST GET USERS
 //getUsers().then(users => console.log(users.slice(0, 5))); //SUCCESS
