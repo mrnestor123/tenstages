@@ -1,5 +1,5 @@
 import { getStage } from './stagesController.js';
-import { db } from '../app.js';
+import { db, FieldValue } from '../app.js';
 
 let mailbox = {};
 let suscriptions = {};
@@ -31,6 +31,35 @@ export const getUsers = async (role) => {
         throw new Error(err);
     }
 };
+
+
+export const setUserName  = async (userId, username) => {
+
+    try {
+
+        let query = await db.collection('users').where('nombre', '==', username).get();
+
+        
+        if(!query.docs || !query.docs.length){
+
+            let userquery = await db.collection('users').where('coduser','==', userId).get();
+            console.log('QUELOQUE');
+
+            if(userquery.docs.length && false){
+                await db.collection('users').doc(userquery.docs[0].id).update({
+                    'nombre':user
+                });
+                return user;
+            }
+        }else{
+            console.log('ERRROOOOR')
+            throw Error('Username already exists')
+        }
+
+    } catch (err) {
+        throw new Error(err)
+    }   
+}
 
 /**
  * Get user by id
@@ -105,6 +134,45 @@ export const getUser = async (userId, expand, connect) => {
     }
 };
 
+
+export const registerUser = async (userId)=> {
+    try {
+
+        let query = await db.collection('users').where('coduser', '==', userId).get();
+
+        if (!query.docs || !query.docs.length) {
+
+            let stage = await getStage(1)
+            
+            let user = {
+                coduser: userId,
+                stagenumber: 1,
+                /*
+                userprogression :{
+                    meditposition:0,
+                    gameposition:0,
+                }*/
+                // LAS POSICIONES SE PODRÍAN GUARDAR EN UN MAP !!!
+                // USER PROGRESSION?
+                meditposition: 0,
+                gameposition: 0,
+                role: "meditator",
+                position: 0,
+                stage: stage,
+                stagelessonsnumber: 1,
+            }
+            return user;
+        }else{
+            throw Error('User already exists');
+        }
+    } catch (err) {
+        console.log('error',err)
+        throw new Error(err);
+    }
+
+
+}
+
 // queremos esto? AUN NO
 export const deleteUser = async () => {
     try {
@@ -123,8 +191,11 @@ export const updateUser = async (userId, data) => {
             .where('coduser', '==', userId)
             .get();
 
+        
+        //console.log('updating', data);
+
         if (query.docs.length) {
-            await db.collection('users').doc(query.docs[0].id).update(data);
+            await db.collection('users').doc(query.docs[0].id).set(data, { merge: true });
         }
 
         return data;
@@ -140,47 +211,56 @@ export const getActions = async (userId) => {
         let actionsThisWeek = [];
         let nonFilteredActions = [];
         let query = await db
-            .collection('actions')
+            .collection('userData')
             .where('coduser', '==', userId)
             .get();
-
+        
         if (query.docs) {
-            query.docs.map((doc) => {
-                let action = doc.data();
-                // ESTO ESTÁ MAL, NO DEBERÍA DE SER ASÍ
-                //action.userimage = user.image
-                nonFilteredActions.push(action);
-            });
+            
+            let actionquery = await db
+                .collection('userData')
+                .doc(query.docs[0].id)
+                .collection('actions')
+                .get();
 
-            // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
-            var curr = new Date(); // get current date
-            var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1); // First day is the day of the month - the day of the week
-            var last = first + 6; // last day is the first day + 6
+            if(actionquery.docs){
+                actionquery.docs.map((doc) => {
+                    let action = doc.data();
+                    // ESTO ESTÁ MAL, NO DEBERÍA DE SER ASÍ
+                    //action.userimage = user.image
+                    nonFilteredActions.push(action);
+                });
 
-            var monday = new Date(
-                new Date(curr.setDate(first)).setHours(0, 0, 0)
-            );
-            var sunday = new Date(curr.setDate(last));
-            var today = new Date();
+                // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
+                var curr = new Date(); // get current date
+                var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1); // First day is the day of the month - the day of the week
+                var last = first + 6; // last day is the first day + 6
 
-            // esto se ahorraria si filtrasemos en la llamada a la base de datos
-            actionsToday = nonFilteredActions.filter(
-                (action) =>
-                    today.getDate() == new Date(action.time).getDate() &&
-                    today.getMonth() == new Date(action.time).getMonth()
-            );
+                var monday = new Date(
+                    new Date(curr.setDate(first)).setHours(0, 0, 0)
+                );
+                var sunday = new Date(curr.setDate(last));
+                var today = new Date();
 
-            actionsThisWeek = nonFilteredActions.filter((action) => {
-                let date = new Date(action.time);
-                return ( date > monday && date < sunday && new Date(action.time).getDate() != today.getDate() );
-            });
+                // esto se ahorraria si filtrasemos en la llamada a la base de datos
+                actionsToday = nonFilteredActions.filter(
+                    (action) =>
+                        today.getDate() == new Date(action.time).getDate() &&
+                        today.getMonth() == new Date(action.time).getMonth()
+                );
 
-            mailbox[userId] = {
-                today: actionsToday || [],
-                thisweek: actionsThisWeek || [],
-            };
+                actionsThisWeek = nonFilteredActions.filter((action) => {
+                    let date = new Date(action.time);
+                    return ( date > monday && date < sunday && new Date(action.time).getDate() != today.getDate() );
+                });
 
-            return mailbox[userId];
+                mailbox[userId] = {
+                    today: actionsToday || [],
+                    thisweek: actionsThisWeek || [],
+                };
+
+                return mailbox[userId];
+            }
         }
     } catch (err) {
         console.log('err', err);
@@ -190,7 +270,7 @@ export const getActions = async (userId) => {
 
 export const addAction = async (action, userId) => {
     try {
-        // LE METEMOS LA IMÁGEN DEL USUARIO ????
+        // LE METEMOS LA IMÁGEN DEL USUARIO. PORQUE  NO VIENE YA DESDE ANTES ???
         let user = await getUser(userId);
 
         action.coduser = userId;
@@ -216,7 +296,10 @@ export const addAction = async (action, userId) => {
 
         console.log('adding action', action);
 
-        db.collection('actions').add(action);
+        let userDataID  = await getUserDataID(userId);
+
+        await db.collection('userData').doc(userDataID).collection('actions').add(action);
+
     } catch (err) {
         console.log(err);
         throw new Error(err);
@@ -303,6 +386,130 @@ export const updatePhoto = async (photo, userId) => {
         throw new Error(err);
     }
 };
+
+
+export const saveTime = async (userId, data) =>{
+
+    // save into userData, if it exists update done time
+    let docId  = await getUserDataId(userId);
+
+
+    let query = await db.collection('userData').doc(docId).collection('doneContent').get();
+
+    if(query.docs.length){
+        let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',data.cod).get();
+
+        if(query2.docs.length){
+            await db.collection('userData').doc(docId).collection('doneContent').doc(query2.docs[0].id).update({done: data.done});
+        }else{
+            await db.collection('userData').doc(docId).collection('doneContent').add(data);
+        }
+
+
+    }else{
+        await db.collection('userData').doc(docId).collection('doneContent').add(data);
+    }
+}
+
+export const finishMeditation =  async (userId, data) => {
+
+    try {
+        let userDataId  = await getUserDataId(userId);
+
+        // ADD  TO MEDITATION collection
+        let query = await db.collection('userData').doc(userDataId).collection('meditations').add(data);
+
+        return;
+    } catch (err) {
+        throw new Error(err);
+    }
+}
+
+
+export const addMeditationReport = async (userId, data) => {
+    try { 
+        let userDataId  = await getUserDataId(userId);
+
+        // ADD  TO MEDITATION collection
+        let query = await db
+            .collection('userData')
+            .doc(userDataId)
+            .collection('meditations')
+            .where('cod','==', data.cod)
+            .get()
+
+        if(query && query.docs){
+            // falta comprobar si no ha fallado esto !!
+            return await db
+                .collection('userData')
+                .doc(userDataId).collection('meditations')
+                .doc(query.docs[0].id).update({report: data.report});
+        }else{
+            throw Error('Meditation not found')
+        }
+
+
+    } catch (err)  {
+        throw new Error(err);
+    }
+}
+
+
+export const finishLesson = async (userId, data) => {
+
+    try {
+        let userDataId  = await getUserDataId(userId);
+
+        
+        // ADD  TO MEDITATION collection
+        let query = await db.collection('userData').doc(userDataId).collection('readLessons').get();
+
+        if(query.docs){
+            let lessons = await db.collection('userData').doc(userDataId).collection('readLessons').doc(query.docs[0].id).get();
+
+            let lessonsArray = lessons.data().readLessons;
+
+            // si no está en el array la añadimos
+            if(!lessonsArray.includes(data)){
+                await db.collection('userData').doc(userDataId).collection('readLessons').doc(query.docs[0].id).update({
+                    readLessons: FieldValue.arrayUnion(data)
+                });
+            }
+        }else{
+            await db.collection('userData').doc(userDataId).collection('readLessons').add({
+                'coduser': userId,
+                'readLessons':  [data]
+            });
+        }
+
+        return;
+    } catch (err) {
+        throw new Error(err);
+    }
+}
+
+
+export const getUserDataId = async (userId) => {
+
+    let query = await db
+        .collection('userData')
+        .where('coduser', '==', userId)
+        .get();
+
+    if (query.docs.length) {
+        return query.docs[0].id;
+        
+    } else  { 
+        // create collection
+        let userData = {
+            coduser: userId,
+        }
+
+        let doc = await db.collection('userData').add(userData);
+        return doc.id;
+    }
+}
+
 
 const findUsersByRole = async (role) => {
     try {

@@ -7,7 +7,7 @@ function TenStagesNavbar() {
         view: () => {
             return [
                 m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
-                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: white" },
+                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: transparent" },
                         m("nav", { 'uk-navbar': '', style: "width:100%" },
                             m(".uk-navbar-left",
                                 m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto" })),
@@ -63,7 +63,7 @@ function LandingPage() {
     return {
         view: (vnode) => {
             return [
-                m("div", { style: "background-image:url('./assets/peak_background.svg'); background-size:cover; background-position:center; height:500px; margin:90px 0px 0px 0px; width:100%;display:flex;flex-direction:column;" }, [
+                m("div", { style: "background-image:url('./assets/slider.webp'); background-size:cover; background-position:center; height:100vh; width:100%;display:flex;flex-direction:column;" }, [
                     m("div", { style: "display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1" },[
                         m("h1", { style: "text-align:center" }, "Welcome to TenStages"),
                         m("p", { style: "text-align:center" }, "A platform to help you reach your full potential"),

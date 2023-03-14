@@ -5,6 +5,7 @@ import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
 import stages from './routes/stagesRoutes.js';
+import dbRoutes from './routes/dbRoutes.js';
 import { addAction, getActions, getUser, getUsers, updatePhoto } from './controllers/usersController.js';
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
@@ -25,7 +26,8 @@ app.use(express.json());
 app.use('/users', users);
 app.use('/stages', stages)
 app.use('/messages', messages);
-app.use('/requests',requests);
+app.use('/requests', requests);
+app.use('/database', dbRoutes);
 
 
 /*

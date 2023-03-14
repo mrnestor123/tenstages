@@ -1,5 +1,5 @@
 import { db, FieldValue } from '../app.js';
-import { getUser } from './usersController.js';
+import { getUser, getUserDataId } from './usersController.js';
 
 export const getRequests = async () => {
     try {
@@ -13,6 +13,7 @@ export const getRequests = async () => {
                 if (request.cod) {
                     if (!request.userimage && !request.username) {
                         let user = await getUser(request.coduser);
+
                         if (user && user.image && user.nombre) {
                             request.userimage = user.image;
                             request.username = user.nombre;
@@ -30,12 +31,12 @@ export const getRequests = async () => {
     }
 };
 
-export const getRequest = async (codrequest) => {
+export const getRequest = async (requestId) => {
     try {
         let request = {};
         let query = await db
             .collection('requests')
-            .where('cod', '==', codrequest)
+            .where('cod', '==', requestId)
             .get();
 
         if (query.docs && query.docs.length) {
@@ -59,13 +60,39 @@ export const getRequest = async (codrequest) => {
             }
         }
 
+
+        console.log('got request', request)
+
         return request;
     } catch (err) {
         throw new Error(err);
     }
 };
 
-export const updateRequest = async (request) => {
+
+export const addRequest = async (request) => {
+    try {
+        // HACE FALTA COMPROBAR  QUE  EXISTE ??  :()
+        let query = await db
+            .collection('requests')
+            .where('cod', '==', request.cod)
+            .get();
+
+        if (query.docs && query.docs.length) {
+            throw new Error({ message: 'Request already exists' });
+        } else {
+            await db.collection('requests').add(request);
+
+            console.log('request added')
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
+};
+
+
+
+export const updateRequest = async ( request) => {
     try {
         let query = await db
             .collection('requests')
@@ -87,15 +114,17 @@ export const updateRequest = async (request) => {
 // Además tenemos que meter el codigo del comment en shortComments
 // para saber cuantos comments hay sin necesidad de cargarlos completamentes.
 // esto se usará
-export const newComment = async (comment) => {
+export const newComment = async (requestId, comment) => {
     try {
         let query = await db
             .collection('requests')
-            .where('cod', '==', comment.codrequest)
+            .where('cod', '==', requestId)
             .get();
 
         if (query.docs && query.docs.length) {
+
             let doc = query.docs[0];
+
             await db
                 .collection('requests')
                 .doc(doc.id)
@@ -105,6 +134,9 @@ export const newComment = async (comment) => {
                 .collection('requests')
                 .doc(doc.id)
                 .update({ shortComments: FieldValue.arrayUnion(comment.cod) });
+
+            /// se  añade a la colección de comentarios  tambien. REVISAR DE HACERLO MEJOR!!
+            await db.collection("comments").add(comment);
         } else {
             throw new Error({ message: 'Request not found' });
         }
@@ -113,8 +145,67 @@ export const newComment = async (comment) => {
     }
 };
 
-export const updateComments = async (codrequest, comments) => {};
+export const updateComments = async (requestId, comments) => {};
 
-export const deleteComment = async (codrequest, codcomment) => {};
+export const deleteComment = async (requestId, codcomment) => {};
+
+
+
+export const addNotification = async (notification) => {
+
+    try {
+
+        let userDataID =  await getUserDataId(notification.coduser);
+
+        if (userDataID) {
+
+            await db.collection('userData')
+                .doc(userDataID)
+                .collection('notifications')
+                .add(notification);
+            
+        } else {
+            throw new Error({ message: 'Request not found' });
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
+
+}
+
+
+
+export const updateNotification = async (notificationID, notification) =>{
+
+    try {
+            
+            let userDataID =  await getUserDataId(notification.coduser);
+    
+            if (userDataID) {
+                
+                let notificationDoc = await db
+                    .collection('userData')
+                    .doc(userDataID)
+                    .collection('notifications')
+                    .where('cod','==',notificationID)
+                    .get()
+
+                if (notificationDoc.docs && notificationDoc.docs.length) {
+                    await db
+                        .collection('userData')
+                        .doc(userDataID)
+                        .collection('notifications')
+                        .doc(notificationDoc.docs[0].id)
+                        .update(notification);
+                }
+            } else {
+                throw new Error({ message: 'Request not found' });
+            }
+
+    }catch(err){
+        throw new Error(err);
+    }
+}
+
 
 const getComments = async (codrequest) => {};

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getRequests, getRequest, updateRequest, newComment} from '../controllers/requestsController.js';
+import { getRequests, getRequest, updateRequest, newComment, addNotification, updateNotification,  addRequest} from '../controllers/requestsController.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -7,43 +7,75 @@ const router = express.Router({ mergeParams: true });
 router.get("/", async (req, res) => {
     try {
         const requests = await getRequests();
-        console.log('got  requests', requests)
-        res.status(200).json(requests);
+        return res.status(200).json(requests);
     } catch (err) {
-        res.status(404).json({ message: err.message });
+        return res.status(404).json({ message: err.message });
     }
 });
 
 // Get request by requestId
-router.get("/:requestId", (req, res) => {
+router.get("/:requestId",async (req, res) => {
     try {
-        const request = getRequest(req.params.requestId);
-        res.status(200).json(request);
+        const request = await getRequest(req.params.requestId);
+        console.log('RETURNING REQUEST', request)
+        return res.status(200).json(request);
     } catch (err) {
-        res.status(404).json({ message: err.message });
+        console.log('err',err)
+        return res.status(404).json({ message: err.message });
+    }
+});
+
+// ADDREQUEST
+router.post("/new",async (req, res) => {
+    try {
+        const request = await addRequest(JSON.parse(req.body));
+        return res.status(200).json(request);
+    } catch (err) {
+        return res.status(404).json({ message: err.message });
     }
 });
 
 // Update request by requestId
-router.patch("/:requestId", (req, res) => {
+router.patch("/:requestId",async (req, res) => {
     try {
-        const request = updateRequest(req.params.requestId, req.body);
-        res.status(200).json(request);
+        const request =  await updateRequest(JSON.parse(req.body));
+        return res.status(200).json(request);
     } catch (err) {
-        res.status(404).json({ message: err.message });
+        console.log('err',err)
+        return res.status(404).json({ message: err.message });
     }
 });
 
 // Create comment
-// en el comentario va la request id, no creo que sea lo mejor
-router.post("/comment", (req, res) => {
+router.post("/:requestId/comment", async (req, res) => {
     try {
-        const request = newComment(req.body);
-        res.status(200).json(request);
+        const request = await newComment(req.params.requestId, JSON.parse(req.body));
+        return res.status(200).json(request);
     } catch (err) {
-        res.status(404).json({ message: err.message });
+        return res.status(404).json({ message: err.message });
     }
 });
+
+
+router.post('/notification', async (req, res) => {
+  try {
+    const request = await addNotification(JSON.parse(req.body));
+    return res.status(200).json(request);
+  } catch (err) {
+    return res.status(404).json({ message: err.message });
+  } 
+})
+
+
+router.patch('/notification/:notificationId', async (req, res) => {
+
+    try {
+        const request =  await updateNotification(req.params.notificationId, req.body);
+        return res.status(200).json(request);
+    }catch (err) {
+        return res.status(404).json({ message: err.message });
+    }
+})
 
 /*
 // Update comment

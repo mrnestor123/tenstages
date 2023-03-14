@@ -891,6 +891,8 @@ function ContentManagement() {
             }
         }
     }
+
+
     /*
     function AddLesson() {
         let step = 1;
@@ -1533,13 +1535,10 @@ function ContentManagement() {
         let position = { 'selected': 0 }
         let path_filter = 'lessons'
         //let filteredcontent = []
-
         let new_path = 1;
         let old_path = 0;
         let showing = old_path
-
         let edit = false;
-
 
         function StageHeader() {
             return {
@@ -1579,6 +1578,15 @@ function ContentManagement() {
                                         ],
                                     m("strong", "Long description"),
                                     m(TextEditor,{data:stage,name:'longdescription'}),
+
+                                    m("strong", "When to begin next stage?"),
+                                    m(TextEditor,{data:stage, name:'whenToAdvance'}),
+
+                                    m("strong", "Summary of practice"),
+                                    m(TextEditor,{data:stage, name:'practiceSummary'}),
+
+                                    m("strong", "Key concepts"),
+                                    m(TextEditor,{data:stage, name:'keyConcepts'}),
                                 ),
                                 m(Column, { width: '1-3' },
                                     m(Grid,
@@ -1610,8 +1618,6 @@ function ContentManagement() {
                                             m("span", "Duration"),
                                             m(TextField, { data: stage['objectives']['meditation'], name: "retreatduration", type: "number", placeholder: "Retreat duration" })
                                         ),
-
-
                                             
                                         m("strong", "Image description"),
                                         m(TextEditor,{data:stage,name:'shorttext'}),
@@ -1813,7 +1819,14 @@ function ContentManagement() {
                 stage = stages[(Number(filter.stagenumber) - 1)]
                 //esto podría quitarlo
                 if (!stage.objectives) { stage.objectives = { 'meditation': {}, }; console.log(stage) }
+
+                if(stage.whenToBegin) {stage.whenToAdvance = stage.whenToBegin; delete stage.whenToBegin }
+                if(stage.summaryOfPractice){stage.practiceSummary = stage.summaryOfPractice; delete stage.summaryOfPractice;}
+
+                if(!stage.objectives || !stage.objectives.meditation){stage.objectives.meditation = {}}
                 if (!stage.meditations) { stage.meditations = {}; console.log(stage) }
+
+                console.log('stage',stage)
 
                 return [
                     m(Row,
@@ -2112,6 +2125,7 @@ function EditCreateContent() {
     let basic_info = 0;
     let texts = 1;
     let file = 2;
+    let article_texts = 3;
 
     //para cuando creamos un componente
     let json = {
@@ -2306,8 +2320,8 @@ function EditCreateContent() {
                             max-height:100%;
                             height:${height ? height : '300px'};
                             background-repeat:no-repeat;
-                            background-image:url(${data && name ? data[name] : './assets/buddha-sharing.webp'});
-                            background-size:contain;
+                            background-image:url(${data && name && data[name] ? data[name] : './assets/buddha-sharing.webp'});
+                            background-size:${data && name && data[name] ? 'contain':'cover'};
                             background-position:center;
                             border-radius:10px;
                             cursor:pointer;`,
@@ -2316,7 +2330,7 @@ function EditCreateContent() {
                             showFileExplorer({'type': 'image', data:data, name: name})
                         }},
                         m("div",{
-                            style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;",
+                            style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);opacity:0.7;display:flex;justify-content:center;align-items:center;",
                         },m("p",{style:"color:white;text-align:center;"},
                             "Press to change the image of the content"
                         ))
@@ -2523,6 +2537,21 @@ function EditCreateContent() {
         }
     }
 
+    function ArticleTexts(){
+        return {
+            view:(vnode)=>{
+                return [
+                    m(FormLabel, "Body"),
+                    m(TextEditor,{
+                        data:content,
+                        name:'body',
+                        rows: 20
+                    })
+                ]
+            }
+        }
+    }
+
     return {
         oninit: (vnode) => {
             if(vnode.attrs.cod){
@@ -2542,9 +2571,7 @@ function EditCreateContent() {
         view: (vnode) => {
             return content.title || isNew ? [
                 m(InfoText,{
-                    //title: isNew ? 'Create content': 'Edit content',
                     subtitle:'Add and edit content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording.',
-                    //video:'how-to-add-content'
                 }),
 
                 m(Container, {size:'large'},
@@ -2556,10 +2583,22 @@ function EditCreateContent() {
                                    m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
 
                                     // link that goes to content and changes the showing parameter
+                                    
+                                    content.type =='article' ? 
+                                    m("li", {
+                                            class:showing == article_texts ? 'uk-active' : '', 
+                                            onclick:(e)=> {showing = article_texts}
+                                        },m("a", "Write article")
+                                    )
+                                    : [
+                                    
                                     m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
 
+
+                                    
                                     content.type == 'lesson' ? null  :
                                     m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
+                                    ]
                                 )
                             ),
                             m(Column,{width:'5-6'},
@@ -2567,9 +2606,11 @@ function EditCreateContent() {
                                 m(BasicInfo): 
                                 showing == texts ? 
                                 m(Texts):
+                                showing == article_texts ?
+                                m(ArticleTexts):
                                 m(File)
-                                
-                            )
+                            ),
+                            m("div",{style:"height:200px"}),
                         ),
                     )
                 ),

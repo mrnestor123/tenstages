@@ -109,11 +109,20 @@ function FileExplorer() {
         }
     }*/
 
+
+    function getFileName(src){
+        // A PARTIR DE LA URL SACAMOS EL FILENAME
+
+        let url = decodeURIComponent(src.split('?')[0]).split('/')
+
+        return decodeURIComponent(url[url.length - 1])
+    }
+
     return {
         oninit: (vnode) => {
             
             stagenumbers.map((item)=>{
-                    buckets.push({value: item, label:'Stage ' + item + ' files'})
+                buckets.push({value: item, label:'Stage ' + item + ' files'})
             })
 
             if(vnode.attrs.options && vnode.attrs.options.type){
@@ -147,12 +156,10 @@ function FileExplorer() {
                     return true
                 }
             })
+
             let pages = Math.ceil(filteredFiles.length / 12)
             var collator = new Intl.Collator([], {numeric: true});
             let options = vnode.attrs.options || {}
-
-
-            console.log('isFiltered', isFiltered)
 
 
             return [
@@ -273,7 +280,7 @@ function FileExplorer() {
                                 ):  null,
 
                                 filteredFiles.slice(page*12,(page*12)+12).map((src)=>{
-                                    return m(Column,{width:'1-4'},
+                                    return m(Column,{width:'1-4', style:"text-align:center"},
                                     src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                     m("div",{
                                         style:`background-image:url("${src}");position:relative; 
@@ -307,15 +314,18 @@ function FileExplorer() {
                                         "Delete")
                                     ):
                                     isVideo(src)  ?
-                                    m("video",{
-                                        src:src,controls:true
-                                    }) :
-                                    m("audio",{
-                                        style:'width:90%',
-                                        controls:true,
-                                        id:'audio',
-                                    },m("source",{src:src}))
-                                    )
+                                        m("video",{
+                                            src:src,controls:true
+                                        }) : 
+                                    [
+                                        m("audio",{
+                                            style:'width:90%',
+                                            controls:true,
+                                            id:'audio',
+                                        },m("source",{src:src})),
+                                        
+                                        m("strong",  {style:"text-align:center;margin-top:5px"}, getFileName(src))
+                                    ])
                                 })
                             ):null
                         ),

@@ -86,7 +86,6 @@ function Layout(){
         'name':'Home',
         'route':'/',
     },
-    // ESTAS RUTAS SOLO SE AÑADIRÁN CUANDO HAYA TEACHER
     {
         'name':'My Content',
         'route':'/content',
@@ -116,6 +115,21 @@ function Layout(){
         'route': '/settings'
     }]
 
+
+    let managementRoutes = [
+        {
+            'name':'Content management',
+            'route':'/management',
+        },
+        {
+            'name': 'Send  email',
+            'route': '/send-email'
+        },
+        {
+            'name': 'Settings',
+            'route': '/settings'
+        }
+    ]
 
     let checkIfLogged = false;
 
@@ -162,7 +176,7 @@ function Layout(){
                                     },
                                     'person'
                                 )
-                                :
+                                : 
                                 m(Button,
                                     {
                                         type: "secondary",
@@ -176,9 +190,7 @@ function Layout(){
                 ),
                 
                 vnode.children.map((child) => {
-                    return m("main",
-                         m(child, vnode.attrs)
-                    )
+                    return m("main",m(child, vnode.attrs))
                 })
             ]
         }

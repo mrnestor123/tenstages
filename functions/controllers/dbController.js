@@ -1,4 +1,5 @@
 import { db } from '../app.js';
+import { getStages } from './stagesController.js';
 
 //AQUÍ SACAMOS LOS CURSOS  O LAS  VERSIONES  DE LA APP !!! EL CONTENIDO DE LA APP NUEVO ? ?
 export const getVersions = async () => {
@@ -51,3 +52,55 @@ export const getCourses = async () => {
         throw new Error(err);
     }
 };
+
+
+// DEVUELVE LOS DATOS DE LA BASE DE DATOS
+// LOS RECORDINGS, las stages y los usuarios !!
+export const getDB = async () =>{
+
+    // SACAMOS LOS DATOS
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            let db = {};
+            let promises = [];
+
+            // asi se hacen concurrentemente
+            promises.push(getVersions());
+
+            promises.push(getCourses());
+
+            promises.push(getStages());
+
+            promises.push(getSettings());
+            
+            Promise.all((promises)).then((values) => {
+                db.versions = values[0];
+                db.courses = values[1];
+                db.stages = values[2];
+                db.settings = values[3];
+
+
+                resolve(db);
+            })
+            
+        } catch (err) {
+            reject(err);
+        }
+    });
+}
+
+
+
+
+
+
+async function getSettings(){
+    let query = await db.collection('settings').doc('settings').get();
+
+    if(query  && query.docs && query.docs.length){
+        return query.docs[0].data();
+    }else{
+        return {};
+    }
+}
