@@ -1,12 +1,7 @@
 import { Button, Container } from "../components/components.js"
-import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage} from "./management.js"
-import { isLoggedIn, user } from "../models.js"
+import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage} from "./management.js"
+import { isLoggedIn, user } from "../models/models.js"
 import { AdminManagement } from "./admin-management.js"
-
-
-// FALTA AÑADIR LA PÁGINA DE LOGIN
-
-
 
 m.route(document.body, "/", {   
     "/": {
@@ -25,6 +20,12 @@ m.route(document.body, "/", {
         render: function (vnode) {
             return m(Layout, vnode.attrs, EditCreateContent)
         },
+    },
+
+    '/settings': {
+        render: function (vnode){
+            return m(Layout, vnode.attrs, SettingsPage)
+        }
     },
 
     '/contentview/:cod': {
@@ -109,7 +110,12 @@ function Layout(){
     {
         'name': 'Send  email',
         'route': '/send-email'
+    },
+    {
+        'name': 'Settings',
+        'route': '/settings'
     }]
+
 
     let checkIfLogged = false;
 
@@ -124,53 +130,51 @@ function Layout(){
             })
         },
         view:(vnode)=> {
-            //console.log('loggeed in', user)
             return [
-                // m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
-                //     m("nav", { 'uk-navbar': '', style: "width:100%" },
-                //         m(".uk-navbar-left",
-                //             m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
-                //             m("ul.uk-navbar-nav",
-                //                 routes.map((item)=>{
-                //                     return m("li",{
-                //                         style:"font-size:1.4em"
-                //                     },
-                //                         m("a",{
-                //                             style: route == item.route ? 'color:black;' : 'color:#ababab',
-                //                             onclick:(e)=>{
-                //                                 route = item.route
-                //                                 m.route.set(item.route)
-                //                             }
-                //                         }, item.name)
-                //                     )
-                //                 })
-                //             )
-                //         ),
-                //         m(".uk-navbar-right",
-                //             m(".uk-navbar-item",
-                //                 localStorage.getItem('meditationcod') ?
-                //                 m("a.material-icons",
-                //                     {
-                //                         onclick:(e) => {
-                //                             m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                //                         }
-                //                     },
-                //                     'person'
-                //                 )
-                //                 :
-                //                 m(Button,
-                //                     {
-                //                         type: "secondary",
-                //                         target: '#login-modal'
-                //                     },
-                //                     "LOGIN"
-                //                 ),
-                //             )
-                //         )
-                //     )
-                // ),
-               // !user.codUser ? 
-               // m("div","YOU NEED TO BE LOGGED TO VIEW THIS CONTENT") :
+                 m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
+                    m("nav", { 'uk-navbar': '', style: "width:100%" },
+                        m(".uk-navbar-left",
+                            m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
+                            m("ul.uk-navbar-nav",
+                                routes.map((item)=>{
+                                    return m("li",{
+                                        style:"font-size:1.4em"
+                                    },
+                                        m("a",{
+                                            style: route == item.route ? 'color:black;' : 'color:#ababab',
+                                            onclick:(e)=>{
+                                                route = item.route
+                                                m.route.set(item.route)
+                                            }
+                                        }, item.name)
+                                    )
+                                })
+                            )
+                        ),
+                        m(".uk-navbar-right",
+                            m(".uk-navbar-item",
+                                localStorage.getItem('meditationcod') ?
+                                m("a.material-icons",
+                                    {
+                                        onclick:(e) => {
+                                            m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
+                                        }
+                                    },
+                                    'person'
+                                )
+                                :
+                                m(Button,
+                                    {
+                                        type: "secondary",
+                                        target: '#login-modal'
+                                    },
+                                    "LOGIN"
+                                ),
+                            )
+                        )
+                    )
+                ),
+                
                 vnode.children.map((child) => {
                     return m("main",
                          m(child, vnode.attrs)

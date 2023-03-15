@@ -1,4 +1,4 @@
-import { getUser } from "./server.js"
+import { getUser } from "../api/server.js"
 
 
 

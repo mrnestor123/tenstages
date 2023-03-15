@@ -1,7 +1,6 @@
 import functions from 'firebase-functions';
 import express from 'express';
 import cors from 'cors';
-
 import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
@@ -11,6 +10,8 @@ import { addAction, getActions, getUser, getUsers, updatePhoto } from './control
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
 import { sendMessage } from './controllers/messagesController.js';
+import { normalize_server } from './normalize_server.js';
+
 //PASAR ESTO A UNA VARIABLE DE ENTORNO
 
 const app = express();
@@ -124,6 +125,16 @@ app.get('/user/:userId', async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 });
+
+
+app.get('/normalize', async (req, res) => {
+    try{
+        normalize_server()
+    }catch(err){
+        return res.status(400).json({ message: err.message });
+    }
+});
+
 
 app.get('/request/:cod', async(req,res)=>{
     try{

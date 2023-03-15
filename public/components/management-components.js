@@ -1,10 +1,10 @@
 
 
-import { stagenumbers, user } from '../models.js';
-import { getFiles, uploadFile } from '../server.js';
-import { Header3 } from '../util/texts.js';
-import { isVideo } from '../util/util.js';
-import { Button, Column, Grid, Label, Row, Select } from './components.js';
+import { stagenumbers, user } from '../models/models.js';
+import { getFiles, uploadFile } from '../api/server.js';
+import { Header2, Header3, SubHeader } from '../util/texts.js';
+import { isAudio, isFile, isImage, isVideo } from '../util/util.js';
+import { Button, Column, Container, Grid, Label, Row, Section, Select } from './components.js';
 
 // COMPONENTES PARA LA PÁGINA DE MANAGEMENT
 
@@ -18,30 +18,52 @@ import { Button, Column, Grid, Label, Row, Select } from './components.js';
 function showFileExplorer(options={}){
     var elem = document.createElement("div")
 
-    elem.style = 'position:fixed;inset:0px;z-index:100000'
+    elem.style = 'position:fixed;inset:0px;z-index:100000; background:rgba(0,0,0,0.5)'
     elem.id = Math.random()*10000 + ''
 
     document.body.appendChild(elem);
 
+    options.close = () => elem.remove()
+
     // AÑADIR TRANSICIONES SIN SEMANTIC !!!
     m.mount(elem, {
-        view:()=> m(FileExplorer,{
-            options
-        })
+        view:()=> m("div",{
+            // centered absolute container
+            style: "position:fixed; width:80vw; top:50%; left:50%; transform: translate(-50%, -50%); background-color:white; border-radius:10px;  padding:1em",
+        },
+            m(FileExplorer,{
+                options
+            }),
+            // grey border and close button
+            m("div",{
+                style:"position:absolute; top:0; right:0; padding:1em; cursor:pointer; color:grey; font-size:1.5em; border-radius:10px 0 0 0",
+                onclick: (e)=> {
+                    elem.remove()
+                    options.then ? options.then() :null
+                }
+            },'x')
+        )
     })
 }
 
 let cachedBuckets = {}
 let cachedImages = {}
 
+
+/*
+*
+*    TODO: QUE SE MUESTRE CARGANDO CUANDO SE SUBA UNA
+*
+*
+*/
 // se utiliza en conjunto con button, pasarle un data y name y un id.
 function FileExplorer() {
-    
     let files = {}
-
     let loadingimages = true;
+
     let filter = {
-        'bucket': 'stage 1'
+        'bucket': 'stage 1',
+        'type': 'all'
     }
 
     let buckets = [
@@ -50,31 +72,21 @@ function FileExplorer() {
     ]
 
     let filetypes = [
-        {value: 'all', label: 'All types'},
-        {value: 'image', label: 'Images'},
-        {value: 'video', label: 'Videos'},
-        {value: 'audio', label: 'Audios'},
-        {value: 'file', label: 'Files'}
+        {name: 'all', label: 'All types'},
+        {name: 'image', label: 'Images', filter: isImage},
+        {name: 'video', label: 'Videos', filter: isVideo},
+        {name: 'audio', label: 'Audios', filter: isAudio},
+        {name: 'file', label: 'Files', filter: isFile}
     ]
 
 
     let page = 0;
 
+    // para cuando pasamos un tipo desde fuera
+    let isFiltered = false;
+
     let loadedImages= false;
-
-
-    // ES  UN INPUT HIDDEN QUE  CUANDO  SE  APRETA
-    function FileUploader() {
-        return {
-            view: (vnode) => {
-                let { data, name, id , stage,path } = vnode.attrs
-                return [
-                    
-                ]
-            }
-        }
-    }
-
+    let uploading = false;
     
     /*
     function queryFiles(bucket){
@@ -101,17 +113,26 @@ function FileExplorer() {
         oninit: (vnode) => {
             
             stagenumbers.map((item)=>{
-                buckets.push({value: item, label:'Stage ' + item + ' files'})
-           })
+                    buckets.push({value: item, label:'Stage ' + item + ' files'})
+            })
+
+            if(vnode.attrs.options && vnode.attrs.options.type){
+                filter.type = vnode.attrs.options.type
+                filter.selectedType = filetypes.find((item)=> item.name == filter.type).filter
+                isFiltered = true
+            }
 
            getFiles().then((res)=>{
                 files = res
-
+                console.log('files',files)
                 loadedImages = true
                 // EL CODUSER
-                if(!files[user.codUser]){
-                    files[user.codUser || localStorage.getItem('meditationcod')] = []
+                if(!files[localStorage.getItem('meditationcod')]){
+                    files[localStorage.getItem('meditationcod')] = []
                 }
+
+                filter.bucket = localStorage.getItem('meditationcod')
+
 
                 m.redraw()
 
@@ -119,14 +140,32 @@ function FileExplorer() {
         },
         view: (vnode) => {
             let selectedFiles = files[filter.bucket] || []
-            let pages = Math.ceil(selectedFiles.length / 12)
+            let filteredFiles = selectedFiles.filter((item)=>{
+                if(filter.selectedType){
+                    return filter.selectedType(item)
+                }else{
+                    return true
+                }
+            })
+            let pages = Math.ceil(filteredFiles.length / 12)
+            var collator = new Intl.Collator([], {numeric: true});
+            let options = vnode.attrs.options || {}
+
+
+            console.log('isFiltered', isFiltered)
 
 
             return [
                 
                 m("div",{style:" padding:1em; border-radius:15px;"},
-                m(Grid,{center:true , rowgap:'small',columngap:'small'},
+                m(Grid,{ rowgap:'small',columngap:'small'},
                     [   
+
+                        options && options.data && options.name ? 
+                        m(Column,{width:'1-1'},
+                            m("p", "Press the file to select it")
+                        ):null,
+
                         m(Column,{
                             width:'1-5'
                         },
@@ -137,7 +176,7 @@ function FileExplorer() {
                                 },
                                 data:filter,
                                 name:'bucket'
-                            }, Object.keys(files)),
+                            }, Object.keys(files).sort((a, b) => collator.compare(a, b))),
                             
                             m(Header3, "File Type"),
 
@@ -146,10 +185,15 @@ function FileExplorer() {
                                     return m("li",{
                                         class: item.name == filter.type ? 'uk-active' : '',
                                         onclick:()=>{
-                                            filter.type = item.name
+                                            console.log('isFiltered', isFiltered)
+                                            if(!isFiltered){
+                                                filter.type = item.name
+                                                filter.selectedType = item.filter ||  null
+                                                page = 0
+                                            }
                                             //queryImages(selectedstage.num, filter.bucket == 'common_files')
                                         }
-                                    },m("a",item.value))
+                                    }, m("a",{disabled: isFiltered },item.label))
                                 })
                             ),  
                                 
@@ -166,66 +210,69 @@ function FileExplorer() {
                                 accept: "*",
                                 onchange: (e) => {
                                     let file = e.target.files[0]
+
                                     if(file){
+                                        if(!files[user.codUser]){
+                                            files[user.codUser] = []
+                                        }
+                                        
                                         // SIEMPRE LO AÑADIMOS AL BUCKET DEL USUARIO !!
-                                        uploadFile(user.codUser, file).then((url) => {
+                                        uploadFile(user.codUser, file, 'teacherFiles').then((url) => {
                                             // LA AÑADIMOS LA PRIMERA
-                                            files.unshift(url)
+                                            //files.unshift(url)
+                                            files[user.codUser].push(url)
                                             m.redraw()
                                         })
                                     }
                                 },
                                 style: "display:none"
                             })
-                        
-                        
                         ),
                         m(Column,{width:'4-5'},
                             loadedImages ?
-                            m(Grid,{center:true,  verticalalign:true},
+                            m(Grid,{ verticalalign:true},
                                 pages > 0 ? 
                                 m(Row,
                                     m("ul.uk-pagination",{style:"align-items:center;font-size:1.2em"},
-                                    // left arrow  pagination
+                                        // left arrow  pagination
 
-                                    m("li",{
-                                        onclick:()=>{
-                                            if(page > 0){
-                                                page -= 12
-                                                m.redraw()
-                                            }
-                                        },
-                                        // disabled opacity 
-                                        style: page == 0 ? 'opacity:0.5' : ''
-                                    },m("a",m("span",{'uk-pagination-previous': ''}))),
-                                    
-
-                                    Array.from(Array(pages).keys()).map((item,index)=>{
-                                        return m("li",{
-                                            class: index * 12 == page ? 'uk-active' : '',
+                                        m("li",{
                                             onclick:()=>{
-                                                page = index * 12
-                                                m.redraw()
-                                            }
-                                        },m("a",index + 1))
-                                    }),
+                                                if(page > 0){
+                                                    page -= 1
+                                                    m.redraw()
+                                                }
+                                            },
+                                            // disabled opacity 
+                                            style: page == 0 ? 'opacity:0.5' : ''
+                                        },m("a",m("span",{'uk-pagination-previous': ''}))),
+                                        
 
-                                    // right arrow pagination
-                                    m("li",{
-                                        onclick:()=>{
-                                            if(page < pages * 12){
-                                                page += 12
-                                                m.redraw()
-                                            }
-                                        },
-                                        // disabled opacity
-                                        style: page == pages * 12 ? 'opacity:0.5' : ''
-                                    },m("a",m("span",{'uk-pagination-next': ''}))
-                                    ),
+                                        Array.from(Array(pages).keys()).map((item,index)=>{
+                                            return m("li",{
+                                                class: index == page ? 'uk-active' : '',
+                                                onclick:()=>{
+                                                    // DEBERÍA  SER MAS UNO Y LUEGO MOSTRAMOS DOCE!!
+                                                    page = index
+                                                }
+                                            },m("a",index + 1))
+                                        }),
 
-                                )):  null,
+                                        // right arrow pagination
+                                        m("li",{
+                                            onclick:()=>{
+                                                if(page < pages-1){
+                                                    page++
+                                                }
+                                            },
+                                            // disabled opacity
+                                            style: page == pages -1 ? 'opacity:0.5' : ''
+                                        },m("a",m("span",{'uk-pagination-next': ''}))
+                                        )
+                                    )
+                                ):  null,
 
-                                selectedFiles.slice(page, page+12).map((src)=>{
+                                filteredFiles.slice(page*12,(page*12)+12).map((src)=>{
                                     return m(Column,{width:'1-4'},
                                     src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                     m("div",{
@@ -234,7 +281,12 @@ function FileExplorer() {
                                             height:150px; border-radius:10px; margin:1em; cursor:pointer;
                                         `,
                                         onclick:()=>{
-                                            window.open(src, '_blank')
+                                            if(options.data && options.name){
+                                                options.data[options.name] = src
+                                                options.close()
+                                            }else{
+                                                window.open(src, '_blank')
+                                            }
                                         }
                                     }, 
                                         m(Label, {
@@ -259,6 +311,7 @@ function FileExplorer() {
                                         src:src,controls:true
                                     }) :
                                     m("audio",{
+                                        style:'width:90%',
                                         controls:true,
                                         id:'audio',
                                     },m("source",{src:src}))
@@ -370,6 +423,27 @@ function FileView() {
     }
 }
 
+
+
+function InfoText(){
+    return{
+        view:(vnode)=>{
+            let {video, title,subtitle} = vnode.attrs
+
+            return m(Section,{style:"padding:0px", type:'muted'},
+                m(Container,{size:'large'},
+                    m("div",{style:"padding:30px 0px;"},
+                        title ? m(Header2, title) : null,
+                        m(SubHeader,  subtitle),
+                        video ? 
+                        m(Button, {type:'secondary'}, "EXPLANATORY VIDEO") :  null
+                    )
+                )
+            )
+        }
+    }
+}
+
 // EXPORT
 
-export { FileExplorer, showFileExplorer };
+export { FileExplorer, showFileExplorer , InfoText};

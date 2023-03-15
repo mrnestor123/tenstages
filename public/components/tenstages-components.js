@@ -1,6 +1,6 @@
 
-import { stagenumbers, types, user } from '../models.js';
-import { addContent, addPath, getFiles, updatePath } from '../server.js';
+import { stagenumbers, types, user } from '../models/models.js';
+import { addContent, addPath, getFiles, updatePath } from '../api/server.js';
 import { FormLabel, Header2, SubHeader } from '../util/texts.js';
 import { create_UUID, dia, FileUploader, hora } from '../util/util.js';
 import { Button, Card, CardBody, CardHeader, CardMedia, Column, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';

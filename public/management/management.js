@@ -1,16 +1,15 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
+import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
-import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path,  } from '../components/tenstages-components.js'
+import { showAlert } from '../components/dialogs.js'
+import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
+import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path } from '../components/tenstages-components.js'
+import { stagenumbers, types, user } from '../models/models.js'
 import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../util/helpers.js'
-import { stagenumbers, types, user } from '../models.js'
-import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteContent, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getStages, getStats, getSumups, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateStage, updateTechnique, updateUser } from '../server.js'
-import { DefaultText, FormLabel, Header, Header2, SubHeader } from '../util/texts.js'
-import { create_UUID, dia, FileUploader, hora } from '../util/util.js'
-import { getTeachersContent } from "../server.js"
-import { Header3 } from "../util/texts.js"
-import { FileExplorer, showFileExplorer } from '../components/management-components.js'
+import { DefaultText, FormLabel, Header, Header3, SubHeader } from '../util/texts.js'
+import { create_UUID, dia, hora } from '../util/util.js'
 
 
 //  HAY QUE MIRAR SI ESTÁ LOGUEADO
@@ -593,6 +592,8 @@ function ContentManagement() {
                     ),
 
 
+                    m(Row,
+                        m(Grid,{match:true},
                     filter.type == 'stage' ?
                         m(StageView) :
                     filter.type == 'users' ?
@@ -610,6 +611,7 @@ function ContentManagement() {
                         m(ViewEditSumup) : null,
                         m(ContentView, { content: filteredcontent })
                     ]
+                    ))
                 )
             )
         }
@@ -1512,23 +1514,10 @@ function ContentManagement() {
         return {
             view: (vnode) => {
                 return vnode.attrs.content.map((content) => {
-                    return m("div.uk-width-1-4@m",
-                        m(".uk-card.uk-card-default",
-                            {style: content.position == undefined  ?" opacity:0.5":''},
-                            content.image ?
-                                m("uk-card-media-top",
-                                    m("img", { src: content.image })
-                                ) : null,
-                            m(".uk-card-body",
-                                m("h4.uk-card-title", content.title),
-                                m("p", content.description)
-                            ),
-                            m(".uk-card-footer",
-                                m("a.uk-button.uk-button-text",
-                                    { onclick: (e) =>  m.route.set('/editcontent/' + (content.cod || content.codlesson))},
-                                    "Edit")
-                            )
-                        )
+                    return m(Column,{width:'1-3'}, 
+                        m(ContentCard,{
+                            content:content
+                        })
                     )
                 })
             }
@@ -2135,7 +2124,6 @@ function EditCreateContent() {
         'path':'',
         'type': 'meditation-practice'
     }
-    let teachers = []
 
     let isNew = false;
 
@@ -2150,7 +2138,7 @@ function EditCreateContent() {
                     m(Row,
                         m(FormLabel, "Add a file to this content"),
                         m("button.uk-button.uk-button-default", { 
-                            onclick: () => { showFileExplorer({'type':  content.type == 'video' ?  'video' : 'audio' }); 
+                            onclick: () => { showFileExplorer({'type':  content.type == 'video' ?  'video' : 'audio', data:content, name:'type'}); 
                         }}, 
                             content.file ? "CHANGE FILE": "ADD FILE"
                         ),
@@ -2307,7 +2295,7 @@ function EditCreateContent() {
     function ImageSelector(){
         return{
             view:(vnode)=>{
-                let {src} = vnode.attrs
+                let {data,name, onselect, height} = vnode.attrs
 
                 return [
                     m("div",{
@@ -2316,15 +2304,16 @@ function EditCreateContent() {
                             width:100%;
                             max-width:100%;
                             max-height:100%;
-                            height:300px;
-                            background-image:url(${src ? src : './assets/buddha-sharing.webp'});
-                            background-size:cover;
+                            height:${height ? height : '300px'};
+                            background-repeat:no-repeat;
+                            background-image:url(${data && name ? data[name] : './assets/buddha-sharing.webp'});
+                            background-size:contain;
                             background-position:center;
                             border-radius:10px;
                             cursor:pointer;`,
                         
                         onclick:(e)=>{
-                            showFileExplorer({'type': 'image'})
+                            showFileExplorer({'type': 'image', data:data, name: name})
                         }},
                         m("div",{
                             style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;",
@@ -2343,28 +2332,7 @@ function EditCreateContent() {
                 return m(Grid,
                     m(Column,{width:'2-5'},
                         m(Padding,
-                            // add i mage  inside  div
-                            m("div",{style:`
-                                position:relative; 
-                                width:100%;
-                                max-width:100%;
-                                max-height:100%;
-                                height:300px;
-                                background-image:url(${content.image ? content.image : './assets/buddha-sharing.webp'});
-                                background-size:cover;
-                                background-position:center;
-                                border-radius:10px;
-                                cursor:pointer;
-                                `,
-                            },m("div",{
-                                    style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);display:flex;justify-content:center;align-items:center;",
-                                },
-                                // TODO, MEJORAR: EL EDITOR DE IMÁGENES
-                                m("p",{style:"color:white"},
-                                    "Press to change the image of the content"
-                                )
-                                )
-                            ),
+                            m(ImageSelector,{data:content, name:'image'})
                         )
                     ),
 
@@ -2419,36 +2387,66 @@ function EditCreateContent() {
         let pages = 1;
 
         function Slide() {
+
+            let showingBasicInfo = true;
+            
             return {
                 view: (vnode) => {
                     let { data, item, name } = vnode.attrs
     
                     return m(Card, { size: "small" },
                         m(CardMedia,
-    
                             data[name].image ? 
                             m("a.ui.red.label",{onclick:(e)=>data[name].image = ''},"Delete  image"):null,
-        
-                            m(ImageSelector, {src:data[name].image, id:`#slide-images${name}`}),
-    
-                            /*m("img", {
-                                src: data[name].image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg",
-                                'uk-toggle': `target:#text-images${name}`,
-                                style: "cursor:pointer; width:100%"
-                            }),
                             
-                            m(ImagePicker, { data: data[name], name: "image", id: `text-images${name}` })*/
+                            m(ImageSelector, {height:'200px',  data:data[name], name:'image', id:`#slide-images${name}`}),
                         ),
-                        m(CardBody,
-                            { style: "padding:0px" },
-                            m(TextEditor, { data: data[name], name: "text", type: "textarea", rows: "10", style: "margin:0px;font-size:0.9em;padding:5px" }),
-                            m("strong","Help text"),
-                            m(TextEditor, {data:data[name], name:'help'}),
-                            m("div", { style: "position:absolute;right:5;top:5" },
-                                m("a", { 'uk-icon': 'icon:trash', style: "color:red", onclick: (e) => data.splice(name, 1) })
+                        m(CardBody, { style: "padding:0px" },
+                            m("ul.uk-tab",
+                                m("li",{class: showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo =true},m("a","Text")),
+                                m("li",{class: !showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo = false}, m("a","Help text"))
                             ),
+
+                            showingBasicInfo ? 
+                            m(TextEditor, { data: data[name], name: "text", type: "textarea", rows: 6}):   
+                            m(TextEditor, {data:data[name], name:'help',rows:6}),
+                            
                         ),
-                        m(Button,{style:"color:red",onclick:(e)=> data.splice(name, 1)}, "DELETE")
+                        m(CardFooter,
+                            m(Button,{
+                                onclick:(e)=> {
+                                    data.splice(name, 1)
+                                    pages = Math.ceil(content.text.length / 3) || 1
+                                    page=0
+                                    console.log('p',pages,page)
+                                }, size:'small'
+                            },  m(Icon,{color:'red', icon:'delete'})),
+
+                            m(Button, {
+                                style:"margin-left:5px",
+                                width:'1-3',
+                                size:'small',
+                                onclick: (e) => {
+                                    if (name > 0) {
+                                        let aux = data[name - 1]
+                                        data[name - 1] = data[name]
+                                        data[name] = aux
+                                    }
+                                }
+                            }, m(Icon,{icon:'chevron_left'})),
+
+                            m(Button, {
+                                size:'small',
+                                width:'1-3',
+                                onclick: (e) => {
+                                    if (name < data.length - 1) {
+                                        let aux = data[name + 1]
+                                        data[name + 1] = data[name]
+                                        data[name] = aux
+                                    }
+                                }
+                            }, m(Icon,{icon:'chevron_right'}))
+                        )
                     )
                 }
             }
@@ -2469,80 +2467,57 @@ function EditCreateContent() {
                 }
 
                 if(content.text && content.text.length){
-                    pages = Math.ceil(content.text.length / 3)
-
-                    console.log('pages',pages,content.text)
+                    pages = Math.ceil(content.text.length / 4)
                 }
             },
             view:(vnode)=>{
                 return [
-                    // CUANDO SEA TIPO ARTÍCULO, NO SERÁ UN SLIDE, SINO QUE SERÁ UN TEXTAREA CON HTML
-                    m(Row, 
-                        m("div",{style:"height:15px"}),
-                        m(FormLabel, {style:"margin-top:15px"},
-                            content.type == 'lesson' ?
-                            "Add slides to the lesson":
-                            `Add Text before the ${content.type == 'recording' ? 'recording': content.type =='meditation-practice' ? 'meditation':'video'}. 
-                            You can also add images inside the text`
-                        ),
-                        
-                        m(Button,{
-                            type:'default',
-                            onclick:(e)=>{
-                                if(!content.text){
-                                    content.text = []
-                                }
+                    m(Grid, [
+                        m(Row,
+                        m("div",{style:"display:flex;flex-direction:row; align-items:center; width:100%;"},
+                            m(Button,{
+                                style:"width:150px;margin-right:10px;",
+                                type:'default',
+                                onclick:(e)=>{
+                                    if(!content.text){
+                                        content.text = []
+                                    }
+                                    
+                                    content.text.push({ 'text': 'Edit this text', 'image': "" })         
                                 
-                                content.text.push({ 'text': 'Edit this text', 'image': "" })                                
-                            }
-                        }, "Add slide"),
-                    ),
-
-                    m("div",{style:"height:20px"}),
-                    m(Grid, content.text ? [
-
-                        pages > 1  ? m(Row,m(Grid, 
-                            m(Column,{width:'1-3'},
-                            m(Icon,{
-                                icon:'chevron_left',
-                                style:"cursor:pointer" + (page == 0 ? ';color:grey':''),
-                                onclick:(e)=>{
-                                    if(page > 0){
-                                        page -= 3
-                                    }
+                                    pages = Math.ceil(content.text.length / 3)
                                 }
-                            }),
+                            }, "Add slide"),   
+                            m(FormLabel, {style:"margin-top:15px"},
+                                content.type == 'lesson' ?
+                                "Add slides to the lesson":
+                                `Add Text before the ${content.type == 'recording' ? 'recording': content.type =='meditation-practice' ? 'meditation':'video'}. 
+                                You can also add images inside the text`
                             ),
-                            m(Column,{width:'1-3'},
-                                Array.from(Array(pages).keys()).map((k,i)=>{
-                                return m("div",{
-                                    style:`width:15px;height:15px;margin-right:10px;max-width:15px;display:block;max-height:15px;border-radius:50%; background-color:${i == page/3 ? 'black':'white'};margin:5px;cursor:pointer; border:1px solid black;`,
-                                    onclick:(e)=>{
-                                        page = i * 3
+                        )),
+                            
+                        content.text ? [
+                            // CAMBIAR ESTO POR NAVIGATION
+                            pages > 1  ? m(Row, m("ul",{class:"uk-dotnav"},
+                            Array.from(Array(pages).keys()).map((k,i)=>{
+                                return m("li",
+                                    {
+                                        class: i == page ? 'uk-active':'',
+                                        onclick:(e)=>{
+                                            page = i 
+                                        }
                                     },
-                                })}
-                            )),
+                                    m("a",{})
+                                )})
+                            )):m(Row),
 
-
-                            m(Column,{width:'1-3'},m(Icon,{
-                                icon:'chevron_right',
-                                style:"cursor:pointer" + (page == (pages-1)*3 ? ';color:grey':''),
-                                onclick:(e)=>{
-                                    if(page < (pages-1)*3){
-                                        page += 3
-                                    }
-                                }
-                            }))
-                        )) : null,
-
-                        content.text.slice(page, page+3).map((key,i) => {
-                            return m(Column, { width: '1-3' },
-                                m(Slide, { data: content.text, name: i })
-                            )
-                        })
-                    ] : null),
-
-                    m("div",{style:"height:200px"})
+                            content.text.slice(page*4, (page*4)+4).map((key,i) => {
+                                return m(Column, { width: '1-4' },
+                                    m(Slide, { data: content.text, name: i })
+                                )
+                            })
+                        ] : null  
+                ])
                 ]
             }
         }
@@ -2567,23 +2542,23 @@ function EditCreateContent() {
         view: (vnode) => {
             return content.title || isNew ? [
                 m(InfoText,{
-                    title: isNew ? 'Create content': 'Edit content',
-                    subtitle:'Add and edit content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording."),',
-                    video:'how-to-add-content'
+                    //title: isNew ? 'Create content': 'Edit content',
+                    subtitle:'Add and edit content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording.',
+                    //video:'how-to-add-content'
                 }),
+
                 m(Container, {size:'large'},
                     m(Padding,{onlyTop:true},
-                        m(Grid,{center:true,},
+                        m(Grid,{},
                             m(Column,{width:'1-6'},
-                                
                                 m("ul.uk-tab-left",{'uk-tab':true, style:"min-height:50vh;"},
-                                    // link that goes to basic info and changes the showing parameter
+                                   // link that goes to basic info and changes the showing parameter
                                    m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
 
                                     // link that goes to content and changes the showing parameter
                                     m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
 
-                                    // showing  ==
+                                    content.type == 'lesson' ? null  :
                                     m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
                                 )
                             ),
@@ -2598,6 +2573,7 @@ function EditCreateContent() {
                         ),
                     )
                 ),
+
                 m(Section,{style:"position:fixed;bottom:0px;left:0px;right:0px;padding:2em;display:flex;justify-content:end; align-items:end;", type:'secondary'},
                     m(Button,{
                         type:'secondary',
@@ -2611,8 +2587,6 @@ function EditCreateContent() {
                         }
                     }, "Cancel"),
 
-
-
                     m(Button, {
                         style:"margin-right:20px;color:white;background-color:#1e87f0;margin-left:20px;min-width:200px;",
                     
@@ -2620,12 +2594,12 @@ function EditCreateContent() {
                         onclick: (e) => {
 
                             if(!content.title){
-                                errorAlert({'title':'Title is required'})
+                                showAlert({title:'Title is required'})
                                 return
                             }
 
                             if(!content.description){
-                                errorAlert('Description is required')
+                                showAlert({title:'Description is required'})
                                 return
                             }
 
@@ -2665,11 +2639,10 @@ function EditCreateContent() {
                     },
                     isNew ? "Create" : 'Save'),
                 
-   
-                        
-                
                 )
             ]  : null
+
+            /*
             return content.title ?
                 m(Padding,   
                 m("article.uk-article",
@@ -2816,7 +2789,7 @@ function EditCreateContent() {
                     )
                 )
                  ) :
-                null
+                null*/
         }
     }
 }
@@ -3794,23 +3767,6 @@ function TeacherManagement(){
     }
 }
 
-function InfoText(){
-    return{
-        view:(vnode)=>{
-            let {video, title,subtitle} = vnode.attrs
-
-            return m(Section,{style:"padding:0px"},
-                m(Container,{size:'large'},
-                    m("div",{style:"padding:30px 0px;"},
-                        m(Header2, title),
-                        m(SubHeader,  subtitle),
-                        m(Button, {type:'secondary'}, "EXPLANATORY VIDEO")
-                    )
-                )
-            )
-        }
-    }
-}
 
 function MyContent(){
     let content = []
@@ -3903,7 +3859,71 @@ function FileExplorerPage(){
     }
 }
 
+function SettingsPage(){
+    let settings = {}
 
+    let text= `<p>I studied computer science for 5 years, I had my life 'solved' while working at my family business. And got hooked in the loop of adult life with no ambitions, no expectation, no goals. I was just going through what was I thought was life. </p>
+    <br>
+    
+    
+    <p>Going through a dark period, I found meditation as a way to help me sleep better. After sleeping soundly, I got hooked up and started reading more about meditation.\n\nI found TMI and it helped me progress so much in my meditation practice. I started to see the world in a different way. </p> <br> 
+    
+    
+    <p>I am not a guru, I am not a teacher, I am not a monk. I am just a regular guy who found a way to live a better life. I hope this app can help you too. </p>
+    
+    <p> TOADD IMAGE </p>
+    `
 
-export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, InfoText, FileExplorerPage }
+    
+    return {
+        oninit:(vnode)=>{
+            getSettings().then((res)=>{
+                settings = res
+                m.redraw()
+            })
+        },
+        view:(vnode)=>{
+            return [
+                m(InfoText,{
+                    title:'Settings',
+                    description:'Edit the text settings for the app'
+                }),
+
+                m(Container,{size:'large'},
+                    m(Grid,
+                        m(Column,{width:'1-2'},
+                            m(FormLabel, 'About me'),
+                            m(TextEditor,{
+                                data:settings,
+                                name:'aboutMe'
+                            })
+                        ),
+                        m(Column,{width:'1-2'}, 
+                            m(FormLabel, "About the app"),
+                            m(TextEditor,{
+                                data:settings,
+                                name:'aboutApp'
+                            })
+                        ),
+                        m(Column,{width:'1-2'},
+                        
+                        
+                            m(Button,{
+                                style:"width:100%",
+                                type:'primary',
+                                onclick:(e)=>{
+                                    updateSettings(settings).then((res)=>{
+                                        console.log(res)
+                                    })
+                                }
+                            }, "Save")
+                        )
+                    )
+                )
+            ]
+        }
+    }
+}   
+
+export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, FileExplorerPage }
 

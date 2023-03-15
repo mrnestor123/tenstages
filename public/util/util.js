@@ -1,4 +1,4 @@
-import { uploadFile } from '../server.js'
+import { uploadFile } from '../api/server.js'
 
 
 //FUNCIONES REUTILIZABLES
@@ -101,13 +101,22 @@ const dia = (f) => new Date(f).toLocaleDateString()
 
 
 function isAudio(path) {
-    return path.toLowerCase().match('.m4a|.mp3')
+    return path.toLowerCase().match('.mp3|.wav|.ogg|.m4a|.aac|.wma|.flac|.alac')
 }
 
 function isVideo(path) {
-    return path.toLowerCase().match('.mp4|.mov')
+
+    return path.toLowerCase().match('.mp4|.mov|.avi|.mkv|.webm')
+}
+
+function isImage(path){
+    return path.toLowerCase().match('.jpg|.jpeg|.png|.gif|.svg')
+}
+
+// for pdf  docs, excels and other files    
+function isFile(path){
+    return path.toLowerCase().match('.pdf|.doc|.docx|.xls|.xlsx|.ppt|.pptx')
 }
 
 
-
-export { FileUploader, create_UUID, api_get,omit, hora, dia, isAudio, isVideo}
+export { FileUploader, create_UUID, api_get,omit, hora, dia, isAudio, isVideo, isImage,  isFile}
