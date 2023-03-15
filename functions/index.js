@@ -6,6 +6,7 @@ import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
 import stages from './routes/stagesRoutes.js';
+import emails from './routes/emailRoutes.js';
 import { addAction, getActions, getUser, getUsers, updatePhoto } from './controllers/usersController.js';
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
@@ -15,8 +16,13 @@ import { sendMessage } from './controllers/messagesController.js';
 const app = express();
 
 //de momento esto no se para que
-app.use(cors());
-app.options('/', cors()) // enable pre-flight request for DELETE request
+
+app.use(cors( {
+        "origin": "*",
+        "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+    }
+  ));
+app.options('*', cors()) // enable pre-flight request for DELETE request
 
 app.use(express.urlencoded({extended: true})); 
 app.use(express.json());
@@ -24,21 +30,12 @@ app.use(express.json());
 app.use('/users', users);
 app.use('/stages', stages)
 app.use('/messages', messages);
-app.use('/requests',requests);
+app.use('/requests', requests);
+app.use('/email', emails);
 
-import admin from 'firebase-admin';
-//¡import servicekey from './firebase-key.json' assert  {type: 'json'}
-
-admin.initializeApp({
-    credential: admin.credential.cert('./firebase-key.json'),
-    databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',
-    storageBucket: 'the-mind-illuminated-32dee.appspot.com'
+app.get('/', (req, res) => {
+    res.send('Conectado correctamente al servidor de tenstages');
 });
-
-export const db = admin.firestore();
-export const storage = admin.storage();
-export const FieldValue = admin.firestore.FieldValue;
-
 
 /*
 *

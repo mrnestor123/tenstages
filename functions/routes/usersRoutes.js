@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto } from '../controllers/usersController.js';
+import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto, getAuthUsers } from '../controllers/usersController.js';
 
 
 const router = express.Router({ mergeParams: true });
@@ -16,6 +16,15 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/auth', async (req, res) => {
+    try {
+        console.log("entro")
+        const users = await getAuthUsers();
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+});
 
 // EN LA VERSIÓN ANTIGUA UTILIZAMOS EL ID DEL USUARIO PARA SACAR TODOS LOS USUARIOS :(
     // CAMBIAR EN  NUEVA VENTANA

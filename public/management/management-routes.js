@@ -124,7 +124,7 @@ function Layout(){
             })
         },
         view:(vnode)=> {
-            console.log('loggeed in', user)
+            //console.log('loggeed in', user)
             return [
                 // m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
                 //     m("nav", { 'uk-navbar': '', style: "width:100%" },

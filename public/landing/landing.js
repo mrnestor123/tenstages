@@ -152,7 +152,6 @@ function Footer() {
 function LoginPage() {
     let data = {}
     let errorMsg;
-    let quill;
 
     async function log({type, email, password}){
 
@@ -197,21 +196,7 @@ function LoginPage() {
                         ])
                     ])
                 ]),
-                // m('div', {
-                //     oncreate: () => {
-                //         quill = new Quill('#editor', {theme: 'snow'});
-                //         console.log('entro')
-                //     },
-                //     onclick: (e) => {
-                //         let QuillDeltaToHtmlConverter = htmlConverter.QuillDeltaToHtmlConverter;
-                //         let delta = quill.getContents();
-                //         console.log(delta.ops)
-                //         let converter = new QuillDeltaToHtmlConverter(delta.ops, {});
-                //         console.log("converted", converter.convert())
-                //     }, 
-                //     id:'editor'}, m("p", "Edit this text")
                 
-                // )
             ]
         }
     }
