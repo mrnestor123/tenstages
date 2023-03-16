@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/mrnestor123/tenstages#readme",
   "dependencies": {
-    "firebase": "^9.6.7",
-    "quill-delta-to-html": "^0.12.1"
+    "firebase": "^9.6.7"
   }
 }

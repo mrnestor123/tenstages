@@ -807,9 +807,64 @@ async function updateSettings(settings){
 }
 
 
+async function getExploreContent(){
+    let query = await db.collection('database').where('name','==','explore').get()
+    
+    let explore = {}
 
-export { getLessons, getUserActions,deleteTechnique,getTeachersContent, addAnnouncement,addTechnique,updateTechnique, sendMail,updateCourse, getTechniques, getVersions, getCourse,updatePath,getSumups,getUserMessages,getPaths, addSumUp,getStats, addPath, addLesson,getAllContent, addContent, addVersion, postRequest, getRequests,updateRequest, getUsers,updateUser, getLesson, getContentbycod, updateContent, getUser, uploadFile, getFiles, getStage, updateStage, deleteImage,deleteContent, getContent, getStages, addStage, login, deleteUser,
+    if(query.docs && query.docs.length){
+        explore = query.docs[0].data()
+    }
 
+    return explore;
+
+}
+
+export { 
+    getLessons, 
+    getExploreContent,
+    getUserActions,
+    deleteTechnique,
+    getTeachersContent, 
+    addAnnouncement,
+    addTechnique,
+    updateTechnique, 
+    sendMail,
+    updateCourse, 
+    getTechniques, 
+    getVersions, 
+    getCourse,
+    updatePath,
+    getSumups,
+    getUserMessages,
+    getPaths, 
+    addSumUp,
+    getStats, 
+    addPath, 
+    addLesson,
+    getAllContent, 
+    addContent, 
+    addVersion, 
+    postRequest, 
+    getRequests,
+    updateRequest, 
+    getUsers,
+    updateUser, 
+    getLesson, 
+    getContentbycod, 
+    updateContent, 
+    getUser, 
+    uploadFile, 
+    getFiles,
+    getStage, 
+    updateStage, 
+    deleteImage,
+    deleteContent, 
+    getContent, 
+    getStages, 
+    addStage, 
+    login, 
+    deleteUser,
     getSettings,
     updateSettings
 }

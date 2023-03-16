@@ -6,6 +6,7 @@ import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
 import stages from './routes/stagesRoutes.js';
 import dbRoutes from './routes/dbRoutes.js';
+import emails from './routes/emailRoutes.js';
 import { addAction, getActions, getUser, getUsers, updatePhoto } from './controllers/usersController.js';
 import { getCourses } from './controllers/dbController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
@@ -17,8 +18,13 @@ import { normalize_server } from './normalize_server.js';
 const app = express();
 
 //de momento esto no se para que
-app.use(cors());
-app.options('/', cors()) // enable pre-flight request for DELETE request
+
+app.use(cors( {
+        "origin": "*",
+        "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+    }
+  ));
+app.options('*', cors()) // enable pre-flight request for DELETE request
 
 app.use(express.urlencoded({extended: true})); 
 app.use(express.json());
@@ -28,7 +34,11 @@ app.use('/stages', stages)
 app.use('/messages', messages);
 app.use('/requests', requests);
 app.use('/database', dbRoutes);
+app.use('/email', emails);
 
+app.get('/', (req, res) => {
+    res.send('Conectado correctamente al servidor de tenstages');
+});
 
 /*
 *

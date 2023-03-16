@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto,setUserName, registerUser, finishMeditation, saveTime, addMeditationReport } from '../controllers/usersController.js';
+import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto,setUserName,getAuthUsers, registerUser, finishMeditation, saveTime, addMeditationReport } from '../controllers/usersController.js';
 
 
 const router = express.Router({ mergeParams: true });
@@ -10,6 +10,16 @@ router.get('/', async (req, res) => {
         const role = req.query.role || null;
         const users = await getUsers(role);
 
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+});
+
+router.get('/auth', async (req, res) => {
+    try {
+        console.log("entro")
+        const users = await getAuthUsers();
         res.status(200).json(users);
     } catch (err) {
         res.status(404).json({ message: err.message });

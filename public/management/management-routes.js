@@ -1,5 +1,5 @@
 import { Button, Container } from "../components/components.js"
-import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage} from "./management.js"
+import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage, ExplorePage} from "./management.js"
 import { isLoggedIn, user } from "../models/models.js"
 import { AdminManagement } from "./admin-management.js"
 
@@ -73,6 +73,12 @@ m.route(document.body, "/", {
     "/admin": {
         render: function (vnode) {
             return m(Layout, vnode.attrs, AdminManagement)
+        }
+    },
+
+    '/explore':{
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, ExplorePage)
         }
     }
 })

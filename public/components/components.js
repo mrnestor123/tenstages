@@ -221,12 +221,14 @@ function TextField() {
  * @param { String } type  default | primary | secondary
  * @param { String } size  small | large
  * @param { String } width  1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
+ * @param { Boolean } disabled true | false
  */
 function Button() {
     let clase = '';
     return {
         oninit: (vnode) => {
-            clase = 'button.uk-button ' + (vnode.attrs.type ? 'uk-button-' + vnode.attrs.type + ' ' : '')
+            clase = 'button.uk-button ' 
+                + (vnode.attrs.type ? 'uk-button-' + vnode.attrs.type + ' ' : '')
                 + (vnode.attrs.size ? 'uk-button-' + vnode.attrs.size + ' ' : '')
                 + (vnode.attrs.width ? 'uk-width-' + vnode.attrs.width + ' ' : '')
         },

@@ -80,7 +80,6 @@ export const getDB = async () =>{
                 db.stages = values[2];
                 db.settings = values[3];
 
-
                 resolve(db);
             })
             

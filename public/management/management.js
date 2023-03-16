@@ -1,7 +1,7 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
-import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
+import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getExploreContent, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
 import { showAlert } from '../components/dialogs.js'
 import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
@@ -2527,7 +2527,7 @@ function EditCreateContent() {
 
                             content.text.slice(page*4, (page*4)+4).map((key,i) => {
                                 return m(Column, { width: '1-4' },
-                                    m(Slide, { data: content.text, name: i })
+                                    m(Slide, { data: content.text, name: i+(page*4)})
                                 )
                             })
                         ] : null  
@@ -2659,9 +2659,12 @@ function EditCreateContent() {
                                 json.createdBy = user.codUser
                                 
                                 addContent(json);
-                                document.getElementById('closemodalmed').click();
+                                //document.getElementById('closemodalmed').click();
                                 
-                                m.route.set(`/editcontent/${json.cod}`)
+                                //m.route.set(`/editcontent/${json.cod}`)
+
+
+                                isNew = false;
 
                                 json = {
                                     'cod': '',
@@ -2672,6 +2675,7 @@ function EditCreateContent() {
                                     'stagenumber': 1,
                                     'type': 'meditation-practice'
                                 }
+
                             }else{
 
                                 updateContent(content); 
@@ -3964,7 +3968,42 @@ function SettingsPage(){
             ]
         }
     }
-}   
+}  
 
-export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView, ProfileView, TeacherManagement, MyContent, MyMessages, FileExplorerPage }
+
+function ExplorePage(){
+    let courses = []
+
+
+
+    return {
+        oninit:(vnode)=>{
+            getExploreContent().then((res)=>{
+
+
+            })
+        },
+        view:(vnode)=>{
+            return [
+                m(InfoText,{
+                    title: 'Explore page',
+                    subtitle: 'Here you can see all the additional content that is available inside the app. You can also search for specific content.'
+                }),
+
+                // cuando se ocurra una solución sencilla le daré un vistazo
+                m(Container,{size:'large'},
+                    
+
+
+                
+                
+                
+                )
+            ]
+        }
+    }
+
+}
+
+export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView,ExplorePage, ProfileView, TeacherManagement, MyContent, MyMessages, FileExplorerPage }
 
