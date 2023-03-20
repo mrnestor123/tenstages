@@ -73,12 +73,18 @@ export const getDB = async () =>{
             promises.push(getStages());
 
             promises.push(getSettings());
+
+            promises.push(getSections());
             
+
+            promises.push()
+
             Promise.all((promises)).then((values) => {
                 db.versions = values[0];
                 db.courses = values[1];
                 db.stages = values[2];
                 db.settings = values[3];
+                db.sections = values[4];
 
                 resolve(db);
             })
@@ -89,6 +95,19 @@ export const getDB = async () =>{
     });
 }
 
+
+async function getSections(){
+    let query = await db.collection('sections').get();
+    let sections = [];
+
+    if(query  && query.docs && query.docs.length){
+        for(let doc of query.docs){
+            sections.push(doc.data());
+        }
+    }
+
+    return sections;
+}
 
 
 

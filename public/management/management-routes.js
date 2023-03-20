@@ -121,7 +121,6 @@ function Layout(){
         'route': '/settings'
     }]
 
-
     let managementRoutes = [
         {
             'name':'Content management',
@@ -137,7 +136,15 @@ function Layout(){
         }
     ]
 
+
+    let teacherRoutes = [
+        {
+
+        }
+    ]
+
     let checkIfLogged = false;
+
 
     return {
         oninit:(vnode)=>{

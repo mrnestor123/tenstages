@@ -807,27 +807,65 @@ async function updateSettings(settings){
 }
 
 
-async function getExploreContent(){
-    let query = await db.collection('database').where('name','==','explore').get()
+async function getSections(){
+    let query = await db.collection('sections').get()
     
-    let explore = {}
+    let sections = []
 
     if(query.docs && query.docs.length){
-        explore = query.docs[0].data()
+        for(var doc of query.docs){
+            sections.push(doc.data())
+        }
     }
 
-    return explore;
+    return sections;
+}
+
+
+async function addSection(section){
+
+
+    let query = await db.collection('sections').add(section)
+
+    alert('Added section !!')
+
+    return true
+
+}
+
+
+async function updateSection(section){
+
+
+    // find section then update it
+    let query = await db.collection('sections').where('cod','==',section.cod).get()
+    
+
+
+    if(query.docs && query.docs.length){
+        let docID = query.docs[0].id
+
+        console.log('DOC',docID, 'SECTION',section)
+
+        db.collection('sections').doc(docID).update(section).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
 
 }
 
 export { 
     getLessons, 
-    getExploreContent,
+    getSections,
     getUserActions,
     deleteTechnique,
     getTeachersContent, 
     addAnnouncement,
     addTechnique,
+    updateSection,
     updateTechnique, 
     sendMail,
     updateCourse, 
@@ -866,5 +904,6 @@ export {
     login, 
     deleteUser,
     getSettings,
-    updateSettings
+    updateSettings,
+    addSection
 }

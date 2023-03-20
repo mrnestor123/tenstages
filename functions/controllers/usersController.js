@@ -1,10 +1,6 @@
 import { getStage } from './stagesController.js';
-<<<<<<< HEAD
 import { db, FieldValue } from '../app.js';
-=======
-import { db } from '../app.js';
 import admin from 'firebase-admin';
->>>>>>> 46da4cc25e3915de4ca91bac6a5a569d37f7bfc1
 
 let mailbox = {};
 let suscriptions = {};
@@ -37,19 +33,15 @@ export const getUsers = async (role) => {
     }
 };
 
-<<<<<<< HEAD
 
 export const setUserName  = async (userId, username) => {
 
     try {
 
         let query = await db.collection('users').where('nombre', '==', username).get();
-
         
         if(!query.docs || !query.docs.length){
-
             let userquery = await db.collection('users').where('coduser','==', userId).get();
-            console.log('QUELOQUE');
 
             if(userquery.docs.length && false){
                 await db.collection('users').doc(userquery.docs[0].id).update({
@@ -66,7 +58,7 @@ export const setUserName  = async (userId, username) => {
         throw new Error(err)
     }   
 }
-=======
+
 export const getAuthUsers = async () => {
     const auth = admin.auth();
     try {
@@ -76,7 +68,6 @@ export const getAuthUsers = async () => {
         throw new Error(err);
     }
 };
->>>>>>> 46da4cc25e3915de4ca91bac6a5a569d37f7bfc1
 
 /**
  * Get user by id

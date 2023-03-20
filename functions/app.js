@@ -1,8 +1,8 @@
 import admin from 'firebase-admin';
-import serviceKey from './secrets/firebase-key.json' assert  {type: 'json'}
+//import serviceKey from './secrets/firebase-key.json' assert  {type: 'json'}
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceKey),
+    credential: admin.credential.cert('./secrets/firebase-key.json'),
     databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',
     storageBucket: 'the-mind-illuminated-32dee.appspot.com'
 });

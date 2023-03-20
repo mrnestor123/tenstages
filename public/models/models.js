@@ -11,6 +11,7 @@ const types = [
     {label:'Video',value:'video'},
     {label:'Lesson Slides',value:'lesson'},
     {label:'Article',value:'article'},
+    {label:'List of content', value:'list'}
 ]
 
 class UserEntity {

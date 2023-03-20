@@ -1,7 +1,7 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
-import { addContent, addPath, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getExploreContent, getPaths, getRequests, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
+import { addContent, addPath, addSection, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSections, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSection, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
 import { showAlert } from '../components/dialogs.js'
 import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
@@ -2114,7 +2114,7 @@ function ContentManagement() {
     }
 }
 
-// TAMBIÉN PODEMOS CREAR !!!
+
 function EditCreateContent() {
     let content = {}
     let editar = false;
@@ -2367,14 +2367,16 @@ function EditCreateContent() {
                                     m(Select,{data:content,name:'type'},types)
                                 ),
                                 
+
                                 m(Column, { width: '1-3' }, 
                                     m(FormLabel, "Stage"),
-                                    m(Select,
-                                        { data: content, name: "stagenumber" },
+                                    m(Select,{ data: content, name: "stagenumber" },
                                         stagenumbers
                                     )
                                 ),
 
+
+                                //  AÑADIR SECCIÓN AL CONTENIDO !!
                                 content.type.match('meditation-practice|recording|video') ?
                                 m(Column, { width: '1-4' },
                                     m(FormLabel, "Duration (MINUTES)"),
@@ -3972,15 +3974,206 @@ function SettingsPage(){
 
 
 function ExplorePage(){
-    let courses = []
+    let sections = []
+
+    // DE MOMENTO SACAMOS TODO EL CONTENIDO QUE NO TENGA STAGENUMBER !!!
+    let content = []
+
+    let editing = false;
+
+    function AddSection(){
+
+        let addingSection = false;
+        let data = {}
+
+        return {
+            view:(vnode)=>{
+
+                return [
+                    m(Button,{
+                        style:"margin-top:20px",
+                        type:'primary',
+                        onclick:(e)=>{
+                                addingSection = !addingSection;
+                            }
+
+                    }, "Add section"),
+                    addingSection 
+                        ? m(Section,{type:'muted'},
+                            m(Padding,
+                            m(Grid,
+                                m(Row, 
+                                    m(FormLabel, 'Section title'),
+                                    m(TextField, {
+                                        data: data,
+                                        name:'title'
+                                    })    
+                                ),
+                                m(Row,
+                                    m(FormLabel, 'Section description'),
+                                    
+                                    m(TextField,{
+                                        data:data,
+                                        name:'description'
+                                    }),
+
+                                    
+                                ),
+                                m(Row,
+                                m(Button,{
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        if(data.title && data.description){
+                                            addingSection = false;
+                                            data.cod = create_UUID()
+
+                                            addSection(data)
+                                        }
+                                    }
+                                }, "Add section")
+                                )
+                            ))
+                        )
+                        : null,
+                ]
+            }
+        }
+    }
 
 
+
+    function SectionCard(){
+        let isEditing = false;
+
+        let toAdd = {}
+        let selected= {}
+
+        return {
+            view:(vnode)=>{
+                let {section} = vnode.attrs
+                console.log('section',section)
+
+                return m(Card,
+                    m(CardHeader, 
+                        m(EditableField,{
+                            data:section,
+                            name:'title',
+                            isEditing:isEditing
+                        },m("h3", section.title)
+                        )    
+                    ),
+                    m(CardBody,
+                        m(EditableField,{
+                            data:section,
+                            name:'description',
+                            isEditing:isEditing
+                        },m("h3", section.description)
+                        ),
+
+                        section.content ?
+                        section.content.map((c,i)=>{
+                            return m("div",{style:"font-weight:bold;margin-right:10px;"},
+                                c.title,
+                                // delete button
+                                isEditing ?
+                                m(Icon,{
+                                    icon:'delete',
+                                    style:"cursor:pointer;",
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        section.content.splice(i,1)
+                                    }
+                                }, "Delete")
+                                : null
+                            )
+                        }) : null,
+                        
+                        m("div",{style:"height:10px"}),
+
+                        isEditing 
+                        ?   m(Grid,
+
+                            m(Column,{width:'1-2'},
+                            m(Select,{
+                                data:selected,
+                                name:'index',
+                                isEditing:isEditing,
+                                onchange:(e)=>{
+
+                                    console.log(e.target.value)
+                                    toAdd = content[e.target.value]
+                                }
+                            },
+                                content.map((item,i)=>{
+                                    return {
+                                        'value':i,
+                                        'label':item.title       
+                                    }
+                                })
+                            )),
+
+                            m(Column,{width:'1-2'},
+                                m(Button,{
+                                    type:'secondary',
+                                    onclick:(e)=>{
+                                        if(toAdd){
+                                            if(!section.content){
+                                                section.content = []
+                                            }
+
+                                            section.content.push({
+                                                'cod': toAdd.cod,
+                                                'title': toAdd.title,
+                                                'photo': toAdd.photo || '',
+                                                'type': toAdd.type
+                                            })
+                                        }
+                                    }
+                                }, "Add content")
+                            )
+                        )
+                        : null
+                    ),
+                    m(CardFooter,
+                        m(Button,{
+                            type:'primary',
+                            onclick:(e)=>{
+                                if(isEditing){
+                                    updateSection(section)
+                                }
+                                isEditing = !isEditing
+                            }
+                        }, isEditing ? "Save" : "Edit"),
+
+
+                        isEditing?  
+                        m(Button,{
+
+                            type:'default',
+                            onclick:(e)=>{
+                                location.reload()
+                            }
+                        }, "Cancel"): null,
+                    ) 
+                )
+
+            }
+        }
+    }
 
     return {
         oninit:(vnode)=>{
-            getExploreContent().then((res)=>{
+            getSections().then((res)=>{
+                console.log('res',res)
+                sections = res
+                m.redraw()
+            })
 
+            getAllContent().then((res)=>{
 
+                content = res.filter((item)=>!item.stagenumber)
+
+                console.log('content',content)
             })
         },
         view:(vnode)=>{
@@ -3993,10 +4186,19 @@ function ExplorePage(){
                 // cuando se ocurra una solución sencilla le daré un vistazo
                 m(Container,{size:'large'},
                     
+                    m(AddSection),
 
+                    m("div",{style:"height:20px"}),
 
-                
-                
+                    m(Header3, 'Sections'),
+
+                    m(Grid,{match:true},
+                        sections.map((s)=>{
+                            return m(Column,{width:'1-2'},
+                                m(SectionCard,{section:s})
+                            )
+                        })
+                    )
                 
                 )
             ]
