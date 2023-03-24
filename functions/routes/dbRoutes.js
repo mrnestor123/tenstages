@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 
 
 // EN  DATABASE  AÑADIMOS  LOS CURSOS  ???
-
+// LLAMARLO CONTENT-MANAGER ??
 // CREAR LECCIÓN CREAR  MEDITACIÓN,  CREAR  CONTENIDO !!!
 
 

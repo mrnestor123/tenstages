@@ -349,7 +349,7 @@ function ContentCard(){
 
             return  [
 
-                m(".uk-card.uk-card-default",{style: content.position == undefined  ? " opacity:0.5":''},
+                m(".uk-card.uk-card-default",{style: content.position == undefined && !content.stagenumber ? " opacity:0.5":''},
                 
                     m(".uk-card-body",
                         m(Grid,{center:true, verticalalign:true, columngap:'small'},

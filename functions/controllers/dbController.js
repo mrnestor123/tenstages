@@ -75,7 +75,9 @@ export const getDB = async () =>{
             promises.push(getSettings());
 
             promises.push(getSections());
-            
+
+            // las tecnicas deberían de estar dentro de la stage
+            promises.push(getTechniques());
 
             promises.push()
 
@@ -85,6 +87,7 @@ export const getDB = async () =>{
                 db.stages = values[2];
                 db.settings = values[3];
                 db.sections = values[4];
+                db.techniques = values[5];
 
                 resolve(db);
             })
@@ -97,20 +100,44 @@ export const getDB = async () =>{
 
 
 async function getSections(){
-    let query = await db.collection('sections').get();
-    let sections = [];
+    return new Promise(async (resolve, reject) => {
+        let query = await db.collection('sections').get();
+        let sections = [];
 
-    if(query  && query.docs && query.docs.length){
-        for(let doc of query.docs){
-            sections.push(doc.data());
+        if(query  && query.docs && query.docs.length){
+            
+            let promises =  []
+            for(let doc of query.docs){
+                let section = doc.data();
+                if(section.content){
+                    promises.push(db.collection('content').where('cod','in',section.content).get());
+                }
+                sections.push(section);
+            }
+
+
+            Promise.all(promises).then((queries) => {
+                let i = 0
+                for(let query of queries){
+                    let section = sections[i++];
+                    section.content = [];
+                    for(let doc of query.docs){
+                        let content = doc.data();
+                        console.log('content',content)
+                        section.content.push(doc.data());
+                    }
+                    i++;
+                }
+
+                console.log('sections',sections)
+
+                resolve(sections)
+            })
+
         }
-    }
 
-    return sections;
+    })
 }
-
-
-
 
 
 async function getSettings(){
@@ -118,7 +145,22 @@ async function getSettings(){
 
     if(query  && query.docs && query.docs.length){
         return query.docs[0].data();
-    }else{
+    } else {
         return {};
     }
+}
+
+
+async function getTechniques(){
+    let query = await db.collection('techniques').get()
+
+    let techniques = [];
+
+    if(query  && query.docs && query.docs.length){
+        for(let doc of query.docs){
+            techniques.push(doc.data());
+        }
+    }
+
+    return techniques;
 }

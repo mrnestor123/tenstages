@@ -82,7 +82,7 @@ function isLoggedIn(){
 
     if(!cod){
         localStorage.setItem('meditationcod','gfZM9BlAfKdVvzTmTPW1RJcJV423')
-        cod  = 'gfZM9BlAfKdVvzTmTPW1RJcJV423'
+        cod  = 'gfZM9BlAfKdVvzTmTPW1RJcs'
     }
 
     return new Promise((resolve, reject)=>{

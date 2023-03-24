@@ -65,8 +65,7 @@ function api_get(url, method = 'GET', data = {}, options) {
 
     // Hay que cambiarl en mithriljs la cadena content0-type1 por content-type. Error de mithril
     if (options && options.contentType) config.headers['content-type'] = options.contentType
-    return m
-        .request(
+    return m.request(
             config
         )
         .then((res) => {

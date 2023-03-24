@@ -18,8 +18,8 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 
-const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
-// const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/app`
+//const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+ const API = `http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default`
 //const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
 
 var db = firebase.firestore()
@@ -237,8 +237,9 @@ async function login({ type, email, password }) {
 ///DEVUELVE EL USUARIO DE LA APP
 async function getUser(cod){
     //OJOOO
-  let user = await api_get(`${API}/connect/${cod}`)
-
+    
+    let user = await api_get(`${API}/connect/${cod}`)
+    
 
   return user;
 }
@@ -808,14 +809,15 @@ async function updateSettings(settings){
 
 
 async function getSections(){
-    let query = await db.collection('sections').get()
-    
     let sections = []
+    let url = `${API}/sections`
 
-    if(query.docs && query.docs.length){
-        for(var doc of query.docs){
-            sections.push(doc.data())
-        }
+    let res  = await  api_get(url)
+
+
+    console.log('res',res)
+    if(res.body){
+        sections = res.body
     }
 
     return sections;
@@ -836,18 +838,19 @@ async function addSection(section){
 
 async function updateSection(section){
 
+    let s  = JSON.parse(JSON.stringify(section))
+
+    s.content  = section.content.map((c)=> c.cod)
 
     // find section then update it
-    let query = await db.collection('sections').where('cod','==',section.cod).get()
+    let query = await db.collection('sections').where('cod','==',s.cod).get()
     
 
 
     if(query.docs && query.docs.length){
         let docID = query.docs[0].id
 
-        console.log('DOC',docID, 'SECTION',section)
-
-        db.collection('sections').doc(docID).update(section).then(function () {
+        db.collection('sections').doc(docID).update(s).then(function () {
             alert("Document successfully updated!");
         }).catch(function (error) {
             // The document probably doesn't exist.

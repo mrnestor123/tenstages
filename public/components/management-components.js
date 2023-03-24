@@ -453,6 +453,41 @@ function InfoText(){
     }
 }
 
+
+function ImageSelector(){
+    return{
+        view:(vnode)=>{
+            let {data,name, onselect, height} = vnode.attrs
+
+            return [
+                m("div",{
+                    style:`
+                        position:relative; 
+                        width:100%;
+                        max-width:100%;
+                        max-height:100%;
+                        height:${height ? height : '300px'};
+                        background-repeat:no-repeat;
+                        background-image:url(${data && name && data[name] ? data[name] : './assets/buddha-sharing.webp'});
+                        background-size:${data && name && data[name] ? 'contain':'cover'};
+                        background-position:center;
+                        border-radius:10px;
+                        cursor:pointer;`,
+                    
+                    onclick:(e)=>{
+                        showFileExplorer({'type': 'image', data:data, name: name})
+                    }},
+                    m("div",{
+                        style:"position:absolute;inset:0px;border-radius:10px;background:rgba(0,0,0,0.5);opacity:0.7;display:flex;justify-content:center;align-items:center;",
+                    },m("p",{style:"color:white;text-align:center;"},
+                        "Press to change the image of the content"
+                    ))
+                ),
+            ]
+        }
+    }
+}
+
 // EXPORT
 
-export { FileExplorer, showFileExplorer , InfoText};
+export { FileExplorer, showFileExplorer , InfoText, ImageSelector};

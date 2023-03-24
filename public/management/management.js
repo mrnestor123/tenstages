@@ -4,7 +4,7 @@
 import { addContent, addPath, addSection, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSections, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSection, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
 import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
 import { showAlert } from '../components/dialogs.js'
-import { FileExplorer, InfoText, showFileExplorer } from '../components/management-components.js'
+import { FileExplorer, ImageSelector, InfoText, showFileExplorer } from '../components/management-components.js'
 import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path } from '../components/tenstages-components.js'
 import { stagenumbers, types, user } from '../models/models.js'
 import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../util/helpers.js'
@@ -3242,7 +3242,7 @@ function ProfileView(){
             // ESTO NO HACE FALTA
             getUser(vnode.attrs.cod).then((usr) => {
                 user = usr
-                console.log(user)
+                console.log(user, 'user')
                 loaded = true
                 m.redraw()
             })
@@ -4054,13 +4054,16 @@ function ExplorePage(){
                 console.log('section',section)
 
                 return m(Card,
+                    m(CardMedia,
+                        m(ImageSelector,{data:section,name:'image'})
+                    ),
                     m(CardHeader, 
                         m(EditableField,{
                             data:section,
                             name:'title',
                             isEditing:isEditing
                         },m("h3", section.title)
-                        )    
+                        ),    
                     ),
                     m(CardBody,
                         m(EditableField,{
@@ -4071,22 +4074,28 @@ function ExplorePage(){
                         ),
 
                         section.content ?
-                        section.content.map((c,i)=>{
-                            return m("div",{style:"font-weight:bold;margin-right:10px;"},
-                                c.title,
-                                // delete button
-                                isEditing ?
-                                m(Icon,{
-                                    icon:'delete',
-                                    style:"cursor:pointer;",
-                                    type:'secondary',
-                                    onclick:(e)=>{
-                                        section.content.splice(i,1)
-                                    }
-                                }, "Delete")
-                                : null
-                            )
-                        }) : null,
+                        m(Grid,
+                            section.content.map((c,i)=>{
+                            return isEditing 
+                                ? m("div",{style:"font-weight:bold;margin-right:10px;"},
+                                    c.title,
+                                    // delete button
+                                    isEditing ?
+                                    m(Icon,{
+                                        icon:'delete',
+                                        style:"cursor:pointer;",
+                                        type:'secondary',
+                                        onclick:(e)=>{
+                                            section.content.splice(i,1)
+                                        }
+                                    }, "Delete")
+                                    : null
+                                )  
+                                :  m(Column,{width:'1-2'},
+                                m(ContentCard,{
+                                    content:c
+                                }))
+                        })) : null,
                         
                         m("div",{style:"height:10px"}),
 
@@ -4121,12 +4130,7 @@ function ExplorePage(){
                                                 section.content = []
                                             }
 
-                                            section.content.push({
-                                                'cod': toAdd.cod,
-                                                'title': toAdd.title,
-                                                'photo': toAdd.photo || '',
-                                                'type': toAdd.type
-                                            })
+                                            section.content.push(toAdd)
                                         }
                                     }
                                 }, "Add content")
