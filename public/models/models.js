@@ -2,6 +2,8 @@ import { getUser } from "../api/server.js"
 
 
 
+
+
 let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
 
 //PASAR A CLASE MEDITACIÓN
@@ -11,7 +13,6 @@ const types = [
     {label:'Video',value:'video'},
     {label:'Lesson Slides',value:'lesson'},
     {label:'Article',value:'article'},
-    {label:'List of content', value:'list'}
 ]
 
 class UserEntity {
@@ -69,6 +70,12 @@ class UserEntity {
             this.contentDone = json.contentDone;
             this.retreats = json.retreats;
         }
+    }
+
+
+    
+    isAdmin = function(){
+        return this.role === 'admin'
     }
 }
 

@@ -120,7 +120,6 @@ function FileExplorer() {
 
     return {
         oninit: (vnode) => {
-            
             stagenumbers.map((item)=>{
                 buckets.push({value: item, label:'Stage ' + item + ' files'})
             })
@@ -141,10 +140,8 @@ function FileExplorer() {
                 }
 
                 filter.bucket = localStorage.getItem('meditationcod')
-
-
+                
                 m.redraw()
-
            })
         },
         view: (vnode) => {
@@ -281,6 +278,16 @@ function FileExplorer() {
 
                                 filteredFiles.slice(page*12,(page*12)+12).map((src)=>{
                                     return m(Column,{width:'1-4', style:"text-align:center"},
+                                    m("div",{
+                                        onclick:(e)=>{
+
+                                            console.log('ONCLICK',options)
+                                            if(options.data && options.name){
+                                                options.data[options.name] = src
+                                                options.close()
+                                            }
+                                        }
+                                    },
                                     src.match('jpeg|jpg|gif|png|PNG|JPG') ?
                                     m("div",{
                                         style:`background-image:url("${src}");position:relative; 
@@ -288,12 +295,7 @@ function FileExplorer() {
                                             height:150px; border-radius:10px; margin:1em; cursor:pointer;
                                         `,
                                         onclick:()=>{
-                                            if(options.data && options.name){
-                                                options.data[options.name] = src
-                                                options.close()
-                                            }else{
-                                                window.open(src, '_blank')
-                                            }
+                                            // window.open(src, '_blank')
                                         }
                                     }, 
                                         m(Label, {
@@ -313,10 +315,16 @@ function FileExplorer() {
                                             class:'uk-label-danger'},  
                                         "Delete")
                                     ):
-                                    isVideo(src)  ?
+                                    isVideo(src)  
+                                    ? [
                                         m("video",{
-                                            src:src,controls:true
-                                        }) : 
+                                            src:src,
+                                            controls:false
+                                        }),
+                                        
+                                        m("strong",  {style:"text-align:center;margin-top:5px"}, getFileName(src))
+                                        
+                                    ]: 
                                     [
                                         m("audio",{
                                             style:'width:90%',
@@ -326,6 +334,7 @@ function FileExplorer() {
                                         
                                         m("strong",  {style:"text-align:center;margin-top:5px"}, getFileName(src))
                                     ])
+                                    )
                                 })
                             ):null
                         ),

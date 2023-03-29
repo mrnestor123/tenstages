@@ -72,11 +72,12 @@ function Flex() {
     let clase = '';
     return {
         oninit: (vnode) => {
-            let { inline, hAlign, vAlign, direction, wrap } = vnode.attrs
+            let { inline, hAlign, vAlign, direction, wrap, width } = vnode.attrs
             clase = (inline ? 'uk-flex-inline' : 'uk-flex') +
                 (hAlign ? ' uk-flex-' + hAlign : '') +
                 (vAlign ? ' uk-flex-' + vAlign : '') +
                 (direction ? ' uk-flex-' + direction : '') +
+                (width ? ' uk-width-' + width : '')  +
                 (wrap ? ' uk-flex-' + wrap : '')
         },
         view: (vnode) => {
@@ -259,13 +260,15 @@ function Select() {
             return m("select.uk-select",
                 {
                     onchange: (e) => {
-                        data[name] = e.target.value;
-                        if (data[name].startsWith('[object')) {
-                            data[name] = vnode.children[e.target.selectedIndex].value
+                        if(data && name != undefined){
+                            data[name] = e.target.value;
+                            if (data[name].startsWith('[object')) {
+                                data[name] = vnode.children[e.target.selectedIndex].value
+                            }
                         }
                         vnode.attrs.onchange ? vnode.attrs.onchange(e) : null
                     },
-                    value: data[name] || ''
+                    value:  data && name != undefined ? data[name] || ''  : '',
                 },
                 [
 
@@ -300,8 +303,11 @@ function Section() {
             return m("div",
                 {
                     class: clase,
-                    style:vnode.attrs.style
-                }, vnode.children
+                    // LE  AÑADIMOS UN BOX-SHADOW Y LE  QUITAMOS EL PADDING
+                    style:"border-radius:10px;box-shadow: 0 5px 15px rgba(0,0,0,.08); padding:0px!important;" + vnode.attrs.style || ''  + ';'
+                }, m(Padding, 
+                    vnode.children
+                )
             )
         }
     }

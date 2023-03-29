@@ -1,12 +1,14 @@
-import { Button, Container } from "../components/components.js"
-import { ContentManagement, ContentView, EditCreateContent, ManagementMain, ProfileView, TeacherManagement,MyContent, MyMessages, FileExplorerPage, SettingsPage, ExplorePage} from "./management.js"
+import { Button, Column, Flex, Grid, Icon, Padding, Section } from "../components/components.js"
+import { maincolor } from "../models/configuration.js"
 import { isLoggedIn, user } from "../models/models.js"
-import { AdminManagement } from "./admin-management.js"
+import { AdminManagement, EmailTool,SettingsPage, ExplorePage, StagesManagement } from "./admin-management.js"
+import { ContentManagement, EditCreateContent, FileExplorerPage, MyContent,  ProfileView } from "./management.js"
 
 m.route(document.body, "/", {   
+    // SI ESTÁ LOGUEADO SALE LA PÁGINA DE LOGIN !!!
     "/": {
         render: function (vnode) {
-            return m(Layout, vnode.attrs, ManagementMain)
+            return m(Layout, vnode.attrs, MyContent)
         },
     },
 
@@ -28,11 +30,12 @@ m.route(document.body, "/", {
         }
     },
 
+    /*
     '/contentview/:cod': {
         render: (vnode) => {
             return m(Layout, vnode.attrs, ContentView)
         }
-    },
+    },*/
 
     '/profile/:cod' :{
         render: (vnode) => {
@@ -40,12 +43,7 @@ m.route(document.body, "/", {
         }
     },
 
-    '/teacher-management':{
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, TeacherManagement)
-        }
-    },
-
+   
     '/editcourse/:cod':{
         render:(vnode)=>{
             return m(Layout, vnode.attrs, EditCreateContent)
@@ -57,13 +55,7 @@ m.route(document.body, "/", {
             return m(Layout, vnode.attrs, MyContent)
         }
     },
-
-    '/messages':{
-        render:(vnode)=>{
-            return m(Layout, vnode.attrs, MyMessages)
-        }
-    },
-
+    
     "/documents": {
         render: function (vnode) {
             return m(Layout, vnode.attrs, FileExplorerPage)
@@ -80,131 +72,197 @@ m.route(document.body, "/", {
         render: function (vnode) {
             return m(Layout, vnode.attrs, ExplorePage)
         }
+    },
+    
+    '/email':{
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, EmailTool)
+        }
+    },
+
+    '/stages':{
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, StagesManagement)
+        }
     }
 })
 
 
 function Layout(){
 
-    let route = '/'
+    //  HABRÁ QUE SACARLA EN  EL ONINIT
+    let route;
 
-    let routes  = [{
-        'name':'Home',
-        'route':'/',
-    },
-    {
-        'name':'My Content',
-        'route':'/content',
-    },
-    {
-        'name':'My messages',
-        'route':'/messages',
-    },
-    {
-        'name':'My Courses',
-        'route':'/courses',
-    },
-    {
-        'name':'Files',
-        'route': '/documents'
-    },
-    {
-        'name':'Content management',
-        'route':'/management',
-    },
-    {
-        'name': 'Send  email',
-        'route': '/send-email'
-    },
-    {
-        'name': 'Settings',
-        'route': '/settings'
-    }]
+    let teacherRoutes = [
+        {
+            'name':'My content',
+            'icon':'book',
+            'route':'/content'
+        },
+        {
+            'name':'My courses',
+            'icon':'school',
+            'route':'/courses'
+        },
+
+        {
+            'name':'File Explorer',
+            'icon':'folder',
+            'route': '/documents'
+        }
+    ]
 
     let managementRoutes = [
         {
-            'name':'Content management',
+            'name':'Users',
             'route':'/management',
+            'icon':'people'
         },
         {
-            'name': 'Send  email',
-            'route': '/send-email'
+            'name': 'Email',
+            'icon':'email',
+            'route': '/email'
+        },
+        
+        {
+            'name':'Content',
+            'icon':'book',
+            'route':'/content'
         },
         {
-            'name': 'Settings',
+            'name': 'Stages',
+            'icon':'terrain',
+            'route': '/stages'
+        },
+        {
+            'name': 'Courses',
+            'route': '/courses',
+            'icon':'school'
+        },
+        {
+            'name':'Settings',
+            'icon':'settings',
             'route': '/settings'
         }
     ]
 
 
-    let teacherRoutes = [
-        {
+    function Sidebar() {
+        return {
+            view: (vnode) => {
+                return [
+                    m(Flex, {direction:"column", style:`border-right:3px solid ${maincolor};height:100vh;position:fixed;min-width:200px;background:white`,  vAlign:'middle'}, [
 
+                        m("img.uk-border-circle", {width:"100", height:"100", src:"./assets/logo-tenstages.png", alt:"Avatar"}),
+                        // CREO QUE GRID, CENTER:TRUE
+                        m("div.uk-grid-small uk-flex-middle", {"uk-grid":"", style:"padding:20px"}, [
+                            
+                            m("div.uk-width-expand", [
+                                m("h3.uk-card-title.uk-margin-remove-bottom", user.nombre ),
+                                m("p.uk-text-meta.uk-margin-remove-top",user.isAdmin() ? "Admin" : "Teacher")
+                            ])
+                        ]),
+                        (user.isAdmin() ? managementRoutes : teacherRoutes).map((item)=>{
+
+                            let isSelected = route.route == item.route
+
+
+                            return m(Button,{
+                                onclick:(e)=>{
+                                    route = item
+
+                                    m.route.set(item.route)
+                                },
+                                style:`background-color:white;margin-bottom:10px;width:90%;color:${isSelected ? '#d8bb78' : 'black'};display:flex;align-items:center;justify-content:space-between`,
+                            }, 
+                                m(Icon,{icon:item.icon,  color: isSelected ? '#d8bb78' : 'black' }),
+                                m("div",{style:"width:10px"}),
+                                item.name
+                            )
+                        }),
+
+                        m(Button,{
+                            type:'secondary',
+                            style:"position:absolute;bottom:20px;right:5px;left:5px;",
+                            onclick:(e)=>{
+                                localStorage.removeItem('meditationcod')
+                                location.reload()
+                            }
+                        }, "LOG OUT")
+                    ])
+                ]
+            }
         }
-    ]
+    }
 
-    let checkIfLogged = false;
+    function NavBar() {
+        return {
+            view: (vnode) => {
+                return [
+                        m("nav.uk-navbar-container", { 'uk-navbar': '', style:"height:60px;background-color: white" },
+                            m("nav", { 'uk-navbar': '', style: "width:100%;background-color:#f2f2f2" },
+                                m(".uk-navbar-center",
+                                    m("a.uk-navbar-item.uk-logo", {style:"min-height:0px!important"},
+                                        m("img", { src: './assets/logo-horizontal.png', style: "height:55px; width:auto" })
+                                    ),
+                                )
+                            )
+                        )
 
+                ]
+            }
+        }
+    }
 
     return {
         oninit:(vnode)=>{
-            route = m.route.get()
-        
+
+            route = teacherRoutes.concat(managementRoutes).find((item)=>{
+                return item.route == m.route.get()
+            })
+
+
+            if(!route){
+                route = teacherRoutes[0]
+            }
+
+            console.log('selectedRoute')
+
             isLoggedIn().then((res)=>{
-                checkIfLogged = true
                 console.log('logged in ',user)
                 m.redraw()
             })
         },
         view:(vnode)=> {
             return [
-                 m("nav.uk-navbar-container", { 'uk-navbar': '' , style:"background-color:white"},
-                    m("nav", { 'uk-navbar': '', style: "width:100%" },
-                        m(".uk-navbar-left",
-                            m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:100px;width:auto" })),
-                            m("ul.uk-navbar-nav",
-                                routes.map((item)=>{
-                                    return m("li",{
-                                        style:"font-size:1.4em"
-                                    },
-                                        m("a",{
-                                            style: route == item.route ? 'color:black;' : 'color:#ababab',
-                                            onclick:(e)=>{
-                                                route = item.route
-                                                m.route.set(item.route)
-                                            }
-                                        }, item.name)
-                                    )
-                                })
-                            )
+                //m(NavBar),
+                
+                // damos por  hechoque está logueado
+                user.codUser || true ? [
+                    m(Grid,
+                        m(Column,{width:'1-6',style:"background:#f2f2f2"},
+                            m(Sidebar)
                         ),
-                        m(".uk-navbar-right",
-                            m(".uk-navbar-item",
-                                localStorage.getItem('meditationcod') ?
-                                m("a.material-icons",
-                                    {
-                                        onclick:(e) => {
-                                            m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                                        }
-                                    },
-                                    'person'
-                                )
-                                : 
-                                m(Button,
-                                    {
-                                        type: "secondary",
-                                        target: '#login-modal'
-                                    },
-                                    "LOGIN"
+                        
+                        m(Column,{width:'5-6', style:"overflow:auto;background:#f2f2f2"},
+                            m(Padding,
+
+                                m(Flex,{direction:'row', vAlign:'middle'},
+                                    m(Icon,{icon:route.icon, size:'large'}),
+                                    m("div",{style:"width:20px"}),
+                                    m("h2",{style:"margin-top:0px"}, route.name ),
                                 ),
+
+                                m("div",{style:"height:20px"}),
+
+                                //m(Section, { style:"background-color:white;height:100vh;padding:20px;margin:25px;border-radius:20px"},
+                                vnode.children.map((child) => {
+                                    return m("main", m(child, vnode.attrs))
+                                })
                             )
                         )
                     )
-                ),
-                
-                vnode.children.map((child) => {
-                    return m("main",m(child, vnode.attrs))
-                })
+                ] : null
             ]
         }
     }

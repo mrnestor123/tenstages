@@ -2,7 +2,7 @@
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
 import { addContent, addPath, addSection, addStage, addSumUp, addTechnique, addVersion, deleteTechnique, deleteUser, getAllContent, getContentbycod, getPaths, getRequests, getSections, getSettings, getStages, getStats, getSumups, getTeachersContent, getTechniques, getUser, getUserActions, getUserMessages, getUsers, getVersions, postRequest, updateContent, updateRequest, updateSection, updateSettings, updateStage, updateTechnique, updateUser } from '../api/server.js'
-import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Container, Flex, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
 import { showAlert } from '../components/dialogs.js'
 import { FileExplorer, ImageSelector, InfoText, showFileExplorer } from '../components/management-components.js'
 import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path } from '../components/tenstages-components.js'
@@ -430,31 +430,6 @@ function EditCourse(){
     }
 }
 
-function ManagementMain(){
-    return {
-        view:(vnode)=>{
-            return [
-                m(Section,
-                    m(Padding,
-                        m(Grid,{center:true,verticalalign:true},
-                            m(Column,{width:'1-2', style:"text-align:center;"},
-                                m(Icon,{icon:'construction', size:'massive'})
-                            ),
-                            m(Column,{width:'1-2'},
-                                m(Header,
-                                    "TenStages Management"    
-                                ),
-                                m(SubHeader,
-                                    "Find more about tenstages my bro this is wonderful"    
-                                )
-                            )
-                        )
-                    )
-                )
-            ]
-        }
-    }
-}
 
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
@@ -483,10 +458,10 @@ function ContentManagement() {
     let sumups = []
 
     function filtercontent(stage = 1){
-        lessons = content.filter((item) => isLesson(item) && item.stagenumber == stage && (isAdmin(user) ||  item.position != null || item.createdBy == localStorage.getItem('meditationcod')))
-        meditations = content.filter((item)=> isMeditation(item) && item.stagenumber == stage && (isAdmin(user) || item.position != null || item.createdBy == localStorage.getItem('meditationcod')))
+        lessons = content.filter((item) => isLesson(item) && item.stagenumber == stage )
+        meditations = content.filter((item)=> isMeditation(item) && item.stagenumber == stage )
         games = content.filter((item)=> isGame(item) && item.stagenumber == stage)
-        videos = content.filter((item)=> isVideo(item) && item.stagenumber == stage && ( isAdmin(user) || item.position != null || item.createdBy == user.coduser))
+        videos = content.filter((item)=> isVideo(item) && item.stagenumber == stage )
         filteredcontent = lessons
     }
 
@@ -1534,7 +1509,6 @@ function ContentManagement() {
 
         let position = { 'selected': 0 }
         let path_filter = 'lessons'
-        //let filteredcontent = []
         let new_path = 1;
         let old_path = 0;
         let showing = old_path
@@ -1816,6 +1790,7 @@ function ContentManagement() {
 
         return {
             view: (vnode) => {
+                console.log('filtered', filteredcontent)
                 stage = stages[(Number(filter.stagenumber) - 1)]
                 //esto podría quitarlo
                 if (!stage.objectives) { stage.objectives = { 'meditation': {}, }; console.log(stage) }
@@ -1845,27 +1820,31 @@ function ContentManagement() {
                     m(Row,
                         m('.uk-button-group',
                             m(Button, { 
-                                style: path_filter == 'lessons' ?  'background-color:lightgrey;color:black;' : '',
+                                style: path_filter.match('lessons') ?  'background-color:lightgrey;color:black;' : '',
 
                                 type: "secondary", 
-                                onclick: (e) => {path_filter='lessons'; filteredcontent = lessons; } 
+                                onclick: (e) => {path_filter='lessons|videos|recordings'; filteredcontent = lessons.concat(videos) } 
                             }, "Lessons"),
+                            
                             m(Button, { 
                                 style: path_filter == 'meditations' ?  'background-color:lightgrey;color:black;' : '',
                                 type: "secondary", 
                                 onclick: (e) => {path_filter='meditations'; filteredcontent = meditations; } 
                             }, "Meditations"),
+
+
                             m(Button, {
                                 style: path_filter == 'games' ?  'background-color:lightgrey;color:black;' : '',
                                 type: "secondary", 
                                 onclick: (e) => {path_filter='games'; filteredcontent = games; } 
                             }, "Games"),
-
-                            m(Button, {
+                            
+                            /* m(Button, {
                                 style: path_filter == 'videos' ?  'background-color:lightgrey;color:black;' : '',
                                 type: "secondary", 
                                 onclick: (e) => {path_filter='videos'; filteredcontent = videos; } 
                             }, "Videos"),
+                            */
                         )
                     ),
                     m(ContentAdd),
@@ -2152,33 +2131,16 @@ function EditCreateContent() {
                     m(Row,
                         m(FormLabel, "Add a file to this content"),
                         m("button.uk-button.uk-button-default", { 
-                            onclick: () => { showFileExplorer({'type':  content.type == 'video' ?  'video' : 'audio', data:content, name:'type'}); 
+                            onclick: () => { showFileExplorer({'type':  content.type == 'video' ?  'video' : 'audio', data:content, name:'file'}); 
                         }}, 
                             content.file ? "CHANGE FILE": "ADD FILE"
                         ),
 
-                        // HAY QUE MIRAR QUE ESTO SEA FILE !!!
-                        /*
-                        m(Column, {width: '1-2'},
-                            m("video", {src: content.video, 'controls': true})
-                        ),*/
-
-                        // ESTO TENDRÍA QUE SER EL VISOR DE DOCUMENTOS NUESTRO !!!!
-                        /*
-                        m(FileUploader, {
-                            data: {},
-                            //path:content.path ? content.path.title : 'dynamicfiles',
-                            onupload:() => uploading = true,
-                            Dstage: content.stagenumber,
-                            name: "file",
-                            id: `meditation-file-chooser`,
-                            onsuccess: (src) => { 
-                                uploading = false;
-                                content.file = src;
-                                m.redraw(); 
-                            }
-                        }),*/
-                        content.file ?  m("div",m(FileView,{file:content.file,key:uploading ? 0 : 1,style: "width:50%;height:200px;"})) : null
+                        content.file
+                            ?  m("div",
+                                    m(FileView,{file:content.file,key:uploading ? 0 : 1,style: "width:50%;height:200px;"})
+                                ) 
+                            : null
                     )  : null,
 
                     
@@ -2559,6 +2521,7 @@ function EditCreateContent() {
             if(vnode.attrs.cod){
                 getContentbycod(vnode.attrs.cod).then((res) => {
                     content = res;
+                    console.log('content',content)
                     m.redraw()
                 })
             }else{
@@ -2841,6 +2804,7 @@ function EditCreateContent() {
     }
 }
 
+
 function errorPageComponent() {
 
     return {
@@ -2850,35 +2814,8 @@ function errorPageComponent() {
     }
 }
 
-function ContentView() {
-    let content = {}
 
-    return {
-        oninit: (vnode) => {
-            getContentbycod(vnode.attrs.cod).then((res) => {
-                content = res;
-                console.log(content)
-                m.redraw()
-            })
-        },
-        view: (vnode) => {
-            return m(Grid,
-                m(Column,
-                    {
-                        width: '1-2'
-                    },
-                    m("div", { style: "font-family:Gotham Rounded; font-size:2em" }, content.title),
-                ),
-                m(Column,
-                    {
-                        width: '1-2'
-                    },
-                    m("img", { style: "width:100%;height:auto", src: content.image })
-                )
-            )
-        }
-    }
-}
+
 
 // ESTO no necesita el USER
 function ProfileView(){
@@ -3815,59 +3752,110 @@ function TeacherManagement(){
 }
 
 
+// ESTO SERÁ CONTENT
 function MyContent(){
     let content = []
     let loadedContent = false;
     let selectedContent = {}
+    let stage = 1
+    let filter = {
+        'stage':1,
+        'type':'all'
+    }
 
 
+    function FilterContent(){
+
+        return {
+            view:(vnode)=>{
+                return m(Section, {style:"padding:0px"},
+                    m(Padding,
+                        m("h3", "Filter content"),
+                        m(Flex,{direction:'row'},
+                            m(Flex,{direction:'column'},
+                                m(FormLabel, 'Stage'),
+                                m(Select,{
+                                    data:filter,
+                                    name:'stage'
+                                }, stagenumbers),
+                            ),
+                            
+                            m("div",{style:"width:20px"}),
+
+                            m(Flex,{direction:'column'},
+                                m(FormLabel, 'Type of content'),
+                                m(Select,{
+                                    data:filter,
+                                    name:'type'
+                                }, types),
+                            ),
+
+                            m("div",{style:"width:20px"}),
+
+                            m(Button,
+                                {
+                                    onclick:(e)=>{
+                                        m.route.set(`/edit_create`)
+                                    },
+                                    'target': '#modal-content',
+                                    type: 'primary',
+                                    style:"min-width:200px"
+                                },
+                                'Add Content' 
+                            ),  
+                            m("div",{style:"height:10px"}),
+                        )
+                    )
+                )
+            }
+        }
+
+    }
     
     return{
         oninit:(vnode)=>{
-            getTeachersContent(localStorage.getItem('meditationcod')).then((res)=>{
-                content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
-                loadedContent = true;
-                m.redraw()
-                console.log(content)
-            })
+            if(user.isAdmin()){
+                getAllContent().then((res)=>{
+                    content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                    console.log('got all content', user,res)
+                    m.redraw()
+                })
+            }else{
+                getTeachersContent(localStorage.getItem('meditationcod')).then((res)=>{
+                    content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                    loadedContent = true;
+                    m.redraw()
+                    console.log(content)
+                })
+            }
         },
         view:(vnode)=>{
             return [
+                /*
                 m(InfoText,{
                     title:'My content',
                     subtitle:'Here you can create, and add content inside the Ten stages of the application. You can create articles, videos, lessons and meditations.',
                     video:'how-to-add-content'
-                }),
+                }),*/
 
                 m("div",{style:"height:20px"}),
 
-                loadedContent ?
-                m(Container,{size:'large'},
-                    m(Header3, 'My content'),
-                    
-                    m(Button,
-                        {
-                            onclick:(e)=>{
-                                m.route.set(`/edit_create`)
-                            },
-                            'target': '#modal-content',
-                            type: 'primary'
-                        },
-                        'Add Content' 
-                    ),  
-                    m("div",{style:"height:10px"}),
-                    
+                content.length ?[
+                    m(FilterContent),
+                    m("div",{style:"height:20px"}),
+                    m(Section,
+                        m(Grid,{match:true},
 
-                    m(Grid,{match:true},
-                        content.map((item)=>{
-                            return m(Column,{width:'1-3'},
-                                m(ContentCard,{
-                                    content:item
-                                })
-                            )
-                        })
+                            content.filter((c)=> c.stagenumber == stage || stage == 'none').map((item)=>{
+                                return m(Column,{width:'1-3'},
+                                    m(ContentCard,{
+                                        content:item
+                                    })
+                                )
+                            })
+                        )
                     )
-                ): null
+                ]: null
             ]
         }
     }
@@ -3887,329 +3875,27 @@ function FileExplorerPage(){
     return {
         view:(vnode)=>{
             return [
-                m(InfoText,{
-                    title:'File Explorer',
-                    subtitle:'Here you can upload and manage your files. You can upload images, videos, audios and documents.',
-                }),
-
+               
                 m("div",{style:"height:20px"}),
 
-                m(Container,{size:'large'},
-                    m(FileExplorer)
-
-                )
-
-
-            ]
-
-        }
-    }
-}
-
-function SettingsPage(){
-    let settings = {}
-
-    let text= `<p>I studied computer science for 5 years, I had my life 'solved' while working at my family business. And got hooked in the loop of adult life with no ambitions, no expectation, no goals. I was just going through what was I thought was life. </p>
-    <br>
-    
-    
-    <p>Going through a dark period, I found meditation as a way to help me sleep better. After sleeping soundly, I got hooked up and started reading more about meditation.\n\nI found TMI and it helped me progress so much in my meditation practice. I started to see the world in a different way. </p> <br> 
-    
-    
-    <p>I am not a guru, I am not a teacher, I am not a monk. I am just a regular guy who found a way to live a better life. I hope this app can help you too. </p>
-    
-    <p> TOADD IMAGE </p>
-    `
-
-    
-    return {
-        oninit:(vnode)=>{
-            getSettings().then((res)=>{
-                settings = res
-                m.redraw()
-            })
-        },
-        view:(vnode)=>{
-            return [
-                m(InfoText,{
-                    title:'Settings',
-                    description:'Edit the text settings for the app'
-                }),
-
-                m(Container,{size:'large'},
-                    m(Grid,
-                        m(Column,{width:'1-2'},
-                            m(FormLabel, 'About me'),
-                            m(TextEditor,{
-                                data:settings,
-                                name:'aboutMe'
-                            })
-                        ),
-                        m(Column,{width:'1-2'}, 
-                            m(FormLabel, "About the app"),
-                            m(TextEditor,{
-                                data:settings,
-                                name:'aboutApp'
-                            })
-                        ),
-                        m(Column,{width:'1-2'},
-                        
-                        
-                            m(Button,{
-                                style:"width:100%",
-                                type:'primary',
-                                onclick:(e)=>{
-                                    updateSettings(settings).then((res)=>{
-                                        console.log(res)
-                                    })
-                                }
-                            }, "Save")
-                        )
+                m(Section,{style:"padding:0px;overflow-y:auto"},
+                    m(Padding,
+                        m(FileExplorer)
                     )
                 )
             ]
         }
     }
-}  
-
-
-function ExplorePage(){
-    let sections = []
-
-    // DE MOMENTO SACAMOS TODO EL CONTENIDO QUE NO TENGA STAGENUMBER !!!
-    let content = []
-
-    let editing = false;
-
-    function AddSection(){
-
-        let addingSection = false;
-        let data = {}
-
-        return {
-            view:(vnode)=>{
-
-                return [
-                    m(Button,{
-                        style:"margin-top:20px",
-                        type:'primary',
-                        onclick:(e)=>{
-                                addingSection = !addingSection;
-                            }
-
-                    }, "Add section"),
-                    addingSection 
-                        ? m(Section,{type:'muted'},
-                            m(Padding,
-                            m(Grid,
-                                m(Row, 
-                                    m(FormLabel, 'Section title'),
-                                    m(TextField, {
-                                        data: data,
-                                        name:'title'
-                                    })    
-                                ),
-                                m(Row,
-                                    m(FormLabel, 'Section description'),
-                                    
-                                    m(TextField,{
-                                        data:data,
-                                        name:'description'
-                                    }),
-
-                                    
-                                ),
-                                m(Row,
-                                m(Button,{
-                                    type:'secondary',
-                                    onclick:(e)=>{
-                                        if(data.title && data.description){
-                                            addingSection = false;
-                                            data.cod = create_UUID()
-
-                                            addSection(data)
-                                        }
-                                    }
-                                }, "Add section")
-                                )
-                            ))
-                        )
-                        : null,
-                ]
-            }
-        }
-    }
-
-
-
-    function SectionCard(){
-        let isEditing = false;
-
-        let toAdd = {}
-        let selected= {}
-
-        return {
-            view:(vnode)=>{
-                let {section} = vnode.attrs
-                console.log('section',section)
-
-                return m(Card,
-                    m(CardMedia,
-                        m(ImageSelector,{data:section,name:'image'})
-                    ),
-                    m(CardHeader, 
-                        m(EditableField,{
-                            data:section,
-                            name:'title',
-                            isEditing:isEditing
-                        },m("h3", section.title)
-                        ),    
-                    ),
-                    m(CardBody,
-                        m(EditableField,{
-                            data:section,
-                            name:'description',
-                            isEditing:isEditing
-                        },m("h3", section.description)
-                        ),
-
-                        section.content ?
-                        m(Grid,
-                            section.content.map((c,i)=>{
-                            return isEditing 
-                                ? m("div",{style:"font-weight:bold;margin-right:10px;"},
-                                    c.title,
-                                    // delete button
-                                    isEditing ?
-                                    m(Icon,{
-                                        icon:'delete',
-                                        style:"cursor:pointer;",
-                                        type:'secondary',
-                                        onclick:(e)=>{
-                                            section.content.splice(i,1)
-                                        }
-                                    }, "Delete")
-                                    : null
-                                )  
-                                :  m(Column,{width:'1-2'},
-                                m(ContentCard,{
-                                    content:c
-                                }))
-                        })) : null,
-                        
-                        m("div",{style:"height:10px"}),
-
-                        isEditing 
-                        ?   m(Grid,
-
-                            m(Column,{width:'1-2'},
-                            m(Select,{
-                                data:selected,
-                                name:'index',
-                                isEditing:isEditing,
-                                onchange:(e)=>{
-
-                                    console.log(e.target.value)
-                                    toAdd = content[e.target.value]
-                                }
-                            },
-                                content.map((item,i)=>{
-                                    return {
-                                        'value':i,
-                                        'label':item.title       
-                                    }
-                                })
-                            )),
-
-                            m(Column,{width:'1-2'},
-                                m(Button,{
-                                    type:'secondary',
-                                    onclick:(e)=>{
-                                        if(toAdd){
-                                            if(!section.content){
-                                                section.content = []
-                                            }
-
-                                            section.content.push(toAdd)
-                                        }
-                                    }
-                                }, "Add content")
-                            )
-                        )
-                        : null
-                    ),
-                    m(CardFooter,
-                        m(Button,{
-                            type:'primary',
-                            onclick:(e)=>{
-                                if(isEditing){
-                                    updateSection(section)
-                                }
-                                isEditing = !isEditing
-                            }
-                        }, isEditing ? "Save" : "Edit"),
-
-
-                        isEditing?  
-                        m(Button,{
-
-                            type:'default',
-                            onclick:(e)=>{
-                                location.reload()
-                            }
-                        }, "Cancel"): null,
-                    ) 
-                )
-
-            }
-        }
-    }
-
-    return {
-        oninit:(vnode)=>{
-            getSections().then((res)=>{
-                console.log('res',res)
-                sections = res
-                m.redraw()
-            })
-
-            getAllContent().then((res)=>{
-
-                content = res.filter((item)=>!item.stagenumber)
-
-                console.log('content',content)
-            })
-        },
-        view:(vnode)=>{
-            return [
-                m(InfoText,{
-                    title: 'Explore page',
-                    subtitle: 'Here you can see all the additional content that is available inside the app. You can also search for specific content.'
-                }),
-
-                // cuando se ocurra una solución sencilla le daré un vistazo
-                m(Container,{size:'large'},
-                    
-                    m(AddSection),
-
-                    m("div",{style:"height:20px"}),
-
-                    m(Header3, 'Sections'),
-
-                    m(Grid,{match:true},
-                        sections.map((s)=>{
-                            return m(Column,{width:'1-2'},
-                                m(SectionCard,{section:s})
-                            )
-                        })
-                    )
-                
-                )
-            ]
-        }
-    }
-
 }
 
-export { EditCourse, ManagementMain, ContentManagement, EditCreateContent, SettingsPage, ContentView,ExplorePage, ProfileView, TeacherManagement, MyContent, MyMessages, FileExplorerPage }
+export { 
+    EditCourse,  
+    ContentManagement, 
+    EditCreateContent, 
+    ProfileView, 
+    TeacherManagement, 
+    MyContent, 
+    MyMessages, 
+    FileExplorerPage
+}
 

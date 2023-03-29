@@ -18,14 +18,14 @@ import { normalize_server } from './normalize_server.js';
 const app = express();
 
 //de momento esto no se para que
-
-app.use(cors( {
+app.use(
+    cors({
         "origin": "*",
         "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
     }
-  ));
-app.options('*', cors()) // enable pre-flight request for DELETE request
+));
 
+app.options('*', cors()) // enable pre-flight request for DELETE request
 app.use(express.urlencoded({extended: true})); 
 app.use(express.json());
 

@@ -1,6 +1,21 @@
 import admin from 'firebase-admin';
 //import serviceKey from './secrets/firebase-key.json' assert  {type: 'json'}
 
+
+let firebaseProd = {}
+
+let firebaseEnv = {}
+
+if (process.env.NODE_ENV === 'production'){
+
+    // initialize dev app
+  } else {
+    // initialize prod app
+  }
+
+
+
+
 admin.initializeApp({
     credential: admin.credential.cert('./secrets/firebase-key.json'),
     databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',

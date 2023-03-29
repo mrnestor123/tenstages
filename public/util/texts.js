@@ -62,7 +62,7 @@ function Header2(){
 function Header3(){
     return{
         view:(vnode)=>{
-            return m("h3.uk-heading-line",vnode.children)
+            return m("h3.uk-heading-line",vnode.attrs, vnode.children)
         }
     }
 }

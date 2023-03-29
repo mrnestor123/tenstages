@@ -18,8 +18,8 @@ firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
 
-//const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
- const API = `http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default`
+const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
+// const API = `http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default`
 //const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
 
 var db = firebase.firestore()
@@ -809,6 +809,18 @@ async function updateSettings(settings){
 
 
 async function getSections(){
+    let query = await db.collection('sections').get()
+    
+    let sections = []
+
+    if(query.docs && query.docs.length){
+        for(var doc of query.docs){
+            sections.push(doc.data())
+        }
+    }
+
+    return sections;
+        /*
     let sections = []
     let url = `${API}/sections`
 
@@ -821,6 +833,7 @@ async function getSections(){
     }
 
     return sections;
+    */
 }
 
 
@@ -840,12 +853,10 @@ async function updateSection(section){
 
     let s  = JSON.parse(JSON.stringify(section))
 
-    s.content  = section.content.map((c)=> c.cod)
+    s.content  = section.content.map((c)=> typeof c == 'string' ? c : c.cod)
 
     // find section then update it
     let query = await db.collection('sections').where('cod','==',s.cod).get()
-    
-
 
     if(query.docs && query.docs.length){
         let docID = query.docs[0].id
