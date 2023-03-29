@@ -1,10 +1,10 @@
-import { Button, Column, Flex, Grid, Section, TextField,  Card, CardMedia, CardHeader, CardBody, Select, Icon, CardFooter, Container, Padding, Row, Modal, ModalBody, ModalHeader, ModalFooter } from "../components/components.js"
+import { Button, Column, Flex, Grid, Section, TextField,  Card, CardMedia, CardHeader, CardBody, Select, Icon, CardFooter, Container, Padding, Row, Modal, ModalBody, ModalHeader, ModalFooter, TextEditor } from "../components/components.js"
 import { api_get } from "../util/util.js"
 import * as htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm';
 import { ImageSelector, InfoText } from "../components/management-components.js";
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
 import { FormLabel, Header3 } from "../util/texts.js";
-import { getAllContent, getSettings, getStages, updateContent, updateStage } from "../api/server.js";
+import { getAllContent, getSettings, getStages, updateContent, updateStage, getSections } from "../api/server.js";
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -360,7 +360,6 @@ function ExplorePage(){
             })
 
             getAllContent().then((res)=>{
-
                 content = res.filter((item)=>!item.stagenumber)
 
                 console.log('content',content)
@@ -368,14 +367,13 @@ function ExplorePage(){
         },
         view:(vnode)=>{
             return [
-                m(InfoText,{
+                /*m(InfoText,{
                     title: 'Explore page',
                     subtitle: 'Here you can see all the additional content that is available inside the app. You can also search for specific content.'
-                }),
+                }),*/
 
                 // cuando se ocurra una solución sencilla le daré un vistazo
-                m(Container,{size:'large'},
-                    
+                m(Section,
                     m(AddSection),
 
                     m("div",{style:"height:20px"}),
@@ -422,12 +420,15 @@ function SettingsPage(){
         },
         view:(vnode)=>{
             return [
+                /*  
                 m(InfoText,{
                     title:'Settings',
                     description:'Edit the text settings for the app'
-                }),
+                }),*/
 
-                m(Container,{size:'large'},
+                m(Section,
+                    m("h3", "Texts for the app"),
+                        
                     m(Grid,
                         m(Column,{width:'1-2'},
                             m(FormLabel, 'About me'),
@@ -457,6 +458,13 @@ function SettingsPage(){
                             }, "Save")
                         )
                     )
+                ),
+
+                m(Section,{style:"margin-top:20px"},
+                    m(Grid,
+                        m("h3", "Introduction text")
+
+                    )    
                 )
             ]
         }

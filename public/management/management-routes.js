@@ -135,9 +135,9 @@ function Layout(){
             'route': '/stages'
         },
         {
-            'name': 'Courses',
-            'route': '/courses',
-            'icon':'school'
+            'name': 'Explore',
+            'route': '/explore',
+            'icon':'explore'
         },
         {
             'name':'Settings',

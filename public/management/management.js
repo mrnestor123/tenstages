@@ -430,7 +430,6 @@ function EditCourse(){
     }
 }
 
-
 function ContentManagement() {
     // lista con la forma 'id': lesson. TEndrá que ser CONTENT !!!
     let filter = { 'stagenumber': 1, 'type': 'techniques' }
@@ -2093,7 +2092,6 @@ function ContentManagement() {
     }
 }
 
-
 function EditCreateContent() {
     let content = {}
     let editar = false;
@@ -2804,7 +2802,6 @@ function EditCreateContent() {
     }
 }
 
-
 function errorPageComponent() {
 
     return {
@@ -2813,9 +2810,6 @@ function errorPageComponent() {
         }
     }
 }
-
-
-
 
 // ESTO no necesita el USER
 function ProfileView(){
@@ -3750,7 +3744,6 @@ function TeacherManagement(){
         }
     }
 }
-
 
 // ESTO SERÁ CONTENT
 function MyContent(){
