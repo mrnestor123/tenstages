@@ -1,7 +1,7 @@
 import { db, FieldValue } from '../app.js';
 import { getUser, getUserDataId } from './usersController.js';
 
-export const getRequests = async () => {
+export const getRequests = async (userId) => {
     try {
         let requests = [];
         let query = await db.collection('requests').get();
@@ -11,7 +11,8 @@ export const getRequests = async () => {
                 let request = doc.data();
 
                 if (request.cod) {
-                    if (!request.userimage && !request.username) {
+                    if (!request.userimage && !request.username && (request.state != 'closed' || request.coduser == userId)){
+                        
                         let user = await getUser(request.coduser);
 
                         if (user && user.image && user.nombre) {

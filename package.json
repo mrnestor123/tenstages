@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "firebase deploy",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "logs": "firebase functions:log",

@@ -1,10 +1,11 @@
 import express from 'express';
 import { getRequests, getRequest, updateRequest, newComment, addNotification, updateNotification,  addRequest} from '../controllers/requestsController.js';
+import { isVerified } from '../app.js';
 
 const router = express.Router({ mergeParams: true });
 
 // Get all requests
-router.get("/", async (req, res) => {
+router.get("/", isVerified, async (req, res) => {
     try {
         const requests = await getRequests();
         return res.status(200).json(requests);
@@ -13,8 +14,19 @@ router.get("/", async (req, res) => {
     }
 });
 
+
+// Get all requests
+router.get("/user/:userId", isVerified, async (req, res) => {
+    try {
+        const requests = await getRequests(req.params.userId);
+        return res.status(200).json(requests);
+    } catch (err) {
+        return res.status(404).json({ message: err.message });
+    }
+});
+
 // Get request by requestId
-router.get("/:requestId",async (req, res) => {
+router.get("/:requestId", isVerified,  async (req, res) => {
     try {
         const request = await getRequest(req.params.requestId);
         console.log('RETURNING REQUEST', request)
@@ -26,7 +38,7 @@ router.get("/:requestId",async (req, res) => {
 });
 
 // ADDREQUEST
-router.post("/new",async (req, res) => {
+router.post("/new", isVerified, async (req, res) => {
     try {
         const request = await addRequest(JSON.parse(req.body));
         return res.status(200).json(request);
@@ -36,7 +48,7 @@ router.post("/new",async (req, res) => {
 });
 
 // Update request by requestId
-router.patch("/:requestId",async (req, res) => {
+router.patch("/:requestId", isVerified, async (req, res) => {
     try {
         const request =  await updateRequest(JSON.parse(req.body));
         return res.status(200).json(request);
@@ -47,7 +59,7 @@ router.patch("/:requestId",async (req, res) => {
 });
 
 // Create comment
-router.post("/:requestId/comment", async (req, res) => {
+router.post("/:requestId/comment", isVerified, async (req, res) => {
     try {
         const request = await newComment(req.params.requestId, JSON.parse(req.body));
         return res.status(200).json(request);
@@ -57,7 +69,7 @@ router.post("/:requestId/comment", async (req, res) => {
 });
 
 
-router.post('/notification', async (req, res) => {
+router.post('/notification', isVerified, async (req, res) => {
   try {
     const request = await addNotification(JSON.parse(req.body));
     return res.status(200).json(request);
@@ -67,7 +79,7 @@ router.post('/notification', async (req, res) => {
 })
 
 
-router.patch('/notification/:notificationId', async (req, res) => {
+router.patch('/notification/:notificationId', isVerified, async (req, res) => {
 
     try {
         const request =  await updateNotification(req.params.notificationId, req.body);

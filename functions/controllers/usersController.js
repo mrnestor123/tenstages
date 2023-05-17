@@ -1,5 +1,5 @@
 import { getStage } from './stagesController.js';
-import { db, FieldValue } from '../app.js';
+import { db, FieldValue, storage } from '../app.js';
 import admin from 'firebase-admin';
 
 let mailbox = {};
@@ -41,16 +41,26 @@ export const setUserName  = async (userId, username) => {
         let query = await db.collection('users').where('nombre', '==', username).get();
         
         if(!query.docs || !query.docs.length){
-            let userquery = await db.collection('users').where('coduser','==', userId).get();
 
-            if(userquery.docs.length && false){
-                await db.collection('users').doc(userquery.docs[0].id).update({
-                    'nombre':user
-                });
-                return user;
+            let query2 = await db.collection('users').where('userName', '==', username).get();
+            
+            console.log('QUERY2',query2.docs.length)
+            
+            if(!query2.docs || !query2.docs.length){
+                let userquery = await db.collection('users').where('coduser','==', userId).get();
+
+                if(userquery.docs.length){
+                    // ESTAMOS CAMBIANDO el modelo !!! HAY QUE IR POCO A POCO
+                    await db.collection('users').doc(userquery.docs[0].id).update({
+                        'userName':username
+                    });
+
+                    return true;
+
+                    //return user;
+                }
             }
         }else{
-            console.log('ERRROOOOR')
             throw Error('Username already exists')
         }
 
@@ -69,6 +79,8 @@ export const getAuthUsers = async () => {
     }
 };
 
+
+
 /**
  * Get user by id
  * @param {String} userId - User id
@@ -83,11 +95,6 @@ export const getUser = async (userId, expand, connect) => {
             .collection('users')
             .where('coduser', '==', userId)
             .get();
-
-
-        if(connect){
-            console.log('connecting', userId)
-        }
             
         if (query.docs.length) {
             user = query.docs[0].data();    
@@ -97,28 +104,55 @@ export const getUser = async (userId, expand, connect) => {
             if (expand || connect) {
                 let userDataquery = await db.collection('userData').where('coduser','==', userId).get();
 
+
                 if(userDataquery.docs.length){
                     userDataID = userDataquery.docs[0].id;
-                    console.log('id',userDataID)
                 }
+                
                 
                 if (user.role === 'teacher') {
                     user.addedcontent = await getUserCreatedContent(userId);
                     // DE MOMENTO LOS CURSOS NO LOS AÑADIMOS !!
                     //user.addedcourses = await getUserPaths(userId);
                     // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACAR LOS STUDENTS !!!
-                    user.students = await getUsersinArray(user.students);
+                    //user.students = await getUsersinArray(user.students);
                 }
 
                 // Cuando  hacemos  expand, no deberían de hacer falta las meditations !!
+                // EN CASO DE  QUE NO SE HAYA HECHO EL TRASPASO BIEN !!
+                // COMPROBAMOS LAS MEDITACIONES !!
                 if(userDataID) user.meditations = await getMeditations(userDataID);
+
+
+                // SI EL USUARIO ES DEL MODELO VIEJO REVISAMOS LAS MEDITACIONES
+                if(user.following) {
+                    let meditations = []
+                    
+                    let meditquery = await db.collection('meditations').where('coduser','==', userId).get();
+                    if(meditquery.docs.length){
+                        for(let medit of meditquery.docs){
+                            meditations.push(medit.data());
+                        }
+                    }
+
+
+                    if(meditations.length > 0){
+                        if(!user.meditations){
+                            user.meditations = []
+                        }
+                        user.meditations = user.meditations.concat(meditations)
+                    }
+                }
+
             }
 
             if (connect) {
-                user.stage = await getStage(user.stagenumber);
+                user.stage = await getStage(user.stagenumber || user.stageNumber);
+
+                /*
                 user.joinedcourses = user.joinedcourses && user.joinedcourses.length
                     ? await expandJoinedCourses(user.joinedcourses)
-                    : [];
+                    : [];*/
 
                 if(userDataID){
                     user.readlessons = await getUserReadLessons(userDataID);
@@ -127,17 +161,17 @@ export const getUser = async (userId, expand, connect) => {
                 }
             }
 
-            /// Para  que funcionen app  antiguas
+            /// Para  que funcionen app antiguas
             if (user.following || user.followsyou) {
                 user.following = [];
                 user.followsyou = [];
             }
+
+            return user;
+        }else{
+            throw Error('User not found');
         }
-
-
-        return user;
     } catch (err) {
-        console.log('error',err)
         throw new Error(err);
     }
 };
@@ -149,36 +183,37 @@ export const registerUser = async (userId)=> {
         let query = await db.collection('users').where('coduser', '==', userId).get();
 
         if (!query.docs || !query.docs.length) {
-
-            let stage = await getStage(1)
-            
             let user = {
                 coduser: userId,
-                stagenumber: 1,
-                /*
-                userprogression :{
-                    meditposition:0,
-                    gameposition:0,
-                }*/
-                // LAS POSICIONES SE PODRÍAN GUARDAR EN UN MAP !!!
-                // USER PROGRESSION?
-                meditposition: 0,
-                gameposition: 0,
-                role: "meditator",
-                position: 0,
-                stage: stage,
-                stagelessonsnumber: 1,
+                stageNumber: 1,
+                // AHORA LA PROGRESIÓN VA POR ETAPAS!!
+                // UN USUARIO VE LAS 3 PRIMERAS ETAPAS !!
+                userProgression: {
+                    lessonPosition: [0,0,0],
+                    meditPosition:[0,0,0],
+                    gamePosition:0,
+                    stageShown: 1,
+                },
+                role: "meditator"
             }
+
+            await db.collection('users').add(user).then((e)=> console.log('E',e)).catch(err => console.log('ERROR CREATING USER', err));
+
+
+            console.log('CREATED USER', user)
+
+            
+            let stage = await getStage(1)
+            user.stage = stage
+
+
             return user;
         }else{
             throw Error('User already exists');
         }
     } catch (err) {
-        console.log('error',err)
         throw new Error(err);
     }
-
-
 }
 
 // queremos esto? AUN NO
@@ -191,7 +226,9 @@ export const deleteUser = async () => {
     }
 };
 
-// queremos esto? SI AUN FALTA HACERLO 17/12/22
+
+
+
 export const updateUser = async (userId, data) => {
     try {
         let query = await db
@@ -199,9 +236,9 @@ export const updateUser = async (userId, data) => {
             .where('coduser', '==', userId)
             .get();
 
-        
-        //console.log('updating', data);
 
+        console.log('UPDATING',data)
+        
         if (query.docs.length) {
             await db.collection('users').doc(query.docs[0].id).set(data, { merge: true });
         }
@@ -218,57 +255,53 @@ export const getActions = async (userId) => {
         let actionsToday = [];
         let actionsThisWeek = [];
         let nonFilteredActions = [];
-        let query = await db
-            .collection('userData')
-            .where('coduser', '==', userId)
-            .get();
+
+        let userDataID = await getUserDataId(userId);
         
-        if (query.docs) {
             
-            let actionquery = await db
-                .collection('userData')
-                .doc(query.docs[0].id)
-                .collection('actions')
-                .get();
+        let actionquery = await db
+            .collection('userData')
+            .doc(userDataID)
+            .collection('actions')
+            .get();
 
-            if(actionquery.docs){
-                actionquery.docs.map((doc) => {
-                    let action = doc.data();
-                    // ESTO ESTÁ MAL, NO DEBERÍA DE SER ASÍ
-                    //action.userimage = user.image
-                    nonFilteredActions.push(action);
-                });
+        if(actionquery.docs){
+            actionquery.docs.map((doc) => {
+                let action = doc.data();
+                // ESTO ESTÁ MAL, NO DEBERÍA DE SER ASÍ
+                //action.userimage = user.image
+                nonFilteredActions.push(action);
+            });
 
-                // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
-                var curr = new Date(); // get current date
-                var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1); // First day is the day of the month - the day of the week
-                var last = first + 6; // last day is the first day + 6
+            // ESTO SE PODRÍA AHORRAR CON UNA QUERY MEJOR !!!!!!!!!!!!!
+            var curr = new Date(); // get current date
+            var first = curr.getDate() - (!curr.getDay() ? 6 : curr.getDay() - 1); // First day is the day of the month - the day of the week
+            var last = first + 6; // last day is the first day + 6
 
-                var monday = new Date(
-                    new Date(curr.setDate(first)).setHours(0, 0, 0)
-                );
-                var sunday = new Date(curr.setDate(last));
-                var today = new Date();
+            var monday = new Date(
+                new Date(curr.setDate(first)).setHours(0, 0, 0)
+            );
+            var sunday = new Date(curr.setDate(last));
+            var today = new Date();
 
-                // esto se ahorraria si filtrasemos en la llamada a la base de datos
-                actionsToday = nonFilteredActions.filter(
-                    (action) =>
-                        today.getDate() == new Date(action.time).getDate() &&
-                        today.getMonth() == new Date(action.time).getMonth()
-                );
+            // esto se ahorraria si filtrasemos en la llamada a la base de datos
+            actionsToday = nonFilteredActions.filter(
+                (action) =>
+                    today.getDate() == new Date(action.time).getDate() &&
+                    today.getMonth() == new Date(action.time).getMonth()
+            );
 
-                actionsThisWeek = nonFilteredActions.filter((action) => {
-                    let date = new Date(action.time);
-                    return ( date > monday && date < sunday && new Date(action.time).getDate() != today.getDate() );
-                });
+            actionsThisWeek = nonFilteredActions.filter((action) => {
+                let date = new Date(action.time);
+                return ( date > monday && date < sunday && new Date(action.time).getDate() != today.getDate() );
+            });
 
-                mailbox[userId] = {
-                    today: actionsToday || [],
-                    thisweek: actionsThisWeek || [],
-                };
+            mailbox[userId] = {
+                today: actionsToday || [],
+                thisweek: actionsThisWeek || [],
+            };
 
-                return mailbox[userId];
-            }
+            return mailbox[userId];
         }
     } catch (err) {
         console.log('err', err);
@@ -278,10 +311,11 @@ export const getActions = async (userId) => {
 
 export const addAction = async (action, userId) => {
     try {
-        // LE METEMOS LA IMÁGEN DEL USUARIO. PORQUE  NO VIENE YA DESDE ANTES ???
+        // LE METEMOS LA IMÁGEN DEL USUARIO. PORQUE  NO VIENE YA DESDE ANTES ????????
         let user = await getUser(userId);
 
         action.coduser = userId;
+
         // damos por hecho
         if (user) {
             if (user.image) {
@@ -302,9 +336,11 @@ export const addAction = async (action, userId) => {
             });
         }
 
-        console.log('adding action', action);
 
-        let userDataID  = await getUserDataID(userId);
+        let userDataID  = await getUserDataId(userId);
+
+        console.log('adding action', action,  userDataID);
+
 
         await db.collection('userData').doc(userDataID).collection('actions').add(action);
 
@@ -396,26 +432,62 @@ export const updatePhoto = async (photo, userId) => {
 };
 
 
-export const saveTime = async (userId, data) =>{
+export const sendQuestion = async (question) => {
+    try {
+        await db.collection('questions').add(question);
+    } catch (err) {
+        throw new Error(err);
+    }
+};
 
-    // save into userData, if it exists update done time
-    let docId  = await getUserDataId(userId);
+// EL PATH SE LO PODRÍAMOS PASAR, PARA EL FUTURO !!
+export const uploadFile = async (image, fileName) => {
+    try {
+        
+        const file = storage.bucket(`userdocs`).file(fileName);
+
+        console.log('uploading image')
+
+        await file.save(image, { contentType: 'image/jpeg' });
 
 
-    let query = await db.collection('userData').doc(docId).collection('doneContent').get();
+        console.log('saved image')
 
-    if(query.docs.length){
-        let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',data.cod).get();
+        return file.publicUrl();
 
-        if(query2.docs.length){
-            await db.collection('userData').doc(docId).collection('doneContent').doc(query2.docs[0].id).update({done: data.done});
+    } catch (err){
+        console.log('ERRR',err)
+        throw new Error(err)
+    }
+}
+
+
+
+// GUARDA EL TIEMPO Y EL CONTENIDO  !!
+// save into userData, if it exists update done time
+export const doneContent = async (userId, content) =>{
+    try {
+        let docId  = await getUserDataId(userId);
+        let query = await db.collection('userData').doc(docId).collection('doneContent').get();
+
+        console.log('SAVING DONE CONTENT', content)
+
+        if(query.docs.length){
+            let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',content.cod).get();
+
+            if(query2.docs.length){
+                await db.collection('userData').doc(docId).collection('doneContent').doc(query2.docs[0].id).update({
+                    done: content.done,
+                    timesFinished: content.timesFinished
+                });
+            }else{
+                await db.collection('userData').doc(docId).collection('doneContent').add(content);
+            }
         }else{
-            await db.collection('userData').doc(docId).collection('doneContent').add(data);
+            await db.collection('userData').doc(docId).collection('doneContent').add(content);
         }
-
-
-    }else{
-        await db.collection('userData').doc(docId).collection('doneContent').add(data);
+    }   catch (err) {
+        throw new Error(err);
     }
 }
 
@@ -426,6 +498,7 @@ export const finishMeditation =  async (userId, data) => {
 
         // ADD  TO MEDITATION collection
         let query = await db.collection('userData').doc(userDataId).collection('meditations').add(data);
+
 
         return;
     } catch (err) {
@@ -446,7 +519,11 @@ export const addMeditationReport = async (userId, data) => {
             .where('cod','==', data.cod)
             .get()
 
+
+        console.log('QUELOQUE AMIGO')
+
         if(query && query.docs){
+            console.log('ADDING REPORT ',  data.report)
             // falta comprobar si no ha fallado esto !!
             return await db
                 .collection('userData')
@@ -506,14 +583,15 @@ export const getUserDataId = async (userId) => {
 
     if (query.docs.length) {
         return query.docs[0].id;
-        
     } else  { 
         // create collection
-        let userData = {
+        let userCod = {
             coduser: userId,
         }
 
-        let doc = await db.collection('userData').add(userData);
+        let doc = await db.collection('userData').add(userCod);
+
+        console.log('DOCUMENT',doc)
         return doc.id;
     }
 }
@@ -656,9 +734,10 @@ const getUserDoneContent = async (docId) => {
         let query = await db
             .collection('userData')
             .doc(docId)
-            .collection('doneContent');
+            .collection('doneContent')
+            .get();
 
-        if (query.docs &&  query.docs.length) {
+        if (query.docs && query.docs.length) {
             for (var doc of query.docs) {
                 doneContent.push(doc.data());
             }

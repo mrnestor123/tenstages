@@ -54,7 +54,7 @@ function Grid() {
 function Row() {
     return {
         view: (vnode) => {
-            return m(".uk-width-1-1", vnode.attrs, vnode.children)
+            return m(".uk-width-1-1.uk-flex.uk-flex-row", vnode.attrs, vnode.children)
 
         }
     }

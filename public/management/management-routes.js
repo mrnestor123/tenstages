@@ -1,4 +1,5 @@
 import { Button, Column, Flex, Grid, Icon, Padding, Section } from "../components/components.js"
+import { LoginInput, LoginPage } from "../components/tenstages-components.js"
 import { maincolor } from "../models/configuration.js"
 import { isLoggedIn, user } from "../models/models.js"
 import { AdminManagement, EmailTool,SettingsPage, ExplorePage, StagesManagement } from "./admin-management.js"
@@ -93,6 +94,7 @@ function Layout(){
     //  HABRÁ QUE SACARLA EN  EL ONINIT
     let route;
 
+
     let teacherRoutes = [
         {
             'name':'My content',
@@ -146,6 +148,7 @@ function Layout(){
         }
     ]
 
+    let role; 
 
     function Sidebar() {
         return {
@@ -225,20 +228,21 @@ function Layout(){
             if(!route){
                 route = teacherRoutes[0]
             }
-
-            console.log('selectedRoute')
-
+            
             isLoggedIn().then((res)=>{
-                console.log('logged in ',user)
-                m.redraw()
+                if(user && user.coduser){
+                    localStorage.setItem('meditationcod',JSON.stringify({'coduser':user.coduser, 'role':user.role}))
+                    m.redraw()
+                }
             })
         },
         view:(vnode)=> {
+            console.log('user', user);
             return [
                 //m(NavBar),
                 
                 // damos por  hechoque está logueado
-                user.codUser || true ? [
+                user.coduser  ? [
                     m(Grid,
                         m(Column,{width:'1-6',style:"background:#f2f2f2"},
                             m(Sidebar)
@@ -254,7 +258,8 @@ function Layout(){
                                 ),
 
                                 m("div",{style:"height:20px"}),
-
+                                
+                                // si no está logueado
                                 //m(Section, { style:"background-color:white;height:100vh;padding:20px;margin:25px;border-radius:20px"},
                                 vnode.children.map((child) => {
                                     return m("main", m(child, vnode.attrs))
@@ -262,7 +267,7 @@ function Layout(){
                             )
                         )
                     )
-                ] : null
+                ] : m(LoginPage)
             ]
         }
     }

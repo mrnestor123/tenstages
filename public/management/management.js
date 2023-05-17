@@ -6,6 +6,7 @@ import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Cont
 import { showAlert } from '../components/dialogs.js'
 import { FileExplorer, ImageSelector, InfoText, showFileExplorer } from '../components/management-components.js'
 import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker, Path } from '../components/tenstages-components.js'
+import { Content } from '../models/content.js'
 import { stagenumbers, types, user } from '../models/models.js'
 import { isAdmin, isGame, isLesson, isMeditation, isVideo } from '../util/helpers.js'
 import { DefaultText, FormLabel, Header, Header3, SubHeader } from '../util/texts.js'
@@ -616,12 +617,20 @@ function ContentManagement() {
                                         })
                                     ),
                                     m(Column, {width:'1-1'},
+                                        m(FormLabel, "Short Description"),
+                                        m(TextEditor,{
+                                            data:data,
+                                            name:'shortDescription'
+                                        })
+                                    ),
+                                    m(Column, {width:'  '},
                                         m(FormLabel, "Description"),
                                         m(TextEditor,{
                                             data:data,
                                             name:'description'
                                         })
                                     ),
+                                    /*
                                     m(Column,{width:'1-2'},
                                         m(FormLabel, "Why do we  do it?"),
                                         m(TextEditor,{
@@ -636,7 +645,7 @@ function ContentManagement() {
                                             data:data,
                                             name:'distraction'
                                         })
-                                    ),*/
+                                    ),
                                     m(Column,{width:'1-2'},
                                         m(FormLabel, "When to move on?"),
                                         m(TextEditor,{
@@ -650,7 +659,7 @@ function ContentManagement() {
                                             data:data,
                                             name:'moveon'
                                         })
-                                    ),
+                                    ),*/
                                     
                                 )
                             )
@@ -698,7 +707,6 @@ function ContentManagement() {
             
         }
 
-
         return {
             view:(vnode)=>{
 
@@ -723,6 +731,12 @@ function ContentManagement() {
 
                         return m(Column,{width:'1-3'},m(Card, 
                             m(CardMedia,
+                                isEditing ?  
+                                m(Button,{
+                                    onclick:(e)=>{
+                                        showFileExplorer({'type': 'image', data:technique, name: "image"})
+                                    }
+                                }, "PRESS TO CHANGE"):
                                 m(ImagePicker, { data: technique, name: "image", id: `text-images-slider-${index}`
                                 /*onchange:(image)=>{
                                     console.log('changing image',image)
@@ -739,12 +753,28 @@ function ContentManagement() {
                                 
                                 }, m("h3",technique.title)),
 
+
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'shortDescription',
+                                    isEditing: editingindex == index
+                                },  m("p", m.trust(technique.shortDescription))),
+
                                 m(EditableField,{
                                     data:technique,
                                     name:'description',
                                     type:'html',
                                     isEditing: editingindex == index
                                 },  m("p", m.trust(technique.description))),
+
+
+                                m(EditableField,{
+                                    data:technique,
+                                    name:'isDistraction',
+                                    type:'checkbox',
+                                    isEditing: editingindex == index
+                                },  m("p", technique.isDistraction ? 'Distraction' : 'Not Distraction')),
+
 
                                 m(Grid,
                                     m(Column,{width:'1-2'},
@@ -757,26 +787,19 @@ function ContentManagement() {
                                     },m("strong", technique.startingStage))),
 
 
-                                    m(Column,{width: '1-2'}, 
-                                        m("h4", "Ending stage"),
-                                        m(EditableField,{
-                                        data:technique,
-                                        name:'endingStage',
-                                        type:'number',
-                                        isEditing: editingindex == index
-                                    },m("strong", technique.endingStage))),
-
+                                  
                                     m(Column,{width: '1-2'},
                                         m("h4", "Position"),
-                                    m(EditableField,{
-                                        data:technique,
-                                        name:'position',
-                                        type:'number',
-                                        isEditing: editingindex == index
-                                    }, m("strong", technique.position)))
+                                        m(EditableField,{
+                                            data:technique,
+                                            name:'position',
+                                            type:'number',
+                                            isEditing: editingindex == index
+                                        }, m("strong", technique.position))
+                                    )
                                 )
                             ),
-                            
+                                    /*
                             m(CardBody,
                                 m(Grid,
                                     m(Column,{width:isEditing  ? '1-1': '1-2'},
@@ -799,7 +822,7 @@ function ContentManagement() {
                                             type:'html',
                                             isEditing: editingindex == index,
                                         }, m("p",m.trust(technique.distraction))),
-                                    ),*/
+                                    ),
 
                                     m(Column,{width:isEditing  ? '1-1': '1-2'},
                                         m("h4", "When to move on?"),
@@ -824,7 +847,7 @@ function ContentManagement() {
                                     ),                                        
                                 )
                                 
-                            ),
+                            ),*/
 
                             m(CardFooter,
                             editingindex != index ?[
@@ -2346,7 +2369,19 @@ function EditCreateContent() {
                                         }
                                     )
                                 ) : null,
+                                
+                                
+                                
+                                content.stagenumber == 'none' ?  
+                                m(Column, { width: '1-4' },
+                                    m(FormLabel, "Position"),
+                                    m(TextField,{data:content,name:'position',type:'number'})
+                                ):null
+                                
                                 )
+
+
+
                             ), 
                                             
                         m("div",{style:"height:20px"}),
@@ -2383,8 +2418,13 @@ function EditCreateContent() {
                                 m("li",{class: !showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo = false}, m("a","Help text"))
                             ),
 
-                            showingBasicInfo ? 
-                            m(TextEditor, { data: data[name], name: "text", type: "textarea", rows: 6}):   
+                            showingBasicInfo ? [
+                                data[name] && data[name].image ? [
+                                    m(FormLabel, "Color (hexadecimal, is for the image)"),
+                                    m(TextField,{data:data[name], name:'imagecolor'})
+                                ]:null,
+                                m(TextEditor, { data: data[name], name: "text", type: "textarea", rows: 6})   
+                            ]:
                             m(TextEditor, {data:data[name], name:'help',rows:6}),
                             
                         ),
@@ -2533,49 +2573,44 @@ function EditCreateContent() {
         },
         view: (vnode) => {
             return content.title || isNew ? [
-                m(InfoText,{
-                    subtitle:'Add and edit content inside the app. It can be a meditation practice, a lesson, a video, an article or a recording.',
-                }),
+                
+                m(Section, {style:"margin-bottom:20px;"},
+                    m(Grid,{},
+                        m(Column,{width:'1-6'},
+                            m("ul.uk-tab-left",{'uk-tab':true, style:"min-height:50vh;"},
+                                // link that goes to basic info and changes the showing parameter
+                                m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
 
-                m(Container, {size:'large'},
-                    m(Padding,{onlyTop:true},
-                        m(Grid,{},
-                            m(Column,{width:'1-6'},
-                                m("ul.uk-tab-left",{'uk-tab':true, style:"min-height:50vh;"},
-                                   // link that goes to basic info and changes the showing parameter
-                                   m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
-
-                                    // link that goes to content and changes the showing parameter
-                                    
-                                    content.type =='article' ? 
-                                    m("li", {
-                                            class:showing == article_texts ? 'uk-active' : '', 
-                                            onclick:(e)=> {showing = article_texts}
-                                        },m("a", "Write article")
-                                    )
-                                    : [
-                                    
-                                    m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
-
-
-                                    
-                                    content.type == 'lesson' ? null  :
-                                    m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
-                                    ]
+                                // link that goes to content and changes the showing parameter
+                                
+                                content.type =='article' ? 
+                                m("li", {
+                                        class:showing == article_texts ? 'uk-active' : '', 
+                                        onclick:(e)=> {showing = article_texts}
+                                    },m("a", "Write article")
                                 )
-                            ),
-                            m(Column,{width:'5-6'},
-                                showing == basic_info ?
-                                m(BasicInfo): 
-                                showing == texts ? 
-                                m(Texts):
-                                showing == article_texts ?
-                                m(ArticleTexts):
-                                m(File)
-                            ),
-                            m("div",{style:"height:200px"}),
+                                : [
+                                
+                                m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
+
+
+                                
+                                content.type == 'lesson' ? null  :
+                                m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
+                                ]
+                            )
                         ),
-                    )
+                        m(Column,{width:'5-6'},
+                            showing == basic_info ?
+                            m(BasicInfo): 
+                            showing == texts ? 
+                            m(Texts):
+                            showing == article_texts ?
+                            m(ArticleTexts):
+                            m(File)
+                        ),
+                        m("div",{style:"height:200px"}),
+                    ),
                 ),
 
                 m(Section,{style:"position:fixed;bottom:0px;left:0px;right:0px;padding:2em;display:flex;justify-content:end; align-items:end;", type:'secondary'},
@@ -2619,7 +2654,7 @@ function EditCreateContent() {
 
 
 
-                                json.createdBy = user.codUser
+                                json.createdBy = user.coduser
                                 
                                 addContent(json);
                                 //document.getElementById('closemodalmed').click();
@@ -3748,14 +3783,19 @@ function TeacherManagement(){
 // ESTO SERÁ CONTENT
 function MyContent(){
     let content = []
-    let loadedContent = false;
-    let selectedContent = {}
-    let stage = 1
     let filter = {
         'stage':1,
         'type':'all'
     }
 
+
+    function filterContent(c){
+        if(filter.type == 'all'){
+            return c.stagenumber == filter.stage
+        }else{
+            return c.type == filter.type && c.stagenumber == filter.stage
+        }
+    }
 
     function FilterContent(){
 
@@ -3769,14 +3809,14 @@ function MyContent(){
                                 m(FormLabel, 'Stage'),
                                 m(Select,{
                                     data:filter,
-                                    name:'stage'
+                                    name:'stage',
                                 }, stagenumbers),
                             ),
                             
                             m("div",{style:"width:20px"}),
 
                             m(Flex,{direction:'column'},
-                                m(FormLabel, 'Type of content'),
+                                m(FormLabel,'Type of content'),
                                 m(Select,{
                                     data:filter,
                                     name:'type'
@@ -3807,15 +3847,19 @@ function MyContent(){
     
     return{
         oninit:(vnode)=>{
-            if(user.isAdmin()){
+            if(user.isAdmin() || true){
                 getAllContent().then((res)=>{
-                    content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
-                    console.log('got all content', user,res)
+                    res.sort((a,b)=> !a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                        .map((c)=>content.push(new Content(c)))
+                    
+                        console.log('CONTENT',content)
                     m.redraw()
                 })
             }else{
                 getTeachersContent(localStorage.getItem('meditationcod')).then((res)=>{
-                    content = res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                    res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
+                        .map((c)=>content.push(new Content(c)))
+
                     loadedContent = true;
                     m.redraw()
                     console.log(content)
@@ -3839,7 +3883,7 @@ function MyContent(){
                     m(Section,
                         m(Grid,{match:true},
 
-                            content.filter((c)=> c.stagenumber == stage || stage == 'none').map((item)=>{
+                            content.filter((c)=> filterContent(c)).map((item)=>{
                                 return m(Column,{width:'1-3'},
                                     m(ContentCard,{
                                         content:item

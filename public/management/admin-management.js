@@ -1,10 +1,10 @@
 import { Button, Column, Flex, Grid, Section, TextField,  Card, CardMedia, CardHeader, CardBody, Select, Icon, CardFooter, Container, Padding, Row, Modal, ModalBody, ModalHeader, ModalFooter, TextEditor } from "../components/components.js"
-import { api_get } from "../util/util.js"
+import { api_get, create_UUID } from "../util/util.js"
 import * as htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm';
-import { ImageSelector, InfoText } from "../components/management-components.js";
+import { ImageSelector, InfoText, showFileExplorer } from "../components/management-components.js";
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
 import { FormLabel, Header3 } from "../util/texts.js";
-import { getAllContent, getSettings, getStages, updateContent, updateStage, getSections } from "../api/server.js";
+import { getAllContent, getSettings, getStages, updateContent, updateStage, getSections, updateSection, updateSettings, getTeachers, addSection } from "../api/server.js";
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -170,6 +170,8 @@ function ExplorePage(){
     // DE MOMENTO SACAMOS TODO EL CONTENIDO QUE NO TENGA STAGENUMBER !!!
     let content = []
 
+    let teachers = []
+
     let editing = false;
 
     function AddSection(){
@@ -185,10 +187,10 @@ function ExplorePage(){
                         style:"margin-top:20px",
                         type:'primary',
                         onclick:(e)=>{
-                                addingSection = !addingSection;
-                            }
-
+                            addingSection = !addingSection;
+                        }
                     }, "Add section"),
+
                     addingSection 
                         ? m(Section,{type:'muted'},
                             m(Padding,
@@ -211,17 +213,17 @@ function ExplorePage(){
                                     
                                 ),
                                 m(Row,
-                                m(Button,{
-                                    type:'secondary',
-                                    onclick:(e)=>{
-                                        if(data.title && data.description){
-                                            addingSection = false;
-                                            data.cod = create_UUID()
-
-                                            addSection(data)
+                                    m(Button,{
+                                        type:'secondary',
+                                        onclick:(e)=>{
+                                            if(data.title && data.description){
+                                                addingSection = false;
+                                                data.cod = create_UUID()
+                                                sections.push(data)
+                                                addSection(data)
+                                            }
                                         }
-                                    }
-                                }, "Add section")
+                                    }, "Add section")
                                 )
                             ))
                         )
@@ -250,8 +252,7 @@ function ExplorePage(){
                             data:section,
                             name:'title',
                             isEditing:isEditing
-                        },m("h3", section.title)
-                        ),    
+                        },m("h3", section.title)),
                     ),
                     m(CardBody,
                         m(EditableField,{
@@ -260,14 +261,19 @@ function ExplorePage(){
                             isEditing:isEditing
                         },m("h3", section.description)),
 
+                        m(Select,{
+                            data:section,
+                            name:'createdBy',
+                            isEditing:isEditing
+                        }, teachers.map((e)=>{return{'value':e.coduser,'label':e.nombre || e.username}})),
+
                         section.content ?
                         m(Grid,
-                            section.content.map((c,i)=>{
+                            section.content.sort((a,b)=> a.position - b.position).map((c,i)=>{
                             return isEditing 
                                 ? m("div",{style:"font-weight:bold;margin-right:10px;"},
                                     c.title,
                                     // delete button
-                                    isEditing ?
                                     m(Icon,{
                                         icon:'delete',
                                         style:"cursor:pointer;",
@@ -275,10 +281,23 @@ function ExplorePage(){
                                         onclick:(e)=>{
                                             section.content.splice(i,1)
                                         }
-                                    }, "Delete")
-                                    : null
+                                    }, "Delete"),
+                                    
+                                    m(TextField,{
+                                        data:c,
+                                        placeholder:'Position',
+                                        name:'position',
+                                        type:'number',
+                                    }),
+                                    m(Button,{
+                                        type:'secondary',
+                                        onclick:(e)=>{
+                                            updateContent(c)
+                                        }
+                                    }, "Save content")
                                 )  
                                 :  m(Column,{width:'1-2'},
+
                                 m(ContentCard,{
                                     content:c
                                 }))
@@ -360,26 +379,21 @@ function ExplorePage(){
             })
 
             getAllContent().then((res)=>{
-                content = res.filter((item)=>!item.stagenumber)
+                content = res
+            })
 
-                console.log('content',content)
+            getTeachers().then((res)=>{
+                teachers = res
             })
         },
         view:(vnode)=>{
             return [
-                /*m(InfoText,{
-                    title: 'Explore page',
-                    subtitle: 'Here you can see all the additional content that is available inside the app. You can also search for specific content.'
-                }),*/
 
                 // cuando se ocurra una solución sencilla le daré un vistazo
                 m(Section,
                     m(AddSection),
-
                     m("div",{style:"height:20px"}),
-
                     m(Header3, 'Sections'),
-
                     m(Grid,{match:true},
                         sections.map((s)=>{
                             return m(Column,{width:'1-2'},
@@ -387,7 +401,6 @@ function ExplorePage(){
                             )
                         })
                     )
-                
                 )
             ]
         }
@@ -396,20 +409,8 @@ function ExplorePage(){
 }
 
 function SettingsPage(){
+
     let settings = {}
-
-    let text= `<p>I studied computer science for 5 years, I had my life 'solved' while working at my family business. And got hooked in the loop of adult life with no ambitions, no expectation, no goals. I was just going through what was I thought was life. </p>
-    <br>
-    
-    
-    <p>Going through a dark period, I found meditation as a way to help me sleep better. After sleeping soundly, I got hooked up and started reading more about meditation.\n\nI found TMI and it helped me progress so much in my meditation practice. I started to see the world in a different way. </p> <br> 
-    
-    
-    <p>I am not a guru, I am not a teacher, I am not a monk. I am just a regular guy who found a way to live a better life. I hope this app can help you too. </p>
-    
-    <p> TOADD IMAGE </p>
-    `
-
     
     return {
         oninit:(vnode)=>{
@@ -420,13 +421,20 @@ function SettingsPage(){
         },
         view:(vnode)=>{
             return [
-                /*  
-                m(InfoText,{
-                    title:'Settings',
-                    description:'Edit the text settings for the app'
-                }),*/
-
                 m(Section,
+                    m(Column,{width:'3-3'},
+                        m(Button,{
+                            style:"width:100%",
+                            type:'primary',
+                            onclick:(e)=>{
+                                updateSettings(settings).then((res)=>{
+                                    //console.log(res)
+                                    //alert('Settings updated')
+                                })
+                            }
+                        }, "Save settings")
+                    ),
+                    
                     m("h3", "Texts for the app"),
                         
                     m(Grid,
@@ -442,29 +450,132 @@ function SettingsPage(){
                             m(TextEditor,{
                                 data:settings,
                                 name:'aboutApp'
-                            })
-                        ),
-                        m(Column,{width:'1-2'},
-                        
-                        
-                            m(Button,{
-                                style:"width:100%",
-                                type:'primary',
-                                onclick:(e)=>{
-                                    updateSettings(settings).then((res)=>{
-                                        console.log(res)
-                                    })
-                                }
-                            }, "Save")
+                            }),
+
+
+                            m("div",{style:"height:10px"}),
+
+                            m(FormLabel, "REQUIRED UPDATE"),
+                            m(TextField,{
+                                type:'checkbox',
+                                data:settings,
+                                name:'requiredUpdate'
+                            }),
+
+                            m("div",{style:"height:10px"}),
+
+                            m(FormLabel, "Version"),
+                            m(TextField,{
+                                type:'number',
+                                data:settings,
+                                name:'version'
+                            }),
                         )
                     )
                 ),
 
                 m(Section,{style:"margin-top:20px"},
                     m(Grid,
-                        m("h3", "Introduction text")
+                        m(Row,m("h3", "Introduction text"),
+
+                        m(Button,{
+                            type:'secondary',
+                            style:"margin-left:20px;",
+                            onclick:(e)=>{
+                                if(!settings.introSlides){
+                                    settings.introSlides = []
+                                }
+
+                                settings.introSlides.push({
+                                    'text':'',
+                                    'image':''
+                                })
+                            }
+                        },"Add slide")
+                        ),
+
+                        settings.introSlides ?
+                        settings.introSlides.map((slide,i)=>{
+                            return m(Column,{width:'1-3'},
+                                m(Card,
+                                    m(CardMedia,
+                                        m(ImageSelector,{
+                                            data:settings.introSlides[i],
+                                            name:'image'
+                                        })    
+                                    ),
+                                    m(CardBody,
+
+                                        m("h4", "Slide "+(i+1)),
+                                        m(FormLabel,"Title"),
+                                        m(TextField,{
+                                            data:settings.introSlides[i],
+                                            name:'title'
+                                        }),
+
+                                        m(FormLabel, "DEscription"),
+                                        m(TextEditor,{
+                                            data:settings.introSlides[i],
+                                            name:'text'
+                                        })
+                                    ),
+                                    m(CardFooter,
+                                        m(Button,{
+                                            type:'danger',
+                                            onclick:(e)=>{
+                                                settings.introSlides.splice(i,1)
+                                            }
+                                        }, "Delete slide")
+                                    )
+                                )
+                            )
+                        }): null,
+                        
+                        
+
+
 
                     )    
+                ),
+
+                m(Section,{style:"margin-top:10px"},
+                    m(Button,{onclick:(e)=>{
+                        if(!settings.menu){
+                            settings.menu = [{'title':'','text':''}]
+                        }else{
+                            settings.menu.push({'title':'','text':''})
+                        }
+                    }},"ADD ITEM TO SETTINGS PAGE"),
+                    m("div",{style:"height:20px"}),
+                    m(Grid,
+                        m(Column,{width:'1-3'},
+                        m(TextField,{
+                            data: settings,
+                            name:'teachersText',
+                            label:'Teachers text'
+                        })),
+
+                        settings.menu ? 
+                        settings.menu.map((item)=> {
+                            return m(Column,{width:'1-3'},
+                                m(Card,
+                                    m(TextField,{
+
+                                        data:item,
+                                        name:'title'
+                                    }),
+                                    m(TextEditor,{
+                                        data:item,
+                                        name:'text'
+                                    })
+                                )
+                            )
+                        }): null,
+                        
+                        
+                    )    
+                    
+                    
                 )
             ]
         }
@@ -480,7 +591,7 @@ function StagesManagement(){
         stagenumber:1
     }
 
-    // LAS  LECCIONES  DE LA ETAPA
+    // LAS LECCIONES  DE LA ETAPA
     function StagePath(){
         let isEditing = false;
         let theory = []
@@ -528,7 +639,6 @@ function StagesManagement(){
                 }
             }
 
-
             return {
                 view:(vnode)=>{
                     let {items, header} = vnode.attrs
@@ -553,10 +663,7 @@ function StagesManagement(){
 
         function AddContentToPath(){
 
-
-            let  toAdd = {'content':'','position':'','path':'theory'}
-
-
+            let toAdd = {'content':'','position':'','path':'theory'}
             let paths = ['Theory','Practice']
 
             return {
@@ -626,8 +733,6 @@ function StagesManagement(){
         return {
             view:(vnode)=>{
                 let selectedStage = stages.find((s)=> s.stagenumber == filter.stagenumber) 
-
-
                 // hay que aprender la comprobación exacta con meditation
                 theory = contentList.filter((c)=> c.type && !c.type.match('meditation-practice|meditation-game') && c.stagenumber == filter.stagenumber && c.position !=null)
                 practice = contentList.filter((c)=>  c.type && c.type.match('meditation-practice') && c.stagenumber == filter.stagenumber && c.position != null)
@@ -643,7 +748,6 @@ function StagesManagement(){
                     }, "Add Content to path"),
 
                     m(Modal,{id:'addContent',center: true},
-                   
                         m(AddContentToPath)
                     ),
 
@@ -670,10 +774,14 @@ function StagesManagement(){
                             m(CardMedia,{
                                 position:'left'
                             },  
-                                m("div", {style:"background-color:white;border-radius:10px;padding:0.5em;margin-left:10px;"},
+                                m("div", {
+                                    style:"background-color:white;border-radius:10px;padding:0.5em;margin-left:10px;",
+                                    onclick:()=>{
+                                        showFileExplorer({data:selectedStage, name:'shortimage'})
+                                    }
+                                },
                                     m("img",{src: selectedStage.shortimage, style:"width:100%;height:auto;object-fit:contain;"}),
                                 )
-                                //m("canvas",{width:600,height:400})
                             ),
 
                             m(Header3,{style:"text-align:center"}, "Stage " + selectedStage.stagenumber),
@@ -695,16 +803,13 @@ function StagesManagement(){
                         
                         m(Column,{width:'4-5'},
                             m(CardBody,
-
-                                m("strong","Goals"),m("br"), 
+                                m("strong","Stage summary"),m("br"), 
                                 m(EditableField,{
                                     type:'html',
                                     isEditing:isEditing,
                                     data:selectedStage,
-                                    name:'whenToAdvance'
-                                },
-                                    m("p", m.trust(selectedStage.longdescription)),
-                                ),
+                                    name:'longdescription'
+                                },m("p", m.trust(selectedStage.longdescription))),
 
                                 m("strong","When To advance"),m("br"), 
                                 m(EditableField,{
@@ -712,9 +817,15 @@ function StagesManagement(){
                                     isEditing:isEditing,
                                     data:selectedStage,
                                     name:'whenToAdvance'
-                                },
-                                    m("p", m.trust(selectedStage.whenToAdvance)),
-                                ),
+                                },m("p", m.trust(selectedStage.whenToAdvance))),
+
+                                m("strong", "Objectives"), m("br"),
+                                m(EditableField,{
+                                    type:'html',
+                                    isEditing:isEditing,
+                                    data:selectedStage,
+                                    name:'goals'
+                                }, m("p",m.trust(selectedStage.goals))),
 
                                 // Summary 
                                 m("strong"," Practice Summary"),m("br"),
@@ -723,9 +834,7 @@ function StagesManagement(){
                                     isEditing:isEditing,
                                     data:selectedStage,
                                     name:'practiceSummary'
-                                },  
-                                    m("p",m.trust(selectedStage.practiceSummary))
-                                )
+                                },  m("p",m.trust(selectedStage.practiceSummary)))
                             ),
                         
                         )

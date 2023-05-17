@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "the-mind-illuminated-32dee"
-  }
+    "default": "the-mind-illuminated-32dee",
+    "development": "the-mind-illuminated-32dee"
+  },
+  "targets": {},
+  "etags": {}
 }

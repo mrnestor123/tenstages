@@ -5,16 +5,52 @@ export const getStages = async () => {
     try {
         let stages = [];
         let query = await db.collection('stages').get();
+        let allContent = await getStagesContent();
+
+        let users = {};
 
         if (query.docs.length) {
             for (var doc of query.docs) {
                 let stage = doc.data();
-                await populateStage(stage);
+                
+                stage.meditations = [];
+                stage.games = [];
+                stage.videos = [];
+                stage.lessons = [];
+
+                for (var content of allContent.filter((c)=>  c.stagenumber ==  stage.stagenumber)) {
+                    // TODO ESTO PODRÍA SER LO MISMO !!!
+                    if (content['createdBy'] != null) {
+                        let user = users[content['createdBy']] ? users[content['createdBy']] : await getUser(content['createdBy']);
+                        users[user.coduser] = user;
+                        content['createdBy'] = {};
+                        content['createdBy'].nombre = user.nombre;
+                        content['createdBy'].image = user.image;
+                        content['createdBy'].coduser = user.coduser;
+                    }
+                        
+                    switch (content['type']) {
+                        case 'meditation-practice':
+                            stage.meditations.push(content);
+                            break;
+                        case 'meditation-game':
+                            stage.games.push(content);
+                            break;
+                        case 'video':
+                            stage.videos.push(content);
+                            break;
+                        default:
+                            stage.lessons.push(content);
+                            
+                    }
+                }
+
                 stages.push(stage);
             }
         }
 
         stages.sort((a, b) => a.stagenumber - b.stagenumber);
+
         return stages;
     } catch (err) {
         throw new Error(err);
@@ -42,6 +78,27 @@ export const getStage = async (stageNumber, expand) => {
         throw new Error(err);
     }
 };
+
+
+const getStagesContent = async () => {
+    let query = await db.collection('content').where('stagenumber','!=', null).get();
+
+    let content = [];
+
+
+    if(query.docs.length){
+        for(let doc of query.docs){
+            let c = doc.data()
+            if(c.position  != null || c.type == 'meditation-game'){
+                content.push(doc.data());
+            }
+        }
+    }
+
+    return content
+
+
+}
 
 const populateStage = async (stage) => {
     try {

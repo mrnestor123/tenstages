@@ -1,11 +1,12 @@
 import express from 'express';
 import { getChat, getUserChats, sendMessage } from '../controllers/messagesController.js';
+import { isVerified } from '../app.js';
 
 const router = express.Router();
 
 // Get user messages
 // HAY QUE QUITAR EL NEW EN  EL FUTURO !!!!
-router.get('/:userId/new', async (req, res) => {
+router.get('/:userId/new', isVerified, async (req, res) => {
     try {
         const userId = req.params.userId;
         let messages = await getUserChats(userId);
@@ -19,7 +20,7 @@ router.get('/:userId/new', async (req, res) => {
 
 // Get chat
 
-router.get('/:sender/:receiver/new', async (req, res) => {
+router.get('/:sender/:receiver/new', isVerified, async (req, res) => {
     try {
         const sender = req.params.sender;
         const receiver = req.params.receiver;
@@ -33,7 +34,7 @@ router.get('/:sender/:receiver/new', async (req, res) => {
 
 });
 
-router.post('/sendmessage', async (req, res) => {
+router.post('/sendmessage', isVerified, async (req, res) => {
     try {
         const message = req.body;
         

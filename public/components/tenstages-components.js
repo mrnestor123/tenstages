@@ -1,9 +1,9 @@
 
 import { stagenumbers, types, user } from '../models/models.js';
-import { addContent, addPath, getFiles, updatePath } from '../api/server.js';
+import { addContent, addPath, getFiles, login, updatePath } from '../api/server.js';
 import { FormLabel, Header2, SubHeader } from '../util/texts.js';
 import { create_UUID, dia, FileUploader, hora } from '../util/util.js';
-import { Button, Card, CardBody, CardHeader, CardMedia, Column, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
+import { Button, Card, CardBody, CardHeader, CardMedia, Column, Flex, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
 
 //explicar como se utiliza para el futuro
 
@@ -370,7 +370,9 @@ function ContentCard(){
                             }
                         },"Edit"),
                         
-                    )
+                    ),
+
+                    vnode.children
                 )
             ]
         }
@@ -531,7 +533,7 @@ function ContentEdit(){
 
 
 
-                                    json.createdBy = user.codUser
+                                    json.createdBy = user.coduser
                                     
                                     addContent(json);
                                     document.getElementById('closemodalmed').click();
@@ -1026,6 +1028,63 @@ function LoginInput() {
     }
 }
 
+function LoginPage() {
+    let data = {}
+    let errorMsg;
+
+    async function log({type, email, password}){
+
+        var result = await login({type:type, email:email, password:password})
+        
+        if(result.user || result.uid) {
+            
+            let uid = result.uid || result.user.uid
+            console.log('meditationcod', uid)
+            localStorage.setItem('meditationcod',JSON.stringify({'coduser': uid})) // ?????? QUE COJONES ?????? :)
+         // user  = await getUser(result.uid)
+            location.reload()
+        } else {
+            errorMsg = result;
+            console.log("error login", errorMsg)
+        }
+    }
+
+    return {
+        oninit: () => { window.scrollTo(0,0) },
+        view: () => {
+            return [
+                m("div",{
+                    style:"background:#f1f1f1; padding:2em;"
+                }, m("h1", "You need  to be logged in to access the management system")
+                ),
+                m("div", { style: "background-image:url('./assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
+                    m(Card, {type:"default", style:"border-radius:16px"}, [
+                        m(CardBody, {}, [
+                            m("h2", {style:"text-align:center; margin-bottom:25px"}, "Login"),
+                            m("form", { onsubmit: (e) => { e.preventDefault(); } },
+                                m(LoginInput, { label:'Email', type: "input", data: data, name: "email", id:"email"}),
+                                m(LoginInput, { label: "Password", type: "password", name: "password", id: "password", data: data }),
+                                m(".", {style: "margin-bottom:15px;"}, m("a", {href: "/forgot-password"},"Forgot your password?")),
+                                m(Flex, {direction:"row"}, [
+                                    m(Button, { style: "border-radius:20px;padding:0px 10px;height:48px;width:100%;", type: "primary", onclick: () => { login(); } }, "Login with email"),
+                                    m(Button, { onclick: () => log({type:'google'}), style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
+                                        m("img", {src:"./assets/icons8-google.svg"})
+                                    ]),
+                                    // m(Button, { style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
+                                    //     m("img", {src:"./assets/icons8-facebook.svg"})
+                                    // ]),
+                                ]),
+                                //m(".", {style: "margin-top:15px;"}, "First time here? ", m("a", {href: "/register"}, "Register for free!")),
+                            )
+                        ])
+                    ])
+                ]),
+                
+            ]
+        }
+    }
+}
+
 export {
     MeditationSlide,
     LessonSlide,
@@ -1042,6 +1101,7 @@ export {
     AddPath,
     Path,
     AddCourse,
-    LoginInput
+    LoginInput,
+    LoginPage
 };
 

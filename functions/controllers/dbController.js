@@ -1,5 +1,6 @@
 import { db } from '../app.js';
 import { getStages } from './stagesController.js';
+import { getUser } from './usersController.js';
 
 //AQUÍ SACAMOS LOS CURSOS  O LAS  VERSIONES  DE LA APP !!! EL CONTENIDO DE LA APP NUEVO ? ?
 export const getVersions = async () => {
@@ -59,40 +60,57 @@ export const getCourses = async () => {
 export const getDB = async () =>{
 
     // SACAMOS LOS DATOS
-
     return new Promise(async (resolve, reject) => {
         try {
             let db = {};
-            let promises = [];
 
-            // asi se hacen concurrentemente
-            promises.push(getVersions());
+            console.time('VERSIOONS')
+            db.versions = await getVersions();
+            console.timeEnd('VERSIONS')
 
-            promises.push(getCourses());
+            console.time('stages')
+            db.stages = await getStages();
+            console.timeEnd('stages')
 
-            promises.push(getStages());
+            console.time('settings')
+            db.settings = await getSettings();
+            console.timeEnd('settings')
 
-            promises.push(getSettings());
+            console.time('sections')
+            db.sections = await getSections();
+            console.timeEnd('sections')
 
-            promises.push(getSections());
+
+            // PODRÍAMOS SACAR MENOS COSAS ??
+            resolve(db);
+
+            
+            /*// asi se hacen llamadas asíncronas
+            promises.push();
+
+            promises.push();
+
+            promises.push();
+
+            promises.push();
 
             // las tecnicas deberían de estar dentro de la stage
-            promises.push(getTechniques());
+            //promises.push(getTechniques());
 
-            promises.push()
 
             Promise.all((promises)).then((values) => {
-                db.versions = values[0];
-                db.courses = values[1];
-                db.stages = values[2];
-                db.settings = values[3];
-                db.sections = values[4];
-                db.techniques = values[5];
+                
+                console.log('DATA'.db)
 
-                resolve(db);
-            })
+                
+                //db.courses = values[1];
+                //db.techniques = values[5];
+
+                
+            })*/
             
         } catch (err) {
+            console.log('ERR',err)
             reject(err);
         }
     });
@@ -101,39 +119,49 @@ export const getDB = async () =>{
 
 async function getSections(){
     return new Promise(async (resolve, reject) => {
-        let query = await db.collection('sections').get();
-        let sections = [];
+        try {
+            let query = await db.collection('sections').get();
+            let sections = [];
 
-        if(query  && query.docs && query.docs.length){
-            
-            let promises =  []
-            for(let doc of query.docs){
-                let section = doc.data();
-                if(section.content){
-                    promises.push(db.collection('content').where('cod','in',section.content).get());
-                }
-                sections.push(section);
-            }
+            if(query && query.docs && query.docs.length){
+                let promises = []
+                
+                for(let doc of query.docs){
+                    let section = doc.data();
 
-
-            Promise.all(promises).then((queries) => {
-                let i = 0
-                for(let query of queries){
-                    let section = sections[i++];
-                    section.content = [];
-                    for(let doc of query.docs){
-                        let content = doc.data();
-                        console.log('content',content)
-                        section.content.push(doc.data());
+                    if(section.content){
+                        promises.push(db.collection('content').where('cod','in',section.content).get());
                     }
-                    i++;
+
+                    if (section['createdBy'] != null) {
+                        let user = await getUser(section['createdBy']);
+                        section['createdBy'] = {};
+                        section['createdBy'].nombre = user.nombre;
+                        section['createdBy'].image = user.image;
+                        section['createdBy'].coduser = user.coduser;
+                    }
+
+                    sections.push(section);
                 }
 
-                console.log('sections',sections)
 
-                resolve(sections)
-            })
+                Promise.all(promises).then((queries) => {
+                    let i = 0
+                    for(let query of queries){
+                        let section = sections[i++];
+                        section.content = [];
+                        for(let doc of query.docs){
+                            section.content.push(doc.data());
+                        }
+                    }
 
+                    resolve(sections)
+                })
+
+        }
+
+        }catch(err){
+            reject(err);
         }
 
     })
@@ -141,7 +169,7 @@ async function getSections(){
 
 
 async function getSettings(){
-    let query = await db.collection('settings').doc('settings').get();
+    let query = await db.collection('settings').get();
 
     if(query  && query.docs && query.docs.length){
         return query.docs[0].data();

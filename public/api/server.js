@@ -17,9 +17,8 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 firebase.analytics();
 
-
-const API =`https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/app`
-// const API = `http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default`
+const API = `https://us-central1-the-mind-illuminated-32dee.cloudfunctions.net/default`
+//const API = `http://localhost:5001/the-mind-illuminated-32dee/us-central1/default`
 //const API = 'http://127.0.0.1:5001/the-mind-illuminated-32dee/us-central1/default'
 
 var db = firebase.firestore()
@@ -296,7 +295,7 @@ async function getAllImages() {
 let cachedimages = {}
 
 // LAS SACA TODAS
-async function getFiles() {
+async function getFiles(coduser) {
     let query =  await db.collection('files').get()
 
     // images serán. bucket y array de urls 
@@ -305,7 +304,7 @@ async function getFiles() {
     for(let file of query.docs){
         let bucket = file.data().bucket
         let urls = file.data().files || file.data().images
-        if(bucket.match(`stage|${localStorage.getItem('meditationcod')}`)){
+        if(bucket.match(`stage|${coduser}`)){
             files[bucket] = urls
         }
     }
@@ -432,6 +431,19 @@ async function getStats(content){
 
     return stats;
 
+}
+
+async function getTeachers(){
+
+    var query = await db.collection('users').where('role','==','teacher').get();
+
+    let teachers = []
+
+    for (let doc of query.docs) {
+        teachers.push(doc.data());
+    }
+
+    return teachers;
 }
 
 
@@ -809,31 +821,17 @@ async function updateSettings(settings){
 
 
 async function getSections(){
-    let query = await db.collection('sections').get()
-    
     let sections = []
+    let url = `${API}/database`
 
-    if(query.docs && query.docs.length){
-        for(var doc of query.docs){
-            sections.push(doc.data())
-        }
+    let res  = await api_get(url)
+
+    if(res.sections){
+        sections = res.sections
     }
 
     return sections;
-        /*
-    let sections = []
-    let url = `${API}/sections`
-
-    let res  = await  api_get(url)
-
-
-    console.log('res',res)
-    if(res.body){
-        sections = res.body
-    }
-
-    return sections;
-    */
+   
 }
 
 
@@ -919,5 +917,6 @@ export {
     deleteUser,
     getSettings,
     updateSettings,
-    addSection
+    addSection,
+    getTeachers
 }

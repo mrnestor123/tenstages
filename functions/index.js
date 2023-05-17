@@ -14,16 +14,15 @@ import { sendMessage } from './controllers/messagesController.js';
 import { normalize_server } from './normalize_server.js';
 
 //PASAR ESTO A UNA VARIABLE DE ENTORNO
-
 const app = express();
 
-//de momento esto no se para que
+//  aceptamos  todas las url cuidadin !!!!
 app.use(
     cors({
         "origin": "*",
         "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
-    }
-));
+    })
+);
 
 app.options('*', cors()) // enable pre-flight request for DELETE request
 app.use(express.urlencoded({extended: true})); 
@@ -33,12 +32,16 @@ app.use('/users', users);
 app.use('/stages', stages)
 app.use('/messages', messages);
 app.use('/requests', requests);
-app.use('/database', dbRoutes);
+app.use('/database',  dbRoutes);
+
+
+
 app.use('/email', emails);
 
 app.get('/', (req, res) => {
     res.send('Conectado correctamente al servidor de tenstages');
 });
+
 
 /*
 *
@@ -69,8 +72,6 @@ app.post('/action/:userId', async  (req, res) => {
 
 app.get('/live/:userId',async (req, res) => {
     try{
-        //console.log('getting actions')
-
         let actions = await getActions(req.params.userId);
 
         //console.log('got actions', actions)

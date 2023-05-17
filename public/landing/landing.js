@@ -13,8 +13,9 @@ function TenStagesNavbar() {
                                 m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto" })),
                                 m("ul.uk-navbar-nav", {}, [
                                     m("li", m("a", { onclick: () => { m.route.set('/') }}, "Home")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
+                                    m("li", m("a", {onclick:()=> m.route.set('/support')}, "Support"))
+                                    //m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
+                                    //m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
                                 ])
                             ),
                             m(".uk-navbar-right",
@@ -149,57 +150,6 @@ function Footer() {
     }
 }
 
-function LoginPage() {
-    let data = {}
-    let errorMsg;
 
-    async function log({type, email, password}){
 
-        var result = await login({type:type, email:email, password:password})
-        
-        if(result.user || result.uid) {
-            
-            let uid = result.uid || result.user.uid
-            console.log('meditationcod', uid)
-            localStorage.setItem('meditationcod', uid) // ?????? QUE COJONES ??????
-         // user  = await getUser(result.uid)
-            location.reload()
-        } else {
-            errorMsg = result;
-            console.log("error login", errorMsg)
-        }
-    }
-
-    return {
-        oninit: () => { window.scrollTo(0,0) },
-        view: () => {
-            return [
-                m("div", { style: "background-image:url('./assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; margin: 95px 0px 0px 0px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
-                    m(Card, {type:"default", style:"border-radius:16px"}, [
-                        m(CardBody, {}, [
-                            m("h2", {style:"text-align:center; margin-bottom:25px"}, "Login"),
-                            m("form", { onsubmit: (e) => { e.preventDefault(); } },
-                                m(LoginInput, { label:'Email', type: "input", data: data, name: "email", id:"email"}),
-                                m(LoginInput, { label: "Password", type: "password", name: "password", id: "password", data: data }),
-                                m(".", {style: "margin-bottom:15px;"}, m("a", {href: "/forgot-password"},"Forgot your password?")),
-                                m(Flex, {direction:"row"}, [
-                                    m(Button, { style: "border-radius:20px;padding:0px 10px;height:48px;width:100%;", type: "primary", onclick: () => { login(); } }, "Login with email"),
-                                    m(Button, { onclick: () => log({type:'google'}), style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                        m("img", {src:"./assets/icons8-google.svg"})
-                                    ]),
-                                    // m(Button, { style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                    //     m("img", {src:"./assets/icons8-facebook.svg"})
-                                    // ]),
-                                ]),
-                                m(".", {style: "margin-top:15px;"}, "First time here? ", m("a", {href: "/register"}, "Register for free!")),
-                            )
-                        ])
-                    ])
-                ]),
-                
-            ]
-        }
-    }
-}
-
-export { LandingPage, Footer, TenStagesNavbar, LoginPage }
+export { LandingPage, Footer, TenStagesNavbar }

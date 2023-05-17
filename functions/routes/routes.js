@@ -10,7 +10,7 @@ var  app =  require('../index.js')
  * [F] ==> Falta por implementar
  * [T] ==> Implementado pero falta por testeat
  * [+] ==> Implementado y testeado
- */
+ 
 // No funcionando
 [-] app.get('/live/:userId', logic.updatefeed)
 
@@ -50,4 +50,4 @@ var  app =  require('../index.js')
 [F] app.post("/action/:userId", logic.action); // Acciones que ha realizado el usuario -- DONE --  
 
 // NO FUNCIONANDO
-[-] app.post("/follow/:followedId", logic.follow);
+[-] app.post("/follow/:followedId", logic.follow);*/

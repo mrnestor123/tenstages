@@ -1,9 +1,6 @@
 import { getUser } from "../api/server.js"
 
 
-
-
-
 let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
 
 //PASAR A CLASE MEDITACIÓN
@@ -20,7 +17,7 @@ class UserEntity {
     // hay atributos solo únicos a un profesor !!
     constructor(json){
         if(json){   // create json method to create a json from the user
-            this.codUser = json.coduser;
+            this.coduser = json.coduser;
             this.nombre = json.nombre;
             this.user = json.user;
             this.position = json.position;
@@ -84,17 +81,38 @@ var user = new UserEntity();
 
 // HABRÁ QUE PASAR ESTO A COOKIES DE FIREBASE
 function isLoggedIn(){
+    let userData = localStorage.getItem('meditationcod')
+    ? JSON.parse(localStorage.getItem('meditationcod')) 
+    : null
 
-    let cod = localStorage.getItem('meditationcod')
 
-    if(!cod){
-        localStorage.setItem('meditationcod','gfZM9BlAfKdVvzTmTPW1RJcJV423')
-        cod  = 'gfZM9BlAfKdVvzTmTPW1RJcs'
+    if(userData && userData.coduser ){
+        user.role = userData.role || 'teacher'
+        user.coduser = userData.coduser
     }
 
+    /*
+    if(!userData){
+        localStorage.setItem('meditationcod','"J6mQEsPSr2ctveUZTYx4jmA6rDH3"')
+        userData  = 'gfZM9BlAfKdVvzTmTPW1RJcs'
+    }*/
+    
     return new Promise((resolve, reject)=>{
-        // ESTO ES MEJORABLE!!!
-        if(cod){
+        
+            // ESTO ES MEJORABLE!!!
+        if(userData){
+            let cod
+
+            if(typeof userData == 'object'){
+                cod = userData.coduser
+            }else{
+                cod = userData
+            }
+
+
+            console.log('cod',cod)
+
+
             getUser(cod).then((usr)=>{
                 if(usr){
                     user = new UserEntity(usr)
@@ -105,6 +123,10 @@ function isLoggedIn(){
             // hacer reject??
         }else resolve()
     })
+    /*
+    */
+
+    
 }
 
 function loginUser(cod){
@@ -119,24 +141,6 @@ function loginUser(cod){
     })
 }
 
-class Content {
-    constructor(json){        
-        this.cod = json.cod;
-        this.title = json.title;
-        this.description = json.description;
-        this.image = json.image;
-        this.type = json.type;
-        this.file = json.file;
-        this.doneBy = json.doneBy;
-        this.stagenumber = json.stagenumber;
-        this.position = json.position;
-        this.blocked = json.blocked;
-        this.isNew = json.isNew;
-        this.createdBy = json.createdBy;
-        this.done = json.done;
-        this.total = json.total;
-    }
-}
 
 class UserAction {
     constructor(json){
@@ -154,24 +158,7 @@ class UserAction {
     }
 }
 
-class Lesson extends Content {
-    constructor(json){
-        super(json)
-        this.text =  json.text
-    }
-}
 
-class Meditation {
-  constructor(json){
-    this.coduser = json.coduser;
-    this.notes = json.notes;
-    this.duration = json.duration;
-    this.day = json.day;
-    this.content = json.content;
-    this.followalong = json.followalong;
-    this.meditationSettings = json.meditationSettings;
-  }
-}
 
 /*
 
@@ -246,4 +233,4 @@ class StageEntity {
 
 let primarycolor = '#E0D5B6'
 
-export {types, stagenumbers, UserAction, CourseEntity, isLoggedIn, loginUser, user, Content, Meditation, Lesson, StageEntity }
+export {types, stagenumbers, UserAction, CourseEntity, isLoggedIn, loginUser, user, StageEntity }

@@ -130,16 +130,20 @@ function FileExplorer() {
                 isFiltered = true
             }
 
-           getFiles().then((res)=>{
+            let coduser =  JSON.parse(localStorage.getItem('meditationcod')).coduser ? 
+                JSON.parse(localStorage.getItem('meditationcod')).coduser :
+                JSON.parse(localStorage.getItem('meditationcod'))
+
+           getFiles(coduser).then((res)=>{
                 files = res
-                console.log('files',files)
                 loadedImages = true
+                
                 // EL CODUSER
-                if(!files[localStorage.getItem('meditationcod')]){
-                    files[localStorage.getItem('meditationcod')] = []
+                if(!files[coduser]){
+                    files[coduser] = []
                 }
 
-                filter.bucket = localStorage.getItem('meditationcod')
+                filter.bucket = coduser
                 
                 m.redraw()
            })
@@ -175,9 +179,7 @@ function FileExplorer() {
                         },
                             m(Header3, "Select bucket"),
                             m(Select,{
-                                onchange:(e)=>{
-                                    page = 0
-                                },
+                                onchange:(e)=> page = 0,
                                 data:filter,
                                 name:'bucket'
                             }, Object.keys(files).sort((a, b) => collator.compare(a, b))),
@@ -216,15 +218,15 @@ function FileExplorer() {
                                     let file = e.target.files[0]
 
                                     if(file){
-                                        if(!files[user.codUser]){
-                                            files[user.codUser] = []
+                                        if(!files[user.coduser]){
+                                            files[user.coduser] = []
                                         }
                                         
                                         // SIEMPRE LO AÑADIMOS AL BUCKET DEL USUARIO !!
-                                        uploadFile(user.codUser, file, 'teacherFiles').then((url) => {
+                                        uploadFile(user.coduser, file, 'teacherFiles').then((url) => {
                                             // LA AÑADIMOS LA PRIMERA
                                             //files.unshift(url)
-                                            files[user.codUser].push(url)
+                                            files[user.coduser].push(url)
                                             m.redraw()
                                         })
                                     }
