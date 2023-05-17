@@ -1,5 +1,4 @@
-import { Button, Form,  Modal, ModalBody, ModalFooter, ModalHeader, TextField, Container} from "../components/components.js"
-import { LandingPage, Footer, TenStagesNavbar, LoginPage } from "./landing.js"
+import { Footer, LandingPage, LoginPage, TenStagesNavbar } from "./landing.js"
 
 
 // La página web puede tener otro html y otro enrutador !!
@@ -16,7 +15,6 @@ m.route(document.body, "/", {
             return m(Layout, vnode.attrs, LoginPage)
         }
     },
-
     /*
     '/management': {
         render: function (vnode) {
@@ -100,3 +98,4 @@ function Layout() {
         }
     }
 }
+

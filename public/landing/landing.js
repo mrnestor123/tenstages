@@ -2,54 +2,31 @@ import { Button, Card, CardBody, Flex, Grid, Row, Section } from "../components/
 import { LoginInput } from "../components/tenstages-components.js"
 
 
+// COLOR veige #FFFAD5
+
 function TenStagesNavbar() {
     return {
         view: () => {
             return [
-                m("div", {"uk-sticky": "sel-target: nav.uk-navbar-container; cls-active: uk-navbar-sticky"}, [
-                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: transparent" },
+                m("div", {}, [
+                    m("nav.uk-navbar-container", { 'uk-navbar': '', style:"background-color: #FFFAD5; padding: 0px 25px" },
                         m("nav", { 'uk-navbar': '', style: "width:100%" },
                             m(".uk-navbar-left",
-                                m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages.png', style: "max-height:95px; width:auto" })),
-                                m("ul.uk-navbar-nav", {}, [
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Home")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
-                                    m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
-                                ])
+                                m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-horizontal.png', style: "max-height:95px; width:auto" })),
                             ),
                             m(".uk-navbar-right",
+                            m("ul.uk-navbar-nav", {}, [
+                                m("li", m("a", { onclick: () => { m.route.set('/') }}, "Philosophy")),
+                                m("li", m("a", { onclick: () => { m.route.set('/') }}, "About us")),
+                            ]),
                                 m(".uk-navbar-item",
                                     m(Button,
                                         {
-                                            type: "primary",
-                                            target: '',
-                                            style: "border-radius: 16px;"
+                                            style: "border: 1px solid; border-radius: 25px; background-color:transparent; padding: 0px 50px",
                                         },
-                                        "Download for free"
+                                        "JOIN"
                                     )
                                 ),
-                                m(".uk-navbar-item",
-                                    localStorage.getItem('meditationcod') ?
-                                    m("a.material-icons",
-                                        {
-                                            onclick:(e) => {
-                                                m.route.set(`/login`)
-                                                //m.route.set(`/profile/${localStorage.getItem('meditationcod')}`)
-                                            }
-                                        },
-                                        'person'
-                                    )
-                                    :
-                                    m(Button,
-                                        {
-                                            type: "secondary",
-                                            onclick: () => { m.route.set('/login') }
-                                            //target: '#login-modal'
-                                        },
-                                        "LOGIN"
-                                    ),
-                                    //m(LoginModal)
-                                )
                             )
                         )
                     )
@@ -63,37 +40,189 @@ function LandingPage() {
     return {
         view: (vnode) => {
             return [
-                m("div", { style: "background-image:url('./assets/slider.webp'); background-size:cover; background-position:center; height:100vh; width:100%;display:flex;flex-direction:column;" }, [
-                    m("div", { style: "display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1" },[
-                        m("h1", { style: "text-align:center" }, "Welcome to TenStages"),
-                        m("p", { style: "text-align:center" }, "A platform to help you reach your full potential"),
-                        m("div", { style: "display:flex;justify-content:center" },
-                            m(Button,
-                                {
-                                    type: "primary",
-                                    onclick: (e) => {
-                                        m.route.set('/management')
-                                    }
-                                },
-                                "Start Now"
+                // Imagen de montaña
+                m("div", { 
+                    style: {
+                        "background-image":"url('./assets/slider.webp')", 
+                        "background-size":"cover", 
+                        "background-position":"center",
+                        "height":"100vh",
+                        "width":"100%",
+                        "display":"flex",
+                        "flex-direction":"column"
+                    }
+                }, [
+                    m(Section, { type:"muted", style:"width:260px; height:350px; margin-top:20vh; margin-left:20vw; background-color:transparent; scale:1.2" }, [
+                        m(Flex, {direction:'column'}, [
+
+                            m("h1", { style: "text-align:left; margin-bottom:0px; font-family:'Gotham Rounded'; font-weight:350" }, "Answer the "),
+                            m("h1", { style: "text-align:left; margin-top:0px; font-family:'Gotham Rounded'; font-weight:350" }, "awakening call"),
+                            m("p", { style: "text-align:left; font-family:'Gotham Rounded'; font-weight:300"}, "A complete meditation training system integrating buddhist wisdom with brain science. Based on The Mind Iuminated."),
+                            m("div", { style: "display:flex;justify-content:left" },
+                                m(Button,
+                                    {
+                                        style: "background-color: transparent; border: 1px solid; border-radius:25px",
+                                        onclick: (e) => {
+                                            m.route.set('/management')
+                                        }
+                                    },
+                                    "Start Now"
+                                )
                             )
-                        )
+                        ])
                     ])
                 ]),
-                m(Section, {}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
+                // Benefits de TenStages
+                m(Section, { size:"small" }, [
+                    m("h1", {style: "text-align:center; margin:0px; font-family:'Gotham Rounded'; font-weight:350"}, "Benefits of using TenStages"),
+                    m(Row, {}, [
+                        m(Grid, {size:'small', match:true, childWidth:'1-3@m'}, [
+                            m(Card, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
+                                ])
+                            ]),
+                            m(Card, {}, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
+                                ])
+                            ]),
+                            m(Card, {}, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),,
+                                ])
+                            ])
+                        ])
+                    ]),
+                ]),
+                // Imagen del camino
+                m("div", { 
+                    style: {
+                        "background-image":"url('./assets/camino.png')", 
+                        "background-size":"auto", 
+                        "background-position":"center",
+                        "height":"300vh",
+                        "width":"100%",
+                        "display":"flex",
+                        "flex-direction":"column"
+                    }
+                }, [
+                    // movil 1
+                    m("div", {
+                        style:{
+                            "background-image":"url('./assets/stage1.png')", 
+                            "background-size":"cover",
+                            "background-position":"center",
+                            "height":"120vh",
+                            "width":"120vh",
+                            "margin-left":"43vw",
+                            "margin-top":"12vh",
+                            "overflow":"hidden"
+                        }
+                    }, [
+                    ]),
+                    // movil 2
+                    m("div", {
+                        style:{
+                            "background-image":"url('./assets/stage2.png')", 
+                            "background-size":"cover",
+                            "background-position":"center",
+                            "height":"120vh",
+                            "width":"120vh",
+                            "margin-left":"-6vw",
+                            "margin-top":"-35vh",
+                            "overflow":"hidden"
+                        }
+                    }, [
+                    ]),
+                    // movil 3
+                    m("div", {
+                        style:{
+                            "background-image":"url('./assets/stage3.png')", 
+                            "background-size":"cover",
+                            "background-position":"center",
+                            "height":"120vh",
+                            "width":"120vh",
+                            "margin-left":"43vw",
+                            "margin-top":"-15vh",
+                            "overflow":"hidden"
+                        }
+                    }, [
+                    ]),
+                    // texto 1
+                    m("div", {
+                        style:{
+                            "background":"transparent",
+                            "height":"400px",
+                            "width":"400px",
+                            "margin-left":"15vw",
+                            "margin-top":"-300vh",
+                            "overflow":"hidden",
+                            "scale":"1.2"
+                        }
+                    }, [
+                        m("h1", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:350"}, "Training the mind ", m("br"), "in TenStages"),
+                        m("p", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:300;"}, "Based on ancient buddhist texts, providing a step-by-step guidance from your very first sit all the way to mastery of the deepest states of peace and insight. At TenStages, we procide a comprehensive guide to meditation with a focus on developing a deep understanding of the mind and its workings."),
+                    ]),
+                    // texto 2
+                    m("div", {
+                        style:{
+                            "background":"transparent",
+                            "height":"400px",
+                            "width":"500px",
+                            "margin-left":"60vw",
+                            "margin-top":"65vh",
+                            "overflow":"hidden",
+                            "scale":"1.2"
+                        }
+                    }, [
+                        m("h1", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:350"}, "Understand how ", m("br"), "your mind works"),
+                        m("p", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:300;"}, "Based on ancient buddhist texts, providing a step-by-step guidance from your very first sit all the way to mastery of the deepest states of peace and insight. At TenStages, we procide a comprehensive guide to meditation with a focus on developing a deep understanding of the mind and its workings."),
+                    
+                    ]),
+                    // texto 3
+                    m("div", {
+                        style:{
+                            "background":"transparent",
+                            "height":"400px",
+                            "width":"500px",
+                            "margin-left":"15vw",
+                            "margin-top":"40vh",
+                            "overflow":"hidden",
+                            "scale":"1.2"
+                        }
+                    }, [
+                        m("h1", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:350"}, "Practice with ", m("br"), "certified teachers"),
+                        m("p", {style:"text-align:left; font-family:'Gotham Rounded'; font-weight:300;"}, "Based on ancient buddhist texts, providing a step-by-step guidance from your very first sit all the way to mastery of the deepest states of peace and insight. At TenStages, we procide a comprehensive guide to meditation with a focus on developing a deep understanding of the mind and its workings."),
+                    ]),
+                ]),
+                m(Section, { size:"small" }, [
+                    m(Flex, {direction:'row', hAlign:'center', style:'align-items:center' }, [
+                        m("img", {src: "./assets/pexels-rfstudio-3059892.jpg"}),
                         m("h1", { style: "font-size:56px" }, "What is TenStages?"),
                         m("p", { style: "font-size:20px;max-width:700px;margin-top:20px"}, "TenStages te cambia la vida flipao date cuenta que es lo mejor, descarga la app, que te lo digo yo. Que si flipao que meditas y se te va la olla de lo que mejora tu vida. Nuestro creador Zerni te lo asegura, que es como meterte un tripi nano, que te vuelves uno con la mama tierra jurao que si. Que brother imaginate tu volando y el resto andando, imaginatelo flipao que estás por encima del resto, a qué esperas para volar? Anda y descarga esta app que no te vas a arrepentir, que ya hay muchos volando, no te quedes atrás primo."),
                     ]),
                 ]),
-                m(Section, {type:'muted'}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
-                        m("h1", { style: "font-size:56px;" }, "≧◡≦"),
-                    ]),
-                ]),
-                m(Section, {}, [
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center' }, [
-                        m("h1", { style: "font-size:56px;" }, "(づ｡◕‿‿◕｡)づ"),
+                m(Section, { size:"small" }, [
+                    m("h1", {style: "text-align:center; margin:0px; font-family:'Gotham Rounded'; font-weight:350"}, "What people say about TenStages"),
+                    m(Row, {}, [
+                        m(Grid, {size:'small', match:true, childWidth:'1-3@m'}, [
+                            m(Card, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
+                                ])
+                            ]),
+                            m(Card, {}, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
+                                ])
+                            ]),
+                            m(Card, {}, [
+                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
+                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),,
+                                ])
+                            ])
+                        ])
                     ]),
                 ]),
                 m(Section, { style:"padding:0px" }, [
