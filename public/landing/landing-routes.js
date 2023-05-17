@@ -1,5 +1,4 @@
-import { Button, Form,  Modal, ModalBody, ModalFooter, ModalHeader, TextField, Container} from "../components/components.js"
-import { LandingPage, Footer, TenStagesNavbar } from "./landing.js"
+import { Footer, LandingPage, PrivacyPage, SupportPage, TenStagesNavbar } from "./landing.js"
 
 
 // La página web puede tener otro html y otro enrutador !!
@@ -10,13 +9,25 @@ m.route(document.body, "/", {
             return m(Layout, vnode.attrs, LandingPage)
         },
     },
+
+    '/support':{
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, SupportPage)
+        }
+    },
+
+    '/privacy': {
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, PrivacyPage)
+        }
+    }
+
     /*
     '/login':{
         render:(vnode)=>{
             return m(Layout, vnode.attrs, LoginPage)
         }
-    },*/
-
+    },
     /*
     '/management': {
         render: function (vnode) {
@@ -80,13 +91,6 @@ function Layout() {
         view: (vnode) => {
             return [
                 m(TenStagesNavbar),
-
-                // m(Button,{
-                //    onclick:(e)=>{
-                //         console.log(window.location)
-                //         window.location.href= window.location.href + 'management.html'
-                //     }
-                // }, "Press to go to management page"),
                 
                 vnode.children.map((child) => {
                     return m("main", [
@@ -100,3 +104,4 @@ function Layout() {
         }
     }
 }
+

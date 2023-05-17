@@ -17,12 +17,12 @@
     <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
     -->
     <style>
-        body{ height:100vh; margin:0; }
+
+        /*body{ height:100vh; margin:0; }*/
 
         header{ min-height:50px; background:rgb(62, 77, 77); }
-        footer{ min-height:50px; background:PapayaWhip; }
 
-        /* Trick */
+        /* Trick for footer, comentado por si acaso */
         body { 
             display:flex; 
             flex-direction:column; 
@@ -30,7 +30,45 @@
 
         footer{
             margin-top:auto; 
+        } 
+
+        .header, h1, h2, h3, h4, h5, h6{
+            font-family:'Gotham Rounded';
+            font-weight:550;
         }
+
+
+        h1 {
+            font-size: 35px;
+        }
+
+        h2 {
+            font-size: 25px;
+        }
+
+        p,div {
+            font-size: 1.8rem;
+            font-family:'Gotham Rounded';
+            font-weight:300;
+            line-height: 150%;
+           
+        }
+
+        @media only screen and (max-width: 1200px) {
+            h1 {
+                font-size: 55px;
+            }
+
+            h2 {
+                font-size: 40px;
+            }
+
+            p {
+                font-size: 30px;
+            }
+        }
+
+
 
     </style>
 </head>
@@ -53,10 +91,7 @@
         var js = document.createElement("script");
         js.type = "text/javascript";
         js.type = 'module'
-        if (window.location.href.match(/management/ig))
-            js.src = "./management/management-routes.js";
-        else
-            js.src = "./landing/landing-routes.js";
+        js.src = "./landing/landing-routes.js";
         head.appendChild(js);
     </script>
 

@@ -6,6 +6,10 @@
   "scripts": {
     "serve": "firebase emulators:start --only functions",
     "deploy": "firebase deploy --only hosting",
+    "build": "npm run build-hosting && ...",
+    "build-hosting": "INSERT-TOOL-HERE --srcDir ./public --outDir ../prod/public",
+    "deploy": "npm run deploy-hosting && ...",
+    "deploy-hosting": "pushd ../prod && firebase deploy --only hosting && popd",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "logs": "firebase functions:log",

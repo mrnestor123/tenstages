@@ -36,7 +36,7 @@ function Grid() {
             sortable = sortable ? ['uk-sortable', "handle: .uk-card"] : [undefined, undefined]
         },
         view: (vnode) => {
-            return m("div", {
+            return m("div.", {
                 'uk-grid': vnode.attrs.masonry ? 'masonry:true' : '',
                 class: clase,
                 style: vnode.attrs.style,
@@ -113,7 +113,7 @@ function Card() {
         view: (vnode) => {
             let { type, size, hover } = vnode.attrs
             return m('.uk-card ' +
-                (type ? 'uk-card-' + type + ' ' : 'uk-card-default ') +
+                (type ? 'uk-card-' + type + ' ' : '') +
                 (size ? 'uk-card-' + size + ' ' : '') +
                 (hover ? 'uk-card-hover' : ''), vnode.attrs, vnode.children)
 
@@ -296,18 +296,21 @@ function Section() {
     let clase = 'uk-section'
     return {
         oninit: (vnode) => {
-            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section-default')
+            clase += (vnode.attrs.type ? ' uk-section-' + vnode.attrs.type : ' uk-section-default ')
                 + (vnode.attrs.width ? 'uk-width-' + vnode.attrs.width + ' ' : '')
+                + (vnode.attrs.size ? 'uk-section-' + vnode.attrs.size + ' ' : '')
         },
         view: (vnode) => {
             return m("div",
                 {
                     class: clase,
                     // LE  AÑADIMOS UN BOX-SHADOW Y LE  QUITAMOS EL PADDING
-                    style:"border-radius:10px;box-shadow: 0 5px 15px rgba(0,0,0,.08); padding:0px!important;" + vnode.attrs.style || ''  + ';'
-                }, m(Padding, 
+                    // SON COMPONENTES GENERICOS!!!!!!!! NO LES PUEDES METER CSS ????????????????
+                    //style:"border-radius:10px;box-shadow: 0 5px 15px rgba(0,0,0,.08); padding:0px!important;" + vnode.attrs.style || ''  + ';'
+                    style: vnode.attrs.style || ''
+                }, //m(Padding, SECTION DE UIKIT YA TIENE PADDING!!!!!!!!!
                     vnode.children
-                )
+                //)
             )
         }
     }
@@ -682,7 +685,8 @@ function Icon() {
         'medium':'',
         'large':'font-size:26px',
         'huge':'font-size:32px',
-        'massive':'font-size:50px'
+        'massive':'font-size:50px',
+        'verymassive':'font-size:100px'
     }
 
     return {
