@@ -28,7 +28,6 @@ module.exports = function(env){
             ]
         },
         mode: 'production',
-//devtool: 'source-map',
         plugins: [ 
             //ESto para que es ???  
             new webpack.DefinePlugin({
