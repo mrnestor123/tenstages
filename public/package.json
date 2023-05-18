@@ -5,15 +5,15 @@
   "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only hosting",
+    "deploy": "npm run deploy-hosting && ...",
     "build": "npm run build-hosting && ...",
     "build-hosting": "INSERT-TOOL-HERE --srcDir ./public --outDir ../prod/public",
-    "deploy": "npm run deploy-hosting && ...",
     "deploy-hosting": "pushd ../prod && firebase deploy --only hosting && popd",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "logs": "firebase functions:log",
-    "test": "test"
+    "test": "test",
+    "webpack": "webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -27,5 +27,9 @@
   "homepage": "https://github.com/mrnestor123/tenstages#readme",
   "dependencies": {
     "firebase": "^9.6.7"
+  },
+  "devDependencies": {
+    "webpack": "^5.83.0",
+    "webpack-cli": "^5.1.1"
   }
 }
