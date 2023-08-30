@@ -1,4 +1,4 @@
-import { uploadFile } from '../api/server.js'
+import { uploadFile } from '../server/server.js'
 
 
 //FUNCIONES REUTILIZABLES

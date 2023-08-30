@@ -1,11 +1,10 @@
 import { db } from '../app.js';
 import { getUser } from './usersController.js';
 
-export const getStages = async () => {
+export const getStages = async (allContent) => {
     try {
         let stages = [];
         let query = await db.collection('stages').get();
-        let allContent = await getStagesContent();
 
         let users = {};
 
@@ -18,7 +17,7 @@ export const getStages = async () => {
                 stage.videos = [];
                 stage.lessons = [];
 
-                for (var content of allContent.filter((c)=>  c.stagenumber ==  stage.stagenumber)) {
+                for (var content of allContent.filter((c)=> c.stagenumber ==  stage.stagenumber && c.position != null)) {
                     // TODO ESTO PODRÍA SER LO MISMO !!!
                     if (content['createdBy'] != null) {
                         let user = users[content['createdBy']] ? users[content['createdBy']] : await getUser(content['createdBy']);

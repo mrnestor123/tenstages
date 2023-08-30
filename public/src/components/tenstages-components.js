@@ -1,9 +1,10 @@
 
-import { stagenumbers, types, user } from '../models/models.js';
-import { addContent, addPath, getFiles, login, updatePath } from '../api/server.js';
-import { FormLabel, Header2, SubHeader } from '../util/texts.js';
-import { create_UUID, dia, FileUploader, hora } from '../util/util.js';
+import { stagenumbers, types } from '../models/models.js';
+import { addContent } from '../server/contentController.js';
+import { login, user } from '../server/usersController.js';
 import { Button, Card, CardBody, CardHeader, CardMedia, Column, Flex, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
+import { FormLabel, Header2, SubHeader } from './texts.js';
+import { FileUploader, create_UUID, dia, hora } from './util.js';
 
 //explicar como se utiliza para el futuro
 
@@ -349,27 +350,28 @@ function ContentCard(){
 
             return  [
 
-                m(".uk-card.uk-card-default",{style: content.position == undefined && !content.stagenumber ? " opacity:0.5":''},
+                m(".uk-card.uk-card-secondary",{style: content.position == undefined && !content.stagenumber ? " opacity:0.5":''},
                 
+                    content.image ? 
+                    m(".uk-card-media-top",
+                        m("img",{src:content.image, style:"width:100%"}),
+                    ) : null,
+
                     m(".uk-card-body",
                         m(Grid,{center:true, verticalalign:true, columngap:'small'},
                             m(Column,{width:'3-4'},
                                 m("h4.uk-card-title", content.title),
                                 m("p", content.description)
                             ),
-                            m(Column,{width:'1-4'},
-                                content.image  ?
-                                m("img", { src: content.image || "https://cdn.maikoapp.com/3d4b/4qgko/p200.jpg", style: "width:100%" }) :null
-                            )
                         )
                     ),
+
                     m(".uk-card-footer",
                         m("a.uk-button.uk-button-text",{
                             onclick:()=>{
                                 m.route.set(`/edit_create?cod=${content.cod}`)
                             }
-                        },"Edit"),
-                        
+                        },"Edit")
                     ),
 
                     vnode.children

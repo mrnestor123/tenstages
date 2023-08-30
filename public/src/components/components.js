@@ -193,6 +193,7 @@ function TextField() {
                         id: id || undefined,
                         type: type ? types[type].type : 'text',
                         value: data[name],
+                        min:vnode.attrs.min,
                         width: vnode.attrs.width || undefined,
                         autocomplete: "off",
                         oninput: (e) => {
@@ -257,6 +258,8 @@ function Select() {
             data = vnode.attrs.data
             name = vnode.attrs.name
 
+            console.log('children',vnode.children)
+
             return m("select.uk-select",
                 {
                     onchange: (e) => {
@@ -273,8 +276,8 @@ function Select() {
                 [
 
                      vnode.children.map((child, i) => {
-                        if (child.value) {
-                            return m("option", { value: child.value }, child.label)
+                        if (child.value || child.name) {
+                            return m("option", { value: child.value || child.name }, child.label || child.title)
                         } else {
                             return m("option", child)
                         }
@@ -306,6 +309,7 @@ function Section() {
                     class: clase,
                     // LE  AÑADIMOS UN BOX-SHADOW Y LE  QUITAMOS EL PADDING
                     // SON COMPONENTES GENERICOS!!!!!!!! NO LES PUEDES METER CSS ????????????????
+                    // PEPE HOMBRE NO ME JODAS
                     //style:"border-radius:10px;box-shadow: 0 5px 15px rgba(0,0,0,.08); padding:0px!important;" + vnode.attrs.style || ''  + ';'
                     style: vnode.attrs.style || ''
                 }, //m(Padding, SECTION DE UIKIT YA TIENE PADDING!!!!!!!!!
@@ -701,6 +705,60 @@ function Icon() {
     }
 }
 
+function showAlert(options={}){
+    var elem = document.createElement("div")
+    elem.style = 'position:fixed;inset:0px;z-index:100000'
+    elem.id = Math.random()*10000 + ''
+    document.body.appendChild(elem);
+    
+    // TODO!! AÑADIR TRANSICIÓN DE SALIDA !!
+    m.mount(elem, {
+        view:()=> m(AlertDialog,{
+            title: options.noTitle ? '' : options.title || 'Error',
+            message:options.message, 
+            
+            close:(e)=> {
+                elem.remove()
+                options.then ? options.then() :null
+            }
+        },  options.children ? options.children : null
+        )
+    })
+}
+
+function AlertDialog(){
+    return {
+        view:(vnode)=>{
+            let {title,message, close} = vnode.attrs
+
+            return m("div",{style:"position:fixed;bottom:0;right:0;top:0;left:0;z-index:100000; background-color:rgba(0,0,0,0.5);"},
+                m("div", // centered content container 
+                    {
+                        style:"position:absolute; top:50%; left:50%; transform: translate(-50%, -50%);",
+                    },
+
+                    // TODO: CREAR LA TRANSICIÓN SIN SEMANTIC !! 
+                    m("div",{style:"border-radius:10px;min-width: 350px;font-size:1.1em; padding:1em;background-color:white; color:black;",class:"uk-animation-scale-up"},
+                        /*m("div",{style:"text-align:left"},
+                            m(Icon,{icon:'error', color:'red',size:'large'}),
+                        ),*/
+                        title ? m("h3", title) : null,
+                        message ? m("p", message) : null,
+                        vnode.children ? vnode.children : null,
+
+                        m(Button,{
+                            type:'primary',
+                            //style:"border-radius:10px;width:100%;text-align:center;",
+                            onclick: close
+                        },'OK'
+                    )
+                )
+            ))
+        }
+    }
+}
+
+
 /* @attrs 
  * class: uk-label-success uk-label-warning  uk-label-danger
  **/
@@ -711,8 +769,6 @@ function Label(){
         }
     }
 }
-
-
 
 
 export { 
@@ -738,6 +794,7 @@ export {
     ModalHeader, 
     Form, 
     FormLabel, 
+    showAlert,
     ModalFooter,
     Flex,
     Label,

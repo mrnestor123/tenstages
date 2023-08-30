@@ -44,7 +44,6 @@ export const setUserName  = async (userId, username) => {
 
             let query2 = await db.collection('users').where('userName', '==', username).get();
             
-            console.log('QUERY2',query2.docs.length)
             
             if(!query2.docs || !query2.docs.length){
                 let userquery = await db.collection('users').where('coduser','==', userId).get();
@@ -177,6 +176,51 @@ export const getUser = async (userId, expand, connect) => {
 };
 
 
+/*
+* El login hace register también, si el usuario no existe
+*/
+export const loginUser = async (userId) => {
+    try {
+
+        let query = await db.collection('users').where('coduser', '==', userId).get();
+
+        if (!query.docs || !query.docs.length) {
+            let user = {
+                coduser: userId,
+                stageNumber: 1,
+                // AHORA LA PROGRESIÓN VA POR ETAPAS!!
+                // UN USUARIO VE LAS 3 PRIMERAS ETAPAS !!
+                // esto es mejorable?
+                userProgression: {
+                    lessonPosition: [0,0,0],
+                    meditPosition:[0,0,0],
+                    gamePosition:0,
+                    stageShown: 1,
+                },
+                role: "meditator"
+            }
+
+            await db.collection('users').add(user)
+                .then((e)=> console.log('E',e))
+
+
+
+            
+            let stage = await getStage(1)
+            user.stage = stage
+
+
+            return user;
+        }else {
+            console.log('GOT USER', query.docs[0].data())
+            return query.docs[0].data();
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
+}
+
+// BORRAR ESTO !!
 export const registerUser = async (userId)=> {
     try {
 
@@ -200,7 +244,6 @@ export const registerUser = async (userId)=> {
             await db.collection('users').add(user).then((e)=> console.log('E',e)).catch(err => console.log('ERROR CREATING USER', err));
 
 
-            console.log('CREATED USER', user)
 
             
             let stage = await getStage(1)
@@ -209,7 +252,7 @@ export const registerUser = async (userId)=> {
 
             return user;
         }else{
-            throw Error('User already exists');
+            return query.docs[0].data();
         }
     } catch (err) {
         throw new Error(err);
@@ -237,7 +280,6 @@ export const updateUser = async (userId, data) => {
             .get();
 
 
-        console.log('UPDATING',data)
         
         if (query.docs.length) {
             await db.collection('users').doc(query.docs[0].id).set(data, { merge: true });
@@ -591,7 +633,6 @@ export const getUserDataId = async (userId) => {
 
         let doc = await db.collection('userData').add(userCod);
 
-        console.log('DOCUMENT',doc)
         return doc.id;
     }
 }

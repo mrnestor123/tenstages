@@ -1,10 +1,12 @@
-import { Button, Column, Flex, Grid, Section, TextField,  Card, CardMedia, CardHeader, CardBody, Select, Icon, CardFooter, Container, Padding, Row, Modal, ModalBody, ModalHeader, ModalFooter, TextEditor } from "../components/components.js"
-import { api_get, create_UUID } from "../util/util.js"
 import * as htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm';
-import { ImageSelector, InfoText, showFileExplorer } from "../components/management-components.js";
+import { getSettings,  getStages,  updateSettings  } from "../server/server.js";
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from "../components/components.js";
+import { ImageSelector, showFileExplorer } from "../components/management-components.js";
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
-import { FormLabel, Header3 } from "../util/texts.js";
-import { getAllContent, getSettings, getStages, updateContent, updateStage, getSections, updateSection, updateSettings, getTeachers, addSection } from "../api/server.js";
+import { FormLabel, Header3 } from "../components/texts.js";
+import { api_get, create_UUID } from "../components/util.js";
+import { addSection, getAllContent, getSections, updateContent, updateSection } from '../server/contentController.js'
+import { getTeachers } from '../server/usersController.js'
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -12,8 +14,6 @@ function AdminManagement() {
     return {
         view: (vnode) => {
             return [
-
-               
                 m(EmailTool)
                     
                 /*
@@ -601,10 +601,60 @@ function StagesManagement(){
         function HorizontalList(){
             let starting  = 0;
 
+
+          
+
             function ContentStageCard(){
+                let content;
+                
+                function ChangePositionButton (){
+                    let data = {'position':''}
+                    
+                    return {    
+                        view: (vnode)=>{
+                            console.log('CONTENT', content)
+
+                            return [
+                                m("a.uk-button.uk-button-text",{
+                                    'uk-toggle':'#changePosition-' + content.cod
+                                },"Change position"),
+                                
+                                m(Modal,{id:'changePosition-' + content.cod,center: true},
+                                    m(ModalBody,
+                                        m("h3", content.title),
+                                        m(FormLabel, "Current position: " , m("strong", content.position)),
+
+                                        m(FormLabel, "New position"),
+                                        m(TextField,{
+                                            data:data,
+                                            name:'position',
+                                            type:'number'
+                                        })
+                                        
+                                    ),
+    
+                                    m(ModalFooter,
+                                        m(Button, {
+                                            class: "uk-modal-close",
+                                            type: "primary",
+                                            onclick: (e) => {
+                                                
+                                                content.position = data.position
+                                                
+                                                updateContent(content)
+                                            }
+                                        }, "ADD"),
+                                    )
+                                )
+                            ]
+                        }
+    
+                    }
+                }
+
                 return {
                     view:(vnode)=>{
-                        let {content} = vnode.attrs
+                        content = vnode.attrs.content
 
                         return m(Card,
                             m(CardMedia,m("img",{src:content.image})),
@@ -617,14 +667,7 @@ function StagesManagement(){
                             ),
 
                             m(CardFooter,
-                                m("a.uk-button.uk-button-text",{
-                                    onclick:()=>{
-                                        console.log('content',content)
-                                        
-                                        //.route.set(`/edit_create?cod=${content.cod}`)
-                                    }
-                                },"Change position"),
-
+                                m(ChangePositionButton),
 
                                 m("div",{style:"height:20px"}),
 
@@ -650,9 +693,7 @@ function StagesManagement(){
                                 m(Row, m("h4", header)),
 
                                 items.sort((a,b)=> a.position - b.position).map((content)=>{
-                                    return m(Column,{width:'1-6'},
-                                        m(ContentStageCard,{content:content})
-                                    )
+                                    return m(Column,{width:'1-6'}, m(ContentStageCard,{content:content}))
                                 })
                             )
                         )
@@ -714,6 +755,9 @@ function StagesManagement(){
                                     let content = contentList.find((c)=> c.cod == toAdd.content)
                                     content.position = toAdd.position
 
+
+                                    updateContent(content)
+
                                     // Y HAY QUE  UPDATEARLO !!
 
                                     //addContentToStage(toAdd.content, position.selected, filter.stagenumber).then((res)=>{
@@ -766,7 +810,6 @@ function StagesManagement(){
         return {
             view:(vnode)=>{
                 let selectedStage = stages[filter.stagenumber-1];
-                console.log('selectedStage', selectedStage)
 
                 return m(Card,{style:"background-color:#dbd0ba;border-radius:10px"},
                     m(Grid,{center:true, verticalalign:true, columngap:'collapse'},
@@ -922,4 +965,5 @@ function StagesManagement(){
     }
 }
 
-export { AdminManagement,  EmailTool,  ExplorePage, SettingsPage, StagesManagement }
+export { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement };
+

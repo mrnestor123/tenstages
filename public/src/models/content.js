@@ -43,13 +43,13 @@ class Content {
 }
 
 
-
 class Lesson extends Content {
     constructor(json){
         super(json)
         this.text =  json.text
     }
 }
+
 
 class Meditation {
   constructor(json){

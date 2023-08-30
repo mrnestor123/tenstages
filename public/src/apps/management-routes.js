@@ -1,22 +1,16 @@
-import { Button, Column, Flex, Grid, Icon, Padding, Section } from "../components/components.js"
-import { LoginInput, LoginPage } from "../components/tenstages-components.js"
+import { Button, Column, Flex, Grid, Icon, Padding } from "../components/components.js"
+import { LoginPage } from "../components/tenstages-components.js"
 import { maincolor } from "../models/configuration.js"
-import { isLoggedIn, user } from "../models/models.js"
-import { AdminManagement, EmailTool,SettingsPage, ExplorePage, StagesManagement } from "./admin-management.js"
-import { ContentManagement, EditCreateContent, FileExplorerPage, MyContent,  ProfileView } from "./management.js"
+import { isLoggedIn, user } from "../server/usersController.js"
+import { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./admin-management.js"
+import { ContentView, EditCreateContent, FileExplorerPage,  ProfileView } from "./management.js"
 
 m.route(document.body, "/", {   
     // SI ESTÁ LOGUEADO SALE LA PÁGINA DE LOGIN !!!
     "/": {
         render: function (vnode) {
-            return m(Layout, vnode.attrs, MyContent)
+            return m(Layout, vnode.attrs, ContentView)
         },
-    },
-
-    '/management': {
-        render: function (vnode) {
-            return m(Layout, vnode.attrs, ContentManagement)
-        }
     },
 
     "/edit_create": {
@@ -30,13 +24,6 @@ m.route(document.body, "/", {
             return m(Layout, vnode.attrs, SettingsPage)
         }
     },
-
-    /*
-    '/contentview/:cod': {
-        render: (vnode) => {
-            return m(Layout, vnode.attrs, ContentView)
-        }
-    },*/
 
     '/profile/:cod' :{
         render: (vnode) => {
@@ -53,7 +40,7 @@ m.route(document.body, "/", {
 
     '/content':{
         render:(vnode)=>{
-            return m(Layout, vnode.attrs, MyContent)
+            return m(Layout, vnode.attrs, ContentView)
         }
     },
     
@@ -94,19 +81,18 @@ function Layout(){
     //  HABRÁ QUE SACARLA EN  EL ONINIT
     let route;
 
-
     let teacherRoutes = [
         {
-            'name':'My content',
+            'name':'Content',
             'icon':'book',
             'route':'/content'
         },
+        /*
         {
             'name':'My courses',
             'icon':'school',
             'route':'/courses'
-        },
-
+        },*/
         {
             'name':'File Explorer',
             'icon':'folder',
@@ -125,7 +111,6 @@ function Layout(){
             'icon':'email',
             'route': '/email'
         },
-        
         {
             'name':'Content',
             'icon':'book',
@@ -133,13 +118,8 @@ function Layout(){
         },
         {
             'name': 'Stages',
-            'icon':'terrain',
-            'route': '/stages'
-        },
-        {
-            'name': 'Explore',
-            'route': '/explore',
-            'icon':'explore'
+            'route': '/stages',
+            'icon':'mountain'
         },
         {
             'name':'Settings',
@@ -155,6 +135,8 @@ function Layout(){
             view: (vnode) => {
                 return [
                     m(Flex, {direction:"column", style:`border-right:3px solid ${maincolor};height:100vh;position:fixed;min-width:200px;background:white`,  vAlign:'middle'}, [
+
+                        //m("div",{style:"font-weight:bold;font-size:1.3em;margin-top:2em;"},"TenStages"),
 
                         m("img.uk-border-circle", {width:"100", height:"100", src:"./assets/logo-tenstages.png", alt:"Avatar"}),
                         // CREO QUE GRID, CENTER:TRUE
@@ -237,7 +219,6 @@ function Layout(){
             })
         },
         view:(vnode)=> {
-            console.log('user', user);
             return [
                 //m(NavBar),
                 

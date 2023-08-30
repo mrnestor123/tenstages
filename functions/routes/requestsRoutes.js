@@ -1,5 +1,5 @@
 import express from 'express';
-import { getRequests, getRequest, updateRequest, newComment, addNotification, updateNotification,  addRequest} from '../controllers/requestsController.js';
+import { getRequests, getRequest, updateRequest, newComment, addNotification, updateNotification,  addRequest, getFeed} from '../controllers/requestsController.js';
 import { isVerified } from '../app.js';
 
 const router = express.Router({ mergeParams: true });
@@ -25,17 +25,29 @@ router.get("/user/:userId", isVerified, async (req, res) => {
     }
 });
 
+router.get('/feed', isVerified, async (req, res) => {
+    try {
+        const feed = await getFeed()
+        return res.status(200).json(feed);
+    } catch (err) {
+        return res.status(404).json({ message: err.message });
+    }
+});
+
 // Get request by requestId
 router.get("/:requestId", isVerified,  async (req, res) => {
     try {
         const request = await getRequest(req.params.requestId);
-        console.log('RETURNING REQUEST', request)
         return res.status(200).json(request);
     } catch (err) {
         console.log('err',err)
         return res.status(404).json({ message: err.message });
     }
 });
+
+
+
+
 
 // ADDREQUEST
 router.post("/new", isVerified, async (req, res) => {

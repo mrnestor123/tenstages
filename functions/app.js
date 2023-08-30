@@ -1,6 +1,4 @@
 import admin from 'firebase-admin';
-//import uploadBytes from 'firebase-storage';
-//import serviceKey from './secrets/firebase-key.json' assert  {type: 'json'}
 
 admin.initializeApp({
   credential: admin.credential.cert('./secrets/firebase-key.json'),
@@ -11,11 +9,12 @@ admin.initializeApp({
 export const db = admin.firestore();
 export const storage = admin.storage();
 export const FieldValue = admin.firestore.FieldValue;
+export const auth = admin.auth()
 
 
 // SI EL USUARIO  ESTÁ VERIFICADO  !!!
 export const isVerified = async (req, res, next) => {
-  const appCheckToken = req.header('X-Firebase-AppCheck');
+  const appCheckToken = req.header('X-Firebase-Token');
 
   if (!appCheckToken) {
     return res.status(401).json({ message: 'Unauthorized' });
@@ -23,6 +22,7 @@ export const isVerified = async (req, res, next) => {
 
   //console.log('next next hehe')
   try {
+    await auth.verifyIdToken(appCheckToken)
     // ESTO SE HACE EN TODOS ??
     // COMPROBAR QUE ESTO FUNCIONA BIEN !!!!!!!!
     // await admin.appCheck().verifyToken(appCheckToken);

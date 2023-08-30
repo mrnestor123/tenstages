@@ -1,14 +1,13 @@
 
 
-import { stagenumbers, user } from '../models/models.js';
-import { getFiles, uploadFile } from '../api/server.js';
-import { Header2, Header3, SubHeader } from '../util/texts.js';
-import { isAudio, isFile, isImage, isVideo } from '../util/util.js';
+import { stagenumbers } from '../models/models.js';
+import { getFiles, uploadFile } from '../server/server.js';
+import { Header2, Header3, SubHeader } from './texts.js';
+import { isAudio, isFile, isImage, isVideo } from '../components/util.js';
+import { user } from  '../server/usersController.js';
 import { Button, Column, Container, Grid, Label, Row, Section, Select } from './components.js';
 
 // COMPONENTES PARA LA PÁGINA DE MANAGEMENT
-
-
 /*
 
     types:  'image', 'video', 'audio', 'file'

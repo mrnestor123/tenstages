@@ -1,11 +1,13 @@
 import express from 'express';
-import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto,setUserName,getAuthUsers, registerUser, finishMeditation, doneContent, addMeditationReport, sendQuestion, uploadFile } from '../controllers/usersController.js';
+import { getUsers, getUser, updateUser, deleteUser, getActions, addAction, updatePhoto,setUserName,getAuthUsers, registerUser, finishMeditation, doneContent, addMeditationReport, sendQuestion, uploadFile, loginUser } from '../controllers/usersController.js';
 import { isVerified } from '../app.js';
-
 
 
 const router = express.Router({ mergeParams: true });
 
+
+
+// SE PODRÍA HACER LAS RUTAS MÁS CORTAS PARA VERLO DESDE  AQUI
 // Get all users
 router.get('/', isVerified, async (req, res) => {
     try {
@@ -41,19 +43,7 @@ router.get('/:userId', isVerified, async (req, res) => {
     }
 });
 
-router.post('/register', isVerified, async (req, res) => {
-    try {
-        const userId = req.body.id
 
-        
-        const user = await registerUser(userId);
-    
-        res.status(200).json(user);
-    }catch (err){
-        console.log('ERRor registering',err.message);
-        res.status(404).json({ message: err.message });
-    }
-});
 
 
 // Get user by coduser
@@ -65,7 +55,6 @@ router.get('/user/:userId', isVerified, async (req, res) => {
         
         const user = await getUser(req.params.userId, expand, connect);
 
-        console.log('GETUSER', user)
         
         res.status(200).json(user);
     } catch (err) {
@@ -181,11 +170,10 @@ router.post('/upload/:filename',  async (req, res) => {
     try {
         
         let url  = await uploadFile(req.body, req.params.filename);
-
         res.status(200).json(url);
+    
     }  catch (err){
         console.log('ERROR UPLOADING FILE', err)
-        
         res.status(404).json({ message: 'Error uploading file'})
     }
 })
@@ -209,6 +197,38 @@ router.delete('/:userId', isVerified, async (req, res) => {
         const user = await deleteUser(req.params.userId);
         res.status(200).json(user);
     } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+});
+
+
+/*
+* LOGIN CON REGISTER HAY QUE REVISARLO BIEN!!
+*/
+router.post('/login/:userId',  async (req, res) => {
+    try {
+        console.log('GETTING LOGIN');
+        await registerUser(req.params.userId);
+        
+        //hacemos dos veces  la misma query !!
+        let user  = await getUser(req.params.userId, true, false);
+        
+        res.status(200).json(user);
+
+    } catch (err) {
+        res.status(404).json({ message: err.message });
+    }
+});
+
+router.post('/register', isVerified, async (req, res) => {
+    try {
+        const userId = req.body.id
+        
+        const user = await registerUser(userId);
+    
+        res.status(200).json(user);
+    }catch (err){
+        console.log('ERRor registering',err.message);
         res.status(404).json({ message: err.message });
     }
 });

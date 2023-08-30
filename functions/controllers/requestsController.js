@@ -70,7 +70,6 @@ export const getRequest = async (requestId) => {
     }
 };
 
-
 export const addRequest = async (request) => {
     try {
         // HACE FALTA COMPROBAR  QUE  EXISTE ??  :()
@@ -90,8 +89,6 @@ export const addRequest = async (request) => {
         throw new Error(err);
     }
 };
-
-
 
 export const updateRequest = async ( request) => {
     try {
@@ -150,8 +147,6 @@ export const updateComments = async (requestId, comments) => {};
 
 export const deleteComment = async (requestId, codcomment) => {};
 
-
-
 export const addNotification = async (notification) => {
 
     try {
@@ -174,39 +169,62 @@ export const addNotification = async (notification) => {
 
 }
 
-
-
 export const updateNotification = async (notificationID, notification) =>{
 
     try {
-            
-            let userDataID =  await getUserDataId(notification.coduser);
-    
-            if (userDataID) {
-                
-                let notificationDoc = await db
+        let userDataID =  await getUserDataId(notification.coduser);
+
+        if (userDataID) {
+
+            let notificationDoc = await db
+                .collection('userData')
+                .doc(userDataID)
+                .collection('notifications')
+                .where('cod','==',notificationID)
+                .get()
+
+            if (notificationDoc.docs && notificationDoc.docs.length) {
+                await db
                     .collection('userData')
                     .doc(userDataID)
                     .collection('notifications')
-                    .where('cod','==',notificationID)
-                    .get()
-
-                if (notificationDoc.docs && notificationDoc.docs.length) {
-                    await db
-                        .collection('userData')
-                        .doc(userDataID)
-                        .collection('notifications')
-                        .doc(notificationDoc.docs[0].id)
-                        .update(notification);
-                }
-            } else {
-                throw new Error({ message: 'Request not found' });
+                    .doc(notificationDoc.docs[0].id)
+                    .update(notification);
             }
+        } else {
+            throw new Error({ message: 'Request not found' });
+        }
 
     }catch(err){
         throw new Error(err);
     }
 }
 
+export const getFeed = async () =>{ 
+
+    try {
+        let feed = [];
+
+        let query = await db.collection('requests').get();
+
+        if (query.docs.length) {
+            for (var doc of query.docs) {
+                let request = doc.data();
+
+                if (request.cod && request.type == 'feed' || request.type == 'teacher') {
+                    feed.push(request);
+                }
+            }
+        }
+
+        console.log('FEED',feed)
+
+        return feed;
+
+    } catch (err) {
+        throw new Error(err)
+    }
+
+}
 
 const getComments = async (codrequest) => {};

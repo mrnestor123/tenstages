@@ -115,24 +115,24 @@ function LandingPage() {
                     m(Section, { type:"muted", style:" margin-top:20vh; margin-left:15vw; background-color:transparent; " }, [
                         m("div.uk-width-1-3@l.uk-width-2-3@m", [
                             m("h1", { style: "text-align:left; margin-bottom:0.5em;" }, "A journey inside yourself"),
-
+                            //LO HE COMENTADO  PARA LA PRIMERA VERSIÓN
                             // m("br")
-                            m("p", { style: "text-align:left; "}, "A complete meditation training system integrating buddhist wisdom with brain science.",m("br"),m("br"), "Based on The Mind Illuminated, created by John Yates."),
+                            m("p", { style: "text-align:left; "}, "Life is too short to pretend, look inside, everything will be fine.", m("br"),m("br"), "Based on The Mind Illuminated"),
                             m("div", { style: "display:flex;justify-content:left" },
-                                /* LO HE COMENTADO  PARA LA PRIMERA VERSIÓN
-                                m(Button,
-                                    {
-                                        style: "background-color: transparent; border: 1px solid; border-radius:25px",
-                                        onclick: (e) => {
-                                           // m.route.set('/management')
-                                        }
-                                    },
+                            m(Button, {
+                                    style: "background-color: transparent; border: 1px solid; border-radius:25px",
+                                    onclick: (e) => {
+                                        // m.route.set('/management')
+                                    }
+                                },
                                     "Start Now"
-                                ) */
+                                ) 
                             )
                         ])
                     ])
                 ]),
+            
+                /*
                 // Benefits de TenStages
                 m(Section, { size:"small" }, [
                     m("h1", {style: "text-align:center;"}, "Benefits of using TenStages"),
@@ -213,13 +213,13 @@ function LandingPage() {
                             ])
                         ])
                     ]),
-                ])*/
+                ])
                 m(Section, { style:"padding:0px" }, [
                     m(Flex, {direction:'column', hAlign:'center', style:'align-items:center; background:#ECD79D' }, [
                         m("h1", { style: "margin-top:64px" }, "Contact Us"),
                         m("p", { style:"font-size:20px; max-width:700px;margin-bottom:88px"}, "You can contact us at: ", m("a", {href:"mailto:"}, "support@tenstages.app"))    
                     ]),
-                ])
+                ])*/
             ]
         }
     }

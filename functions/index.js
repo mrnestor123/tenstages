@@ -5,10 +5,11 @@ import users from './routes/usersRoutes.js';
 import messages from './routes/messagesRoutes.js';
 import requests from './routes/requestsRoutes.js';
 import stages from './routes/stagesRoutes.js';
-import dbRoutes from './routes/dbRoutes.js';
+import dbRoutes from './routes/contentRoutes.js';
 import emails from './routes/emailRoutes.js';
+// HAY QUE QUITAR TODO ESTO !!!
 import { addAction, getActions, getUser, getUsers, updatePhoto } from './controllers/usersController.js';
-import { getCourses } from './controllers/dbController.js';
+import { getCourses } from './controllers/contentController.js';
 import { getRequest, newComment, updateRequest } from './controllers/requestsController.js';
 import { sendMessage } from './controllers/messagesController.js';
 import { normalize_server } from './normalize_server.js';
@@ -33,10 +34,10 @@ app.use('/stages', stages)
 app.use('/messages', messages);
 app.use('/requests', requests);
 app.use('/database',  dbRoutes);
-
-
-
 app.use('/email', emails);
+
+
+
 
 app.get('/', (req, res) => {
     res.send('Conectado correctamente al servidor de tenstages');

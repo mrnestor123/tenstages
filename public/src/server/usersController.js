@@ -1,17 +1,7 @@
-import { getUser } from "../api/server.js"
+import { api_get } from "../components/util.js";
+import { API, db } from "./server.js";
 
-
-let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
-
-//PASAR A CLASE MEDITACIÓN
-const types = [
-    {label:'Meditation practice',value:'meditation-practice'},
-    {label:'Recording',value:'recording'},
-    {label:'Video',value:'video'},
-    {label:'Lesson Slides',value:'lesson'},
-    {label:'Article',value:'article'},
-]
-
+// AQUÍ PODRÍAMOS GUARDAR  EL USUARIO QUE SE PASA LUEGO AL PROGRAMA !!
 class UserEntity {
 
     // hay atributos solo únicos a un profesor !!
@@ -69,8 +59,6 @@ class UserEntity {
         }
     }
 
-
-    
     isAdmin = function(){
         return this.role === 'admin'
     }
@@ -78,6 +66,18 @@ class UserEntity {
 
 // un user vacío para que sepa que es un objeto
 var user = new UserEntity();
+
+function loginUser(cod){
+
+    localStorage.setItem('meditationcod', uid)
+
+    getUser(cod).then((usr)={
+        if(usr){
+            user = new UserEntity(usr)
+            m.redraw()
+        }
+    })
+}
 
 // HABRÁ QUE PASAR ESTO A COOKIES DE FIREBASE
 function isLoggedIn(){
@@ -129,108 +129,138 @@ function isLoggedIn(){
     
 }
 
-function loginUser(cod){
 
-    localStorage.setItem('meditationcod', uid)
+// DEVUELVE EL USUARIO DE FIREBASE
+// esto se podría hacer en el server??
+async function login({ type, email, password }) {
+    if (type == 'google' || type == 'facebook') {
+        var provider;
 
-    getUser(cod).then((usr)={
-        if(usr){
-            user = new UserEntity(usr)
-            m.redraw()
+        if (type == 'google') {
+            provider = new firebase.auth.GoogleAuthProvider();
+        } else {
+            provider = new firebase.auth.FacebookAuthProvider();
         }
-    })
-}
 
+        auth.useDeviceLanguage();
 
-class UserAction {
-    constructor(json){
-        var types = {
-            "meditation": (action) => 'meditated for ' + action[0] + ' min',
-            "guided_meditation": (action) => "took " + action[0] + ' for ' + action[1] + ' min',
-            "updatestage": (action) => "climbed up one stage to " + action,
-            "recording": (action) => "listened to " + action[0],
-            'game': (action) => 'played ',
-            'lesson': (action) => 'read ' + action
-        };
-
-        this.message = types[json.type](json.action);  
-        this.time = json.time;
+        return firebase.auth()
+            .signInWithPopup(provider)
+            .then((result) => {
+                /** @type {firebase.auth.OAuthCredential} */
+                return result.user
+                // ...
+            }).catch((error) => {
+                console.log("Error when logging with external app", error.message)
+                return error.message
+                // ...
+            });
+    } else {
+        return auth.signInWithEmailAndPassword(email, password)
+        .then((user) => {
+            return user;
+        })
+        .catch((error) => {
+            console.log("Error when logging with email", error.message)
+            return error.message
+        });
     }
 }
 
 
-
-/*
-
-    String cod,title,description,longdescription, image, createdBy;
-  int price;
-  bool isNew,  showStudents, allowChat;
-
-  DateTime startDate, endDate;
-
-  List<Content> content = new List.empty(growable: true);
-  List<User> students = new List.empty(growable: true);
-  List<Announcement> announcements = new List.empty(growable: true);
-
-*/
-
-// HAYQUE CREAR CLASE USER
-
-// utilizamos Entity o no??
-class CourseEntity {
-
-    constructor(json){
-        this.cod =  json.cod
-        this.title = json.title
-        this.startDate = json.startDate ? new  Date(json.startDate):''
-        this.endDate  = json.endDate ? new  Date(json.endDate):''
-        this.image = json.image 
-        this.description = json.description
-        this.price = json.price
-
-        // ESTO SERÍA PARA LLAMAR A LA GENTE
-        this.events = json.events || []
-        this.content = json.content || []
-        
-        // Puntuación 
-        // this.score = json.score || 0
-        // reviews 
-        // published 
-        // this.published = json.published || false
-        // this.reviews = json.reviews || []
-        
-    };
+async function deleteUser(cod) {
+    let user = await db.collection('users').where('coduser', '==', cod).get();
+    console.log(user)
+    await db.collection("users").doc(user.docs[0].id).delete()
 
 
-    // DEVUELVE UN ARRAY DE LABEL Y NAME
-    getFields(){
-        return [
-            this.startDate,
-            this.endDate,
-            this.price
-        ]
+    let usermeditations = await db.collection('meditations').where('coduser', '==', cod).get();
+
+    for (var meditation of usermeditations.docs) {
+        await db.collection("meditations").doc(meditation.id).delete()
+    }
+
+    let useractions = await db.collection('actions').where('coduser', '==', cod).get();
+
+    for (var action of useractions.docs) {
+        await db.collection("actions").doc(action.id).delete()
+    }
+
+    let users = await db.collection('users').where('following', 'array-contains', cod).get();
+
+    for (let doc of users.docs) {
+        doc.update({ following: firebase.firestore.FieldValue.arrayRemove(cod) });
     }
 }
 
-class StageEntity {
 
+async function updateUser(user){
+    let query = await db.collection('users').where('coduser', '==', user.coduser).get()
+    let docID = query.docs[0].id
 
-    constructor(json){
-
-        this.newpathposition = json.newpathposition
-        this.type = json.type
-        this.title = json.title
-        this.image = json.image
-        this.stagenumber = json.stagenumber
-        this.position = json.position
-        this.cod = json.cod
-        this.text = json.text
-        this.description = json.description
-
-
-    }
+    db.collection('users').doc(docID).update(user).then(function () {
+        alert("Document successfully updated!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+    });
 }
 
-let primarycolor = '#E0D5B6'
+async function getUsers() {
+    var query = await db.collection('users').get()
+    let users = []
 
-export {types, stagenumbers, UserAction, CourseEntity, isLoggedIn, loginUser, user, StageEntity }
+    for (let doc of query.docs) {
+        users.push(doc.data())
+    }
+
+    return users;
+}
+
+async function getUser(cod){
+    //OJOOO
+    let user = await api_get(`${API}/connect/${cod}`)
+    
+
+  return user;
+}
+
+
+async function getUserActions(coduser){
+    
+    let query = await db.collection('actions').where('coduser','==',coduser).get()
+    let actions = []
+
+    for (let doc of query.docs) {
+        actions.push(doc.data())
+    }
+
+    return actions;
+} 
+
+async function getTeachers(){
+
+    var query = await db.collection('users').where('role','==','teacher').get();
+
+    let teachers = []
+
+    for (let doc of query.docs) {
+        teachers.push(doc.data());
+    }
+
+    return teachers;
+}
+
+
+export {
+    isLoggedIn,
+    deleteUser,
+    getUser,
+    getUsers,
+    getTeachers,
+    getUserActions,
+    login,
+    loginUser,
+    updateUser,
+    user
+}
