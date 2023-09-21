@@ -258,8 +258,6 @@ function Select() {
             data = vnode.attrs.data
             name = vnode.attrs.name
 
-            console.log('children',vnode.children)
-
             return m("select.uk-select",
                 {
                     onchange: (e) => {

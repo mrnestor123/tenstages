@@ -867,10 +867,9 @@ function EditableField(){
             // AÑADIR SUPPORT PARA HTML
             return [
                 isEditing ? 
-                
-                type == 'html' ?
-                m(TextEditor,{data:data,name:name}):
-                m(TextField,{data:data,name:name,type:type}): 
+                    type == 'html' ?
+                    m(TextEditor,{data:data,name:name, placeholder:name}):
+                    m(TextField,{data:data,name:name,type:type, placeholder:name}): 
                 vnode.children
             ]
         }

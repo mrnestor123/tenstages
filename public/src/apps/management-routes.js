@@ -2,8 +2,8 @@ import { Button, Column, Flex, Grid, Icon, Padding } from "../components/compone
 import { LoginPage } from "../components/tenstages-components.js"
 import { maincolor } from "../models/configuration.js"
 import { isLoggedIn, user } from "../server/usersController.js"
-import { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./admin-management.js"
-import { ContentView, EditCreateContent, FileExplorerPage,  ProfileView } from "./management.js"
+import { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./management-admin.js"
+import { ContentView, EditCreateContent, FileExplorerPage,  Milestones,  ProfileView } from "./management.js"
 
 m.route(document.body, "/", {   
     // SI ESTÁ LOGUEADO SALE LA PÁGINA DE LOGIN !!!
@@ -53,6 +53,12 @@ m.route(document.body, "/", {
     "/admin": {
         render: function (vnode) {
             return m(Layout, vnode.attrs, AdminManagement)
+        }
+    },
+
+    '/milestones':{
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, Milestones)
         }
     },
 
@@ -119,7 +125,12 @@ function Layout(){
         {
             'name': 'Stages',
             'route': '/stages',
-            'icon':'mountain'
+            'icon':'landscape'
+        },
+        {
+            'name': 'Milestones',
+            'route': '/milestones',
+            'icon':'star'
         },
         {
             'name':'Settings',

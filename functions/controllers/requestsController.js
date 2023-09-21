@@ -3,6 +3,7 @@ import { getUser, getUserDataId } from './usersController.js';
 
 export const getRequests = async (userId) => {
     try {
+        console.log('getting requests')
         let requests = [];
         let query = await db.collection('requests').get();
 
@@ -12,13 +13,13 @@ export const getRequests = async (userId) => {
 
                 if (request.cod) {
                     if (!request.userimage && !request.username && (request.state != 'closed' || request.coduser == userId)){
-                        
+                        /*
                         let user = await getUser(request.coduser);
 
                         if (user && user.image && user.nombre) {
                             request.userimage = user.image;
                             request.username = user.nombre;
-                        }
+                        }*/
                     }
 
                     requests.push(request);

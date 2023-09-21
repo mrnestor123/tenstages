@@ -100,6 +100,9 @@ export const getUser = async (userId, expand, connect) => {
 
             let userDataID;
 
+
+            console.log('logging user', user)
+
             if (expand || connect) {
                 let userDataquery = await db.collection('userData').where('coduser','==', userId).get();
 
@@ -220,7 +223,7 @@ export const loginUser = async (userId) => {
     }
 }
 
-// BORRAR ESTO !!
+// REGISTRAMOS EL USUARIO SI NO EXISTE
 export const registerUser = async (userId)=> {
     try {
 
@@ -242,9 +245,6 @@ export const registerUser = async (userId)=> {
             }
 
             await db.collection('users').add(user).then((e)=> console.log('E',e)).catch(err => console.log('ERROR CREATING USER', err));
-
-
-
             
             let stage = await getStage(1)
             user.stage = stage

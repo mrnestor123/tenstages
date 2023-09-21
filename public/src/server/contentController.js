@@ -3,48 +3,11 @@ import { API, db } from "./server.js"
 
 // AÑADIR MODELO DE CONTENT AQUI ??
 
-// Todo el tema de sacar los libros y las semanas
-// esto se debería de sacar del server !!!
-async function getWeeks(){
 
-    let query = await db.collection('weeks').get()
-    let weeks = []
-
-    if(query && query.docs.length){
-        let allContent = []
-
-        // get all content 
-
-        let content = await db.collection('content').get()
-
-        content.docs.forEach((item)=>{
-            allContent.push(item.data())
-        })
-
-
-        query.docs.forEach(async (item)=>{
-            let week = item.data();
-            week.content = allContent.filter((c)=> c.week == week.cod);
-            weeks.push(week)
-        })
-    }
-
-    return weeks;
-}
-
-
-// Crear un método común add en el que le pasamos las colecciones
-async function addWeek(week){
-
-    let query = await db.collection('weeks').add(week).then(function () {
-        alert("Document successfully updated!");
-    }).catch(function (error) {
-        // The document probably doesn't exist.
-        alert("Error updating document: ", error);
-    });
-   
-}
-
+/*
+*
+* llamadas add
+*/
 
 async function addSection(section){
 
@@ -70,33 +33,39 @@ async function addContent(content) {
     return true
 }
 
+async function addMilestone(m){
+    let query = await db.collection('milestones').add(m).then(function () {
+        alert("Added section");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        alert("Error updating document: ", error);
+    });
+    
+    return true
+    
 
-async function updateSection(section){
-
-    let s  = JSON.parse(JSON.stringify(section))
-
-    if(section.content){
-        s.content  = section.content.map((c)=> typeof c == 'string' ? c : c.cod)
-    }
-
-    if(section.createdBy && typeof section.createdBy != 'string'){
-        s.createdBy = section.createdBy.cod
-    }
-
-    // find section then update it
-    let query = await db.collection('sections').where('cod','==',s.cod).get()
-
-    if(query.docs && query.docs.length){
-        let docID = query.docs[0].id
-
-        db.collection('sections').doc(docID).update(s).then(function () {
-            alert("Document successfully updated!");
-        }).catch(function (error) {
-            // The document probably doesn't exist.
-            alert("Error updating document: ", error);
-        });
-    }
 }
+
+
+
+/** 
+ * llamadas GET
+ * */ 
+
+
+async function getContentbycod(cod) {
+    var query = await db.collection('content').where('cod', '==', cod).get();
+    let content = {};
+    content = query.docs[0].data();
+
+    if(content.path){
+        var query = await db.collection('paths').where('cod','==',content.path).get()
+        content.path = query.docs[0].data();
+    }
+
+    return content;
+}
+
 
 async function getAllContent(){
     var query = await db.collection('content').get();
@@ -140,8 +109,8 @@ async function deleteContent(content){
     let query = await db.collection('content').where('cod', '==', content.cod).get()
     let docID = query.docs[0].id
 
-    db.collection("meditations").doc(docID).delete().then(function () {
-        console.log("Document successfully deleted!");
+    db.collection("content").doc(docID).delete().then(function () {
+       alert("Document successfully deleted!");
     }).catch(function (error) {
         // The document probably doesn't exist.
         console.error("Error deleting document: ", error);
@@ -162,6 +131,41 @@ async function getSections(){
 }
 
 
+async function getMilestones(){
+    let query = await db.collection('milestones').get()
+
+    if(query.docs){
+        let milestones = []
+        for(var doc of query.docs){
+            milestones.push(doc.data())
+        }
+
+        return milestones;
+    }
+    
+    /*
+    let milestones = []
+    let url = `${API}/database/milestones`
+    let res  = await api_get(url)
+    
+    console.log('RES', res)
+
+    if(res && res.length){
+        milestones = res
+    }
+
+
+    return milestones;
+    */
+}
+
+
+
+
+/*
+*
+*   llamadas de update
+*/ 
 async function updateContent(content,hideMessage) {
     let cod = content.cod
     let dblesson = await db.collection('content').where('cod', '==', cod).get()
@@ -189,20 +193,32 @@ async function updateContent(content,hideMessage) {
     return true;
 }
 
-async function getContentbycod(cod) {
-    var query = await db.collection('content').where('cod', '==', cod).get();
-    let content = {};
-    content = query.docs[0].data();
+async function updateSection(section){
 
-    if(content.path){
-        var query = await db.collection('paths').where('cod','==',content.path).get()
-        content.path = query.docs[0].data();
+    let s  = JSON.parse(JSON.stringify(section))
+
+    if(section.content){
+        s.content  = section.content.map((c)=> typeof c == 'string' ? c : c.cod)
     }
 
-    return content;
+    if(section.createdBy && typeof section.createdBy != 'string'){
+        s.createdBy = section.createdBy.cod
+    }
+
+    // find section then update it
+    let query = await db.collection('sections').where('cod','==',s.cod).get()
+
+    if(query.docs && query.docs.length){
+        let docID = query.docs[0].id
+
+        db.collection('sections').doc(docID).update(s).then(function () {
+            alert("Document successfully updated!");
+        }).catch(function (error) {
+            // The document probably doesn't exist.
+            alert("Error updating document: ", error);
+        });
+    }
 }
-
-
 
 async function updateStage(s){
     // find section then update it
@@ -220,21 +236,35 @@ async function updateStage(s){
     }
 }
 
+async function updateMilestone(milestone) {
+    let query = await db.collection('milestones').where('name', '==', milestone.name).get()
+    let docID = query.docs[0].id
 
+    db.collection('milestones').doc(docID).update(milestone).then(function () {
+        alert("Document successfully updated!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        alert("Error updating document: ", error);
+    });
+
+
+    return true;
+}
 
 
 export {
-    addWeek,
     addSection,
     addContent,
-    deleteContent,
+    addMilestone,
     getContent,
     getContentbycod,
     getTeachersContent,
     getAllContent,
+    getMilestones,
     getSections,
-    getWeeks,
+    deleteContent,
     updateContent,
     updateStage,
+    updateMilestone,
     updateSection
 }

@@ -134,11 +134,11 @@ router.post('/finishlesson/:userId', async (req,res)=>{
     }
 })*/
 
-// cuando acabamos de ver/hacer una recording o  meditación y nos la dejamos a medias !!!
-// ESTO SERÍA CONTENT // SAVE ??
+/*
+* cuando acabas una meditación y te  la dejas a medias o cuando terminas de leer una lección
+*/
 router.post('/donecontent/:userId', isVerified,  async (req,res)=>{
     try{
-        console.log('CONTENT',req.body)
         await doneContent(req.params.userId, JSON.parse(req.body));
         res.status(200).json({ message: 'Time saved' });
     }catch(err){
@@ -207,11 +207,10 @@ router.delete('/:userId', isVerified, async (req, res) => {
 */
 router.post('/login/:userId',  async (req, res) => {
     try {
-        console.log('GETTING LOGIN');
         await registerUser(req.params.userId);
         
         //hacemos dos veces  la misma query !!
-        let user  = await getUser(req.params.userId, true, false);
+        let user  = await getUser(req.params.userId, true, true);
         
         res.status(200).json(user);
 

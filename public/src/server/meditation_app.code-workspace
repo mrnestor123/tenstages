@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../../meditation_app"
+		},
+		{
+			"path": "../../.."
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "automatic",
+		"liveServer.settings.multiRootWorkspaceName": "tenstages"
+	}
+}

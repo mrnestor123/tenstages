@@ -91,16 +91,23 @@ export const getDB = async () => {
 
 
 
-
+            /*
             console.time('sections')
             database.sections = await getSections(content);
             console.timeEnd('sections')
+            */
+
+            console.time('milestones')
+            database.milestones = await getMilestones(content);
+            console.timeEnd('milestones')
+
                 
             
             console.time('settings')
             database.settings = await getSettings();
             console.timeEnd('settings')
 
+            console.log('settings', database.settings)
 
             database.teachers = await getTeachers();
 
@@ -206,6 +213,22 @@ async function getTeachers () {
     }
 
     return teachers;
+}
+
+export async function getMilestones(){
+
+    let query = await db.collection('milestones').get();
+    let milestones = [];
+
+    if(query && query.docs && query.docs.length){
+        for(let doc of query.docs){
+            milestones.push(doc.data());
+        }
+    }
+
+    console.log('MILESTONES', milestones)
+
+    return milestones;
 }
 
 

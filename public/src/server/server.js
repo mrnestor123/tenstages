@@ -85,10 +85,6 @@ async function uploadFile(bucket,file, folder) {
 }
 
 
-
-
-
-
 async function deleteImage(url, stage) {
     let name = url.substr(url.indexOf('%2F') + 3, (url.indexOf('?')) - (url.indexOf('%2F') + 3));
     name = name.replace('%20', ' ');
@@ -147,8 +143,6 @@ async function getFiles(coduser) {
 }
 
 
-
-
 async function getStats(content){
     var query = await db.collection('doneContent').where('cod','==',content.cod).get();
 
@@ -168,8 +162,6 @@ async function getStats(content){
     return stats;
 
 }
-
-
 
 
 async function getStages() {

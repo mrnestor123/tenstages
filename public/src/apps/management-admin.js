@@ -601,9 +601,6 @@ function StagesManagement(){
         function HorizontalList(){
             let starting  = 0;
 
-
-          
-
             function ContentStageCard(){
                 let content;
                 
@@ -612,14 +609,13 @@ function StagesManagement(){
                     
                     return {    
                         view: (vnode)=>{
-                            console.log('CONTENT', content)
 
                             return [
                                 m("a.uk-button.uk-button-text",{
                                     'uk-toggle':'#changePosition-' + content.cod
                                 },"Change position"),
                                 
-                                m(Modal,{id:'changePosition-' + content.cod,center: true},
+                                m(Modal,{ id:'changePosition-' + content.cod, center: true },
                                     m(ModalBody,
                                         m("h3", content.title),
                                         m(FormLabel, "Current position: " , m("strong", content.position)),
@@ -644,7 +640,9 @@ function StagesManagement(){
                                                 updateContent(content)
                                             }
                                         }, "ADD"),
-                                    )
+                                    ),
+
+                                    
                                 )
                             ]
                         }
@@ -676,6 +674,16 @@ function StagesManagement(){
                                         m.route.set(`/edit_create?cod=${content.cod}`)
                                     }
                                 },"Edit"),
+
+                                m("a.uk-button.uk-button-text", {
+                                    type: "primary",
+                                    onclick: (e) => {
+                                        
+                                        delete content.position
+                                        
+                                        updateContent(content)
+                                    }
+                                }, "Remove from path"),
                             )
                         )
                     }

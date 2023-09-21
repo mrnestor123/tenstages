@@ -1,16 +1,16 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
-import { addContent, addSection, getAllContent, getContentbycod, getSections, getTeachersContent, getWeeks, updateContent, updateSection } from '../server/contentController.js'
-import { getRequests, getStats, postRequest, updateRequest } from '../server/server.js'
-import { getUser, getUserActions, updateUser, user } from '../server/usersController.js'
-import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Flex, Form, Grid,showAlert, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from '../components/components.js'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Flex, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField, showAlert } from '../components/components.js'
 import { FileExplorer, ImageSelector, showFileExplorer } from '../components/management-components.js'
-import { AddContent, AddCourse, ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
+import { ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
+import { FormLabel } from '../components/texts.js'
+import { create_UUID, dia, hora } from '../components/util.js'
 import { Content } from '../models/content.js'
 import { stagenumbers, types } from '../models/models.js'
-import { DefaultText, FormLabel } from '../components/texts.js'
-import { create_UUID, dia, hora } from '../components/util.js'
+import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
+import { getRequests, postRequest, updateRequest } from '../server/server.js'
+import { getUser, getUserActions, user } from '../server/usersController.js'
 
 
 function EditCreateContent() {
@@ -225,16 +225,10 @@ function EditCreateContent() {
             'science'
         ]
 
-
-
         return {
             view:(vnode)=>{
                 return m(Grid,
-                    m(Column,{width:'2-5'},
-                        m(Padding,
-                            m(ImageSelector,{data:content, name:'image'})
-                        )
-                    ),
+                    m(Column,{width:'2-5'},m(Padding,m(ImageSelector,{data:content, name:'image'}))),
 
                     m(Column,{width:'3-5'},
                         m(Form,
@@ -252,8 +246,16 @@ function EditCreateContent() {
                                     m(FormLabel,"Type"),
                                     m(Select,{data:content,name:'type'},types)
                                 ),
-                                
-                                /*
+
+                                m(Column,{width:'1-3'},
+                                    m(FormLabel,"Position in path"),
+                                    m(TextField, { type: "number", data: content, name: "position" }),
+                                    content.position != undefined ?
+                                    m(Button,{type:'danger', onclick:(e)=>{
+                                        delete content.position
+                                        updateContent(content)
+                                    }}, "DELETE") : null
+                                ),
                             
                                 m(Column, { width: '1-3' }, 
                                     m(FormLabel, "Stage"),
@@ -262,6 +264,8 @@ function EditCreateContent() {
                                     )
                                 ),
 
+
+                                /*
                                 content.type.match('lesson') ?
                                 m(Column, { width: '1-3'}, 
                                     m(FormLabel, "AppCategory"),
@@ -293,9 +297,6 @@ function EditCreateContent() {
                                 ):null
                                 
                                 )
-
-
-
                             ), 
                                             
                         m("div",{style:"height:20px"}),
@@ -317,7 +318,7 @@ function EditCreateContent() {
             
             return {
                 view: (vnode) => {
-                    let { data, item, name } = vnode.attrs
+                    let { data, item, name, index } = vnode.attrs
     
                     return m(Card, { size: "small" },
                         m(CardMedia,
@@ -331,6 +332,9 @@ function EditCreateContent() {
                                 m("li",{class: showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo =true},m("a","Text")),
                                 m("li",{class: !showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo = false}, m("a","Help text"))
                             ),
+                            data[name] && data[name].text ?
+                            m("p", data[name].text.length):null,
+
 
                             showingBasicInfo ? [
                                 data[name] && data[name].image ? [
@@ -351,6 +355,8 @@ function EditCreateContent() {
                                     console.log('p',pages,page)
                                 }, size:'small'
                             },  m(Icon,{color:'red', icon:'delete'})),
+
+                            
 
                             m(Button, {
                                 style:"margin-left:5px",
@@ -375,7 +381,21 @@ function EditCreateContent() {
                                         data[name] = aux
                                     }
                                 }
-                            }, m(Icon,{icon:'chevron_right'}))
+                            }, m(Icon,{icon:'chevron_right'})),
+
+
+                            m(Button,{
+                                onclick:(e)=> {
+                                    content.text.splice(index, 0, { 'text': 'Edit this text', 'image': "" });
+                                }, size:'small'
+                            },  "Add slide left"),
+
+                            m(Button,{
+                                onclick:(e)=> {
+                                    content.text.splice(index+1, 0, { 'text': 'Edit this text', 'image': "" });
+                                   
+                                }, size:'small'
+                            },  "add slide right"),
                         )
                     )
                 }
@@ -443,7 +463,7 @@ function EditCreateContent() {
 
                             content.text.slice(page*4, (page*4)+4).map((key,i) => {
                                 return m(Column, { width: '1-4' },
-                                    m(Slide, { data: content.text, name: i+(page*4)})
+                                    m(Slide, { data: content.text, name: i+(page*4), index: i})
                                 )
                             })
                         ] : null  
@@ -545,6 +565,16 @@ function EditCreateContent() {
                             }
                         }
                     }, "Cancel"),
+                    !isNew ?
+                    m(Button,{
+                        type:'danger',
+                        style:"min-width:200px;margin-left:1em;",
+                        onclick:(e)=>{
+                            if(confirm('Are you sure you want to delete this content?')){
+                                deleteContent(content)
+                            }
+                        }
+                    }, "Delete") : null,
 
                     m(Button, {
                         style:"margin-right:20px;color:white;background-color:#1e87f0;margin-left:20px;min-width:200px;",
@@ -1243,7 +1273,6 @@ function ProfileView(){
     }
 }
 
-
 // 
 function ContentView(){
     let content = []
@@ -1255,7 +1284,7 @@ function ContentView(){
 
     function filterContent(c){
         
-        return !filter.addedToPath || c.position != null && c.type == filter.type || filter.type == 'all' && c.stagenumber == filter.stage
+        return (!filter.addedToPath || c.position != null && c.section == null) && (c.type == filter.type || filter.type == 'all') && c.stagenumber == filter.stage
     }
 
     function FilterContent(){
@@ -1320,7 +1349,7 @@ function ContentView(){
             if(user.isAdmin()){    
                 getAllContent().then((res)=>{
                     content = res.filter((c)=> c.stagenumber != null || c.createdBy != null)
-                    .sort((a,b)=> a.title.localeCompare(b.title))
+                    .sort((a,b)=> a.position - b.position)
                 })
             }else{
                 getTeachersContent(user.coduser).then((res)=>{
@@ -1395,17 +1424,320 @@ function ContentView(){
     }
 }
 
-
 function FileExplorerPage(){
     return {
         view:(vnode)=>{
             return [
-               
                 m("div",{style:"height:20px"}),
 
                 m(Section,{style:"padding:0px;overflow-y:auto"},
-                    m(Padding,
-                        m(FileExplorer)
+                    m(Padding, m(FileExplorer))
+                )
+            ]
+        }
+    }
+}
+
+function Milestones(){
+
+    let milestones = []
+
+    function AddMileStone(){
+
+        let json = {}
+
+        /*
+        Milestone(
+            title: 'Continuous attention to the breath',
+            name:'continuousattention',
+            description: 'The first milestone is to be able to sustain attention on the breath for a continuous period of time. This is the first step towards developing a stable attention.',
+            passedPercentage: 0,
+            objectives: [
+              Objective(
+                title: 'Establish a practice',
+                description: 'Complete 21 consecutive meditations.',
+                toComplete: 21,
+                type: 'streak'
+              ),
+        
+              Objective(
+                title: 'Long meditations',
+                description: 'Complete 4 meditations of 30 minutes or more.',
+                toComplete: 4,
+                metricValue: 30,
+                type:'timeMetric',
+                name:'longmeditations'
+              ),
+        
+              Objective(
+                type:'reportMetric',
+                name:'mindwandering',
+                reportType: 'percentage',
+                title:'Overcome mind-wandering',
+                metricValue: 70,
+                description: 'Complete ten sessions with 70% of focused attention.',
+                hint: 'What percentage were you focused on what you intended to?',
+                metricName:'Focused attention',
+                toComplete: 10
+              ),
+        
+              Objective(
+                type:'reportMetric',
+                reportType: 'units',
+                name:'forgetting',
+                title:'Overcome forgetting',
+                metricName:'Aha moments',
+                hint:'How much times did you come back to the intended focus?',
+                description: 'Complete ten sessions without forgetting our focus of attention more than 10 times.',
+                metricValue: 10,
+                toComplete: 10
+              ),
+            ],
+            firstStage: 1,
+            lastStage: 3,
+            position: 1
+          ),*/
+
+        return {
+            view:(vnode)=>{
+                return [
+                    // A MODAL WITH A BUTTON THAT OPENS IT, OPENS A FORM FOR CREATING A MILESTONE WITH TITLE,NAME, DESCRIPTION, IMAGE, AND A BUTTON TO ADD IT
+                    m(Modal,{
+                        id:'modal-milestone',
+                    },
+                        m(ModalHeader,"Add Milestone"),
+                        m(ModalBody,
+                            m(Form,
+                                m(FormLabel,"Title"),
+                                m(TextField,{data:json,name:'title',type:'input'}),
+                                m(FormLabel,"Name"),
+                                m(TextField,{data:json,name:'name',type:'input'}),
+                                m(FormLabel,"Person"),
+                                m(TextField,{data:json, name:'person',type:'input'}),
+                                
+                                
+                                m(FormLabel,"Description"),
+                                m(TextField,{data:json,name:'description',type:'textarea'}),
+                                m(FormLabel,"Image"),
+                                
+                                json.image ? m("img",{src:json.image}): null,
+                                m(Button,{onclick:(e)=> showFileExplorer({data:json,name:'image'})},"Select image"),
+                                
+                                m(FormLabel,"Position"),
+                                m(TextField,{data:json,name:'position',type:'number'}),
+                                m(FormLabel, "Starting stage"),
+                                m(Select,{data:json,name:'startingStage'},stagenumbers),
+                                m(FormLabel, "Ending stage"),
+                                m(Select,{data:json,name:'endingStage'},stagenumbers),
+                            ),
+                        ),
+
+                        m(ModalFooter,
+                            m(Button,{
+                                type:'primary',
+                                onclick:(e)=> addMilestone(json)
+                            }, "Add")
+                        )
+
+                    ),
+
+                    m(Button,
+                        {
+                            'target': '#modal-milestone',
+                            type: 'primary',
+                            style:"min-width:200px"
+                        },
+                        'Add Milestone' 
+                    ),
+
+
+                ]
+            }
+        }
+    }
+
+    function MilestoneView(){
+
+        let editing = false;
+
+        let objectiveTypes = [
+            'streak','timeMetric',
+            'reportMetric',
+        ]
+
+        return {
+            view: (vnode) => {
+                let { milestone } = vnode.attrs
+                /*
+                *   
+                *objectives: [
+      Objective(
+        title: 'Establish a practice',
+        description: 'Complete 21 consecutive meditations.',
+        toComplete: 21,
+        type: 'streak'
+      ),
+
+      Objective(
+        title: 'Long meditations',
+        description: 'Complete 4 meditations of 30 minutes or more.',
+        toComplete: 4,
+        metricValue: 30,
+        type:'timeMetric',
+        name:'longmeditations'
+      ),
+
+      Objective(
+        type:'reportMetric',
+        name:'mindwandering',
+        reportType: 'percentage',
+        title:'Overcome mind-wandering',
+        metricValue: 70,
+        description: 'Complete ten sessions with 70% of focused attention.',
+        hint: 'What percentage were you focused on what you intended to?',
+        metricName:'Focused attention',
+        toComplete: 10
+      ),
+
+      Objective(
+        type:'reportMetric',
+        reportType: 'units',
+        name:'forgetting',
+        title:'Overcome forgetting',
+        metricName:'Aha moments',
+        hint:'How much times did you come back to the intended focus?',
+        description: 'Complete ten sessions without forgetting our focus of attention more than 10 times.',
+        metricValue: 10,
+        toComplete: 10
+      ),
+    ],
+                *
+                */
+                return [
+                    m(Card,
+                        m(CardHeader,
+                            m(CardMedia,m(ImageSelector, {
+                                height:'200px',  
+                                data:milestone, 
+                                name:'image'
+                            }))
+                        ),
+                        m(CardBody,
+                            m(Grid,
+                                m(Column,{width:'1-1'},
+                                    m(EditableField,{data:milestone, name:'title', isEditing:editing}, m("h3",milestone.title)),
+
+                                    m(EditableField,{data:milestone, name:'description', isEditing:editing}, 
+                                        m("p", milestone.description),
+                                    ),
+                                    m(EditableField,{data:milestone,  name:'position', isEditing:editing}, 
+                                        m("p", "Position: " + milestone.position),
+                                    ),
+
+                                    m(EditableField,{data:milestone,  name:'objective', isEditing:editing}, 
+                                        m("p", "Continuous attention to the breath"),
+                                    ),
+
+                                    m(EditableField,{data:milestone, name:'person', isEditing:editing}),
+
+                                    m(EditableField,{data:milestone,  name:'startingStage', isEditing:editing},
+                                        m("span", "Starting stage: " + milestone.startingStage)
+                                    ),
+
+                                    m(EditableField,{data:milestone, name:'endingStage', isEditing:editing},
+                                        m("span", "Ending stage: " + milestone.endingStage)
+                                    ),
+
+                                    m(Button,{type:"secondary",
+                                
+                                        onclick:(e)=>{
+                                            if(!milestone.objectives){
+                                                milestone.objectives = []
+                                            }
+
+                                            milestone.objectives.push({
+                                                'title':'streak',
+                                                'type':'metric'
+                                            })
+                                        }
+                                    }, "Add objective"),
+
+                                    milestone.objectives ?  [
+                                        // A FORM FOR THIS OBJECT
+                                        /**Objective(
+                                            type:'reportMetric',
+                                            name:'mindwandering',
+                                            reportType: 'percentage',
+                                            title:'Overcome mind-wandering',
+                                            metricValue: 70,
+                                            description: 'Complete ten sessions with 70% of focused attention.',
+                                            hint: 'What percentage were you focused on what you intended to?',
+                                            metricName:'Focused attention',
+                                            toComplete: 10
+                                        ), */
+                                        milestone.objectives.map((objective)=>{
+                                            return [
+                                                m(EditableField,{data:objective, name:'title', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'description', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'metricName', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'hint', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'toComplete', isEditing:editing}),
+
+                                                objective.type.match('Metric')? [
+                                                    m(EditableField,{data:objective, name:'metricValue', isEditing:editing}),
+                                                ]:null,
+
+                                                objective.type == 'reportMetric' ? [
+                                                    m(EditableField,{data:objective, name:'reportType', isEditing:editing}),
+                                                ] : null,
+
+
+                                            ]
+                                        })
+                                    ]: null,
+                                    m(Button,{
+                                        onclick:(e)=>{
+
+                                            if(!milestone.objectives) milestone.objectives = []
+                                            milestone.objectives.push({
+
+                                            })
+                                        }
+                                    })
+                                )
+                            ),
+                        ),
+                        m(CardFooter, 
+                            m(Button,{
+                                type:'secondary',
+                                onclick:(e)=> {
+                                    if(editing) updateMilestone(milestone)
+                                    editing = !editing
+                                }
+                            }, editing ? 'Save' : 'Edit'),    
+                        )
+                        
+                    )
+                ]
+            }
+        }
+    }
+
+    return {
+        oninit:(vnode) => {
+            getMilestones().then((res)=> milestones= res)
+        },
+        view:(vnode)=>{
+            return [
+                m(AddMileStone),
+
+                m(Section,
+                    m(Grid,{match:true, columngap: 'small'},
+                        milestones.map((milestone)=>{
+                            return m(Column,{width:'1-3'},
+                                m(MilestoneView,{milestone:milestone})
+                            )
+                        })
                     )
                 )
             ]
@@ -1413,10 +1745,6 @@ function FileExplorerPage(){
     }
 }
 
-export {
-    EditCreateContent,
-    ContentView,
-    ProfileView,
-    FileExplorerPage
-}
+
+export { ContentView, EditCreateContent, FileExplorerPage, Milestones, ProfileView }
 
