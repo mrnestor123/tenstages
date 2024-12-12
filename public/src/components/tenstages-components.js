@@ -1,6 +1,4 @@
-
-import { stagenumbers, types } from '../models/models.js';
-import { addContent } from '../server/contentController.js';
+import { addContent, stagenumbers, types } from '../server/contentController.js';
 import { login, user } from '../server/usersController.js';
 import { Button, Card, CardBody, CardHeader, CardMedia, Column, Flex, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
 import { FormLabel, Header2, SubHeader } from './texts.js';

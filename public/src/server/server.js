@@ -1,5 +1,22 @@
 import { api_get } from "../components/util.js";
-
+export { 
+    sendMail,
+    getVersions,
+    getStats,
+    addVersion, 
+    postRequest, 
+    getRequests,
+    updateRequest, 
+    uploadFile, 
+    getFiles,
+    deleteImage,
+    getStages,
+    getSettings,
+    updateSettings,
+    API,
+    db,
+    auth
+}
 
 // api_get lo podemos poner aqui!!!
 
@@ -258,20 +275,3 @@ async function updateSettings(settings){
 }
 
 
-export { 
-    sendMail,
-    getVersions,
-    getStats,
-    addVersion, 
-    postRequest, 
-    getRequests,
-    updateRequest, 
-    uploadFile, 
-    getFiles,
-    deleteImage,
-    getStages,
-    getSettings,
-    updateSettings,
-    API,
-    db
-}

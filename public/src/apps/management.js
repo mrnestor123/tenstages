@@ -6,11 +6,11 @@ import { FileExplorer, ImageSelector, showFileExplorer } from '../components/man
 import { ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
 import { FormLabel } from '../components/texts.js'
 import { create_UUID, dia, hora } from '../components/util.js'
-import { Content } from '../models/content.js'
-import { stagenumbers, types } from '../models/models.js'
 import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
 import { getRequests, postRequest, updateRequest } from '../server/server.js'
 import { getUser, getUserActions, user } from '../server/usersController.js'
+import { Content, stagenumbers, types} from '../server/contentController.js'
+
 
 
 function EditCreateContent() {

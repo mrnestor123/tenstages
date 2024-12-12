@@ -1,7 +1,164 @@
 import { api_get } from "../components/util.js"
 import { API, db } from "./server.js"
 
+
+
+export {
+    types, stagenumbers,
+    Content, Lesson, Meditation, StageEntity,
+
+
+
+    addSection,
+    addContent,
+    addMilestone,
+    getContent,
+    getContentbycod,
+    getTeachersContent,
+    getAllContent,
+    getMilestones,
+    getSections,
+    deleteContent,
+    updateContent,
+    updateStage,
+    updateMilestone,
+    updateSection
+}
+
 // AÑADIR MODELO DE CONTENT AQUI ??
+let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]
+
+//PASAR A CLASE MEDITACIÓN
+// ESTO LO GUARDAMOS EN EL CONTENTCONTROLLER!!! 
+const types = [
+    {label:'Meditation practice',value:'meditation-practice'},
+    {label:'Recording',value:'recording'},
+    {label:'Video',value:'video'},
+    {label:'Lesson Slides',value:'lesson'},
+]
+
+
+
+// Habrá que crear la clase de meditación, de lección y tal tal tal
+class Content {
+    constructor(json){        
+        this.cod = json.cod;
+        this.title = json.title;
+        this.description = json.description;
+        this.image = json.image;
+        this.type = json.type;
+        this.file = json.file;
+        this.doneBy = json.doneBy;
+        this.stagenumber = json.stagenumber;
+        this.position = json.position;
+        this.blocked = json.blocked;
+        this.isNew = json.isNew;
+        this.createdBy = json.createdBy;
+        this.done = json.done;
+        this.total = json.total;
+    }
+
+    // islesson, is meditation, is recording, is video or is game
+    isLesson(){
+        return this.type.match('lesson|brain|meditation')
+    }
+
+    isMeditation(){
+        return this.type.match('meditation-practice')
+    }
+
+
+    isRecording(){
+        return this.type.match('recording')
+    }
+
+    isVideo(){
+        return this.type.match('video')
+    }
+
+    isGame(){
+        return this.type.match('game')
+    }
+}
+
+
+class Lesson extends Content {
+    constructor(json){
+        super(json)
+        this.text =  json.text
+    }
+}
+
+
+class Meditation {
+  constructor(json){
+    this.coduser = json.coduser;
+    this.notes = json.notes;
+    this.duration = json.duration;
+    this.day = json.day;
+    this.content = json.content;
+    this.followalong = json.followalong;
+    this.meditationSettings = json.meditationSettings;
+  }
+}
+
+
+// utilizamos Entity o no??
+/*
+class CourseEntity {
+
+    constructor(json){
+        this.cod =  json.cod
+        this.title = json.title
+        this.startDate = json.startDate ? new  Date(json.startDate):''
+        this.endDate  = json.endDate ? new  Date(json.endDate):''
+        this.image = json.image 
+        this.description = json.description
+        this.price = json.price
+
+        // ESTO SERÍA PARA LLAMAR A LA GENTE
+        this.events = json.events || []
+        this.content = json.content || []
+        
+        // Puntuación 
+        // this.score = json.score || 0
+        // reviews 
+        // published 
+        // this.published = json.published || false
+        // this.reviews = json.reviews || []
+        
+    };
+
+
+    // DEVUELVE UN ARRAY DE LABEL Y NAME
+    getFields(){
+        return [
+            this.startDate,
+            this.endDate,
+            this.price
+        ]
+    }
+}
+*/
+class StageEntity {
+
+
+    constructor(json){
+
+        this.newpathposition = json.newpathposition
+        this.type = json.type
+        this.title = json.title
+        this.image = json.image
+        this.stagenumber = json.stagenumber
+        this.position = json.position
+        this.cod = json.cod
+        this.text = json.text
+        this.description = json.description
+
+
+    }
+}
+
 
 
 /*
@@ -249,22 +406,4 @@ async function updateMilestone(milestone) {
 
 
     return true;
-}
-
-
-export {
-    addSection,
-    addContent,
-    addMilestone,
-    getContent,
-    getContentbycod,
-    getTeachersContent,
-    getAllContent,
-    getMilestones,
-    getSections,
-    deleteContent,
-    updateContent,
-    updateStage,
-    updateMilestone,
-    updateSection
 }
