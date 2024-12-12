@@ -63,7 +63,7 @@ export const getRequest = async (requestId) => {
         }
 
 
-        console.log('got request', request)
+        
 
         return request;
     } catch (err) {
@@ -218,11 +218,14 @@ export const getFeed = async () =>{
             }
         }
 
-        console.log('FEED',feed)
+        console.log('GETTING FEED')
 
         return feed;
 
     } catch (err) {
+
+        console.log('ERROR', err)
+        
         throw new Error(err)
     }
 

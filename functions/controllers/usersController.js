@@ -100,12 +100,8 @@ export const getUser = async (userId, expand, connect) => {
 
             let userDataID;
 
-
-            console.log('logging user', user)
-
             if (expand || connect) {
                 let userDataquery = await db.collection('userData').where('coduser','==', userId).get();
-
 
                 if(userDataquery.docs.length){
                     userDataID = userDataquery.docs[0].id;
@@ -114,6 +110,7 @@ export const getUser = async (userId, expand, connect) => {
                 
                 if (user.role === 'teacher') {
                     user.addedcontent = await getUserCreatedContent(userId);
+                    user.addedsections = await getUserCreatedSections(userId);
                     // DE MOMENTO LOS CURSOS NO LOS AÑADIMOS !!
                     //user.addedcourses = await getUserPaths(userId);
                     // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACAR LOS STUDENTS !!!
@@ -126,7 +123,7 @@ export const getUser = async (userId, expand, connect) => {
                 if(userDataID) user.meditations = await getMeditations(userDataID);
 
 
-                // SI EL USUARIO ES DEL MODELO VIEJO REVISAMOS LAS MEDITACIONES
+                // SI EL USUARIO ES DEL MODELO VIEJO REVISAMOS LAS MEDITACIONES y  las añadimos !!
                 if(user.following) {
                     let meditations = []
                     
@@ -215,13 +212,13 @@ export const loginUser = async (userId) => {
 
             return user;
         }else {
-            console.log('GOT USER', query.docs[0].data())
             return query.docs[0].data();
         }
     } catch (err) {
         throw new Error(err);
     }
 }
+
 
 // REGISTRAMOS EL USUARIO SI NO EXISTE
 export const registerUser = async (userId)=> {
@@ -259,17 +256,36 @@ export const registerUser = async (userId)=> {
     }
 }
 
+
 // queremos esto? AUN NO
-export const deleteUser = async () => {
+export const deleteUser = async (userId) => {
     try {
-        // delete user
-        // cuando se borra un usuario deberán borrarse todos los datos asociados a él
+        // find the user in the database and delete it
+
+        let query = await db.collection('users').where('coduser', '==', userId).get();
+
+        if (query.docs.length) {
+            await db.collection('users').doc(query.docs[0].id).delete();
+            
+            let query2 = await db
+            .collection('userData')
+            .where('coduser', '==', userId)
+            .get();
+
+            if (query2.docs.length) {
+                await db.collection('userData').doc(query2.docs[0].id).delete();
+            }
+
+            return true;
+        }
+
+        throw Error('User not found');
+        
+
     } catch (err) {
         throw new Error(err);
     }
 };
-
-
 
 
 export const updateUser = async (userId, data) => {
@@ -290,6 +306,7 @@ export const updateUser = async (userId, data) => {
         throw new Error(err);
     }
 };
+
 
 export const getActions = async (userId) => {
     try {
@@ -353,9 +370,10 @@ export const getActions = async (userId) => {
 
 export const addAction = async (action, userId) => {
     try {
+
+
         // LE METEMOS LA IMÁGEN DEL USUARIO. PORQUE  NO VIENE YA DESDE ANTES ????????
         let user = await getUser(userId);
-
         action.coduser = userId;
 
         // damos por hecho
@@ -363,7 +381,7 @@ export const addAction = async (action, userId) => {
             if (user.image) {
                 action.userimage = user.image;
             }
-
+            
             action.username = user.username ? user.username : user.nombre;
         }
 
@@ -379,12 +397,12 @@ export const addAction = async (action, userId) => {
         }
 
 
-        let userDataID  = await getUserDataId(userId);
+        //let userDataID  = await getUserDataId(userId);
 
-        console.log('adding action', action,  userDataID);
+        //console.log('adding action', action,  userDataID);
 
-
-        await db.collection('userData').doc(userDataID).collection('actions').add(action);
+        await db.collection('actions').add(action);
+        //await db.collection('userData').doc(userDataID).collection('actions').add(action);
 
     } catch (err) {
         console.log(err);
@@ -503,8 +521,6 @@ export const uploadFile = async (image, fileName) => {
     }
 }
 
-
-
 // GUARDA EL TIEMPO Y EL CONTENIDO  !!
 // save into userData, if it exists update done time
 export const doneContent = async (userId, content) =>{
@@ -512,7 +528,7 @@ export const doneContent = async (userId, content) =>{
         let docId  = await getUserDataId(userId);
         let query = await db.collection('userData').doc(docId).collection('doneContent').get();
 
-        console.log('SAVING DONE CONTENT', content)
+     //   console.log('SAVING DONE CONTENT', content)
 
         if(query.docs.length){
             let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',content.cod).get();
@@ -673,6 +689,9 @@ const getUserCreatedContent = async (userId) => {
                 }
             }
         }
+
+       
+
         if (content.length) {
             content.sort((a, b) => a.position - b.position);
         }
@@ -682,6 +701,43 @@ const getUserCreatedContent = async (userId) => {
         throw new Error(err);
     }
 };
+
+const getUserCreatedSections = async (userId) => {
+
+    try {
+        let sections = [];
+        let query = await db
+            .collection('sections')
+            .where('createdBy', '==', userId)
+            .get();
+
+        if (query.docs) {
+            for (var doc of query.docs) {
+                let section = doc.data();
+
+                // EXPAND CONTENT
+                let contentquery =  await db.collection('content').where('cod','in',section.content).get();
+                
+                if(contentquery.docs){
+                    section.content = [];
+                    for(let doc of contentquery.docs){
+                        section.content.push(doc.data());
+                    }
+
+                    
+
+                }
+
+                sections.push(section);
+            }
+        }
+
+        return sections;
+    } catch (err) {
+        throw new Error(err);
+    }
+};
+
 
 const getUserPaths = async (userId) => {
     try {

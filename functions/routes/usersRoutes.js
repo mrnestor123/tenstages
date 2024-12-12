@@ -35,7 +35,6 @@ router.get('/:userId', isVerified, async (req, res) => {
     try {
         const role = req.query.role || null;
         const users = await getUsers(role);
-
        
         res.status(200).json(users);
     } catch (err) {
@@ -54,6 +53,8 @@ router.get('/user/:userId', isVerified, async (req, res) => {
         const connect = !!req.query.connect;
         
         const user = await getUser(req.params.userId, expand, connect);
+
+        
 
         
         res.status(200).json(user);
@@ -75,7 +76,7 @@ router.get('/actions/:userId', isVerified, async (req, res) => {
 
 router.put('/setusername/:userId', isVerified, async (req, res) => {
     try {
-        console.log('setting username',req.body)
+        //console.log('setting username',req.body)
         await setUserName(req.params.userId, req.body);
         res.status(200).json(true);
     } catch (err) {
@@ -194,6 +195,7 @@ router.patch('/:userId', isVerified , async (req, res) => {
 // Delete user by coduser
 router.delete('/:userId', isVerified, async (req, res) => {
     try {
+        console.log('DELETING USER')
         const user = await deleteUser(req.params.userId);
         res.status(200).json(user);
     } catch (err) {

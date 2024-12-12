@@ -64,4 +64,22 @@ class Meditation {
 }
 
 
-export {Content, Meditation, Lesson}
+const contentTypes  = {
+    Lesson: 'lesson',
+    Meditation: 'meditation-practice',
+    Game: 'game',
+    Recording: 'recording',
+    Video: 'video'
+}
+
+
+const contentIcons  = {
+    'lesson': 'book',
+    'meditation-practice': 'self_improvement',
+    'game': 'sports_esports',
+    'recording': 'record_voice_over',
+    'video': 'videocam'
+}
+
+
+export {Content, Meditation, Lesson,  contentTypes, contentIcons}

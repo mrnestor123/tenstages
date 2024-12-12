@@ -10,7 +10,7 @@ router.get('/:userId/new', isVerified, async (req, res) => {
     try {
         const userId = req.params.userId;
         let messages = await getUserChats(userId);
-        console.log('chats',messages)
+        //console.log('chats',messages)
         
         res.status(200).json(messages);
     } catch (err) {

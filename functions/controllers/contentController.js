@@ -54,20 +54,19 @@ export const getCourses = async () => {
     }
 };
 
-
 // DEVUELVE LOS DATOS DE LA BASE DE DATOS
 // LOS RECORDINGS, las stages y los usuarios !!
-export const getDB = async () => {
+export const getDB = async (isNew) => {
     // SACAMOS LOS DATOS
     return new Promise(async (resolve, reject) => {
         try {
             let database = {};
 
-            console.time('VERSIONS')
             database.versions = await getVersions();
-            console.timeEnd('VERSIONS')
 
-            //sacamos todo el contenido de la app 
+            console.log('DATABASE EEEEEEE')
+            
+            // sacamos todo el contenido de la app 
             let query = await db.collection('content').get();
             let content = [];
 
@@ -78,43 +77,34 @@ export const getDB = async () => {
             }
 
            
-            console.time('VERSIONS')
-            
             database.games = content.filter((item)=> item.type == 'meditation-game');
 
-            console.log('GETTING STAGES')
-
-
+            
             console.time('stages')
-            database.stages = await getStages(content);
+            database.stages = await getStages(content, isNew);
             console.timeEnd('stages')
 
 
-
-            /*
             console.time('sections')
             database.sections = await getSections(content);
             console.timeEnd('sections')
-            */
-
+            
+            /*
             console.time('milestones')
             database.milestones = await getMilestones(content);
             console.timeEnd('milestones')
-
-                
+            */
             
             console.time('settings')
             database.settings = await getSettings();
             console.timeEnd('settings')
-
-            console.log('settings', database.settings)
 
             database.teachers = await getTeachers();
 
             // PODRÍAMOS SACAR MENOS COSAS ??
             resolve(database);
         } catch (err) {
-            console.log('ERR',err)
+           // console.log('ERR',err)
             
             reject(err);
         }
@@ -134,10 +124,10 @@ async function getSections(content){
                 for(let doc of query.docs){
                     let section = doc.data();
 
-                    if( !section.disabled ){
+                    if(!section.disabled){
                         if(section.content && content == null){
                             promises.push(db.collection('content').where('cod','in',section.content).get());
-                        }else{
+                        } else {
                             section.content = content.filter((item)=> section.content.includes(item.cod));
                         }
 
@@ -226,7 +216,7 @@ export async function getMilestones(){
         }
     }
 
-    console.log('MILESTONES', milestones)
+    
 
     return milestones;
 }

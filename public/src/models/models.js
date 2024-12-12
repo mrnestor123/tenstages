@@ -1,7 +1,7 @@
 //import { getUser } from "../src/api/usersController.js"
 
 // IR CREANDO CLASES DE LOS MODELOS !!
-let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'none']
+let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]
 
 //PASAR A CLASE MEDITACIÓN
 // ESTO LO GUARDAMOS EN EL CONTENTCONTROLLER!!! 
@@ -11,6 +11,7 @@ const types = [
     {label:'Video',value:'video'},
     {label:'Lesson Slides',value:'lesson'},
 ]
+
 
 
 class UserAction {

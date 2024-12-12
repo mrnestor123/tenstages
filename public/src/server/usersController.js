@@ -1,5 +1,5 @@
 import { api_get } from "../components/util.js";
-import { API, db } from "./server.js";
+import { API, db, auth } from "./server.js";
 
 // AQUÍ PODRÍAMOS GUARDAR  EL USUARIO QUE SE PASA LUEGO AL PROGRAMA !!
 class UserEntity {
@@ -96,6 +96,7 @@ function isLoggedIn(){
         localStorage.setItem('meditationcod','"J6mQEsPSr2ctveUZTYx4jmA6rDH3"')
         userData  = 'gfZM9BlAfKdVvzTmTPW1RJcs'
     }*/
+   
     
     return new Promise((resolve, reject)=>{
         
@@ -252,6 +253,42 @@ async function getTeachers(){
 }
 
 
+
+async function getAllActions(){
+    
+    // GET THE COLLECTION USERDATA, AND THEN GET THE ACTIONS OF EACH USER
+    let query = await db.collection('actions').get()
+    let actions = []
+
+    if(query.docs && query.docs.length > 0){
+        for(let doc of query.docs){
+            actions.push(doc.data())
+        }
+    }
+
+    
+    let userData = await db.collection('userData').get()
+
+    if(userData.docs && userData.docs.length > 0){
+        for(let doc of userData.docs){
+            let id = doc.id
+            
+            let actionsDoc = await db.collection('userData').doc(id).collection('actions').limit(1).get()
+            
+            if(actionsDoc.docs && actionsDoc.docs.length > 0){
+                for(let doc of actionsDoc.docs){
+                    actions.push(doc.data())
+                }
+            }
+        }
+    }
+
+ 
+    
+    return actions;
+}
+
+
 export {
     isLoggedIn,
     deleteUser,
@@ -262,5 +299,6 @@ export {
     login,
     loginUser,
     updateUser,
+    getAllActions,
     user
 }

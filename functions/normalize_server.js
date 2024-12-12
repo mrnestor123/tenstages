@@ -19,7 +19,7 @@ export async function normalize_server() {
         if(!userData.docs.length){
             // añadimos el usuario a la colección de usuarios
             let userRef = await db.collection('userData').add({'coduser':user.coduser})
-            console.log('user added', userRef.id)
+            
             for(var meditation of  user.meditations){
                 db.collection('userData').doc(userRef.id).collection('meditations').add(meditation)
             }   

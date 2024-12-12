@@ -4,9 +4,10 @@ import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Grid
 import { ImageSelector, showFileExplorer } from "../components/management-components.js";
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
 import { FormLabel, Header3 } from "../components/texts.js";
-import { api_get, create_UUID } from "../components/util.js";
-import { addSection, getAllContent, getSections, updateContent, updateSection } from '../server/contentController.js'
-import { getTeachers } from '../server/usersController.js'
+import { api_get, create_UUID, dia, hora } from "../components/util.js";
+import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage } from '../server/contentController.js'
+import { getAllActions, getTeachers } from '../server/usersController.js'
+import { contentIcons, contentTypes } from '../models/content.js';
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -582,13 +583,12 @@ function SettingsPage(){
     }
 } 
 
-
 function StagesManagement(){
 
     let stages = []
     let contentList = []
     let filter = {
-        stagenumber:1
+        stagenumber:0
     }
 
     // LAS LECCIONES  DE LA ETAPA
@@ -817,7 +817,7 @@ function StagesManagement(){
 
         return {
             view:(vnode)=>{
-                let selectedStage = stages[filter.stagenumber-1];
+                let selectedStage = stages[filter.stagenumber];
 
                 return m(Card,{style:"background-color:#dbd0ba;border-radius:10px"},
                     m(Grid,{center:true, verticalalign:true, columngap:'collapse'},
@@ -836,7 +836,13 @@ function StagesManagement(){
                             ),
 
                             m(Header3,{style:"text-align:center"}, "Stage " + selectedStage.stagenumber),
-                            m("p",{style:"text-align:center"}, selectedStage.description),
+                            m(EditableField,{
+                                type:'html',
+                                isEditing:isEditing,
+                                data:selectedStage,
+                                name:'description'
+                            },),
+                            
 
                             // EDITTING BUTTON
                             m(Button,{
@@ -870,6 +876,13 @@ function StagesManagement(){
                                     name:'whenToAdvance'
                                 },m("p", m.trust(selectedStage.whenToAdvance))),
 
+                                m("strong", "Blocked"),
+                                m(TextField,{
+                                    type:'checkbox',
+                                    data:selectedStage,
+                                    name:'blocked'
+                                }),
+
                                 m("strong", "Objectives"), m("br"),
                                 m(EditableField,{
                                     type:'html',
@@ -889,8 +902,6 @@ function StagesManagement(){
                             ),
                         
                         )
-                        
-                        
                     ),
                     /*
                     m(CardFooter, "FOOTER")
@@ -933,9 +944,13 @@ function StagesManagement(){
     }
 
     return {
-        oninit:(vnode)=>{
+        oninit: (vnode) => {
             getStages().then((res)=>{
                 stages = res.sort((a,b)=> a.stagenumber - b.stagenumber)
+
+
+                console.log('STAGES', stages)
+
                 m.redraw()
             })
 
@@ -944,8 +959,7 @@ function StagesManagement(){
                 m.redraw()
             })
         },
-        view:(vnode)=>{
-            
+        view: (vnode) => {
             return stages.length  
                 ? [
                     m(Grid,{match:true},
@@ -973,5 +987,86 @@ function StagesManagement(){
     }
 }
 
-export { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement };
+function ActionsPage(){
+    let actions = []
+    let maximumCount = 50
+
+    let savedActions = []
+    
+    let  filter = ''
+
+
+    return {
+        oninit: (vnode)=> {
+            
+            if(!localStorage.getItem('actions')){
+                getAllActions().then((res)=>{
+
+
+                    console.log('ACTIONS', res)
+                    actions = res.sort((a,b)=> new Date(b.time) - new Date(a.time))
+                    localStorage.setItem('actions',JSON.stringify(actions))
+                })
+            } else {
+                actions = JSON.parse(localStorage.getItem('actions'))
+                actions.sort((a,b)=> new Date(b.time) - new Date(a.time))
+
+
+                console.log('FILTERED ', actions.filter((a)=> new Date(a.time).getFullYear() == 2024))
+
+               
+            }
+        },
+        view: (vnode)=>{
+            return [
+               // m(Section,{style:"padding-top:0px!important"},
+                    m("ul.uk-list.uk-list-striped",
+                        
+                        m("div",{style:"display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"},
+                            m("strong", "Filter"),
+                            m(Button,{
+                                type:'secondary',
+                                onclick:(e)=>{
+                                    filter = ''
+                                }
+                            }, "Clear"),
+                            Object.keys(contentTypes).map((c)=>{
+                                return m(Button,{ 
+                                    onclick:(e)=>{
+                                        filter = contentTypes[c]
+                                    },
+                                    type:'default', 
+                                    style:"display:flex; align-items:center;"
+                                },
+                                    m(Icon,{icon: contentIcons[contentTypes[c]]}), 
+                                    
+                                    m("div",{style:"width:10px"}),
+                                    m("strong", c),
+                                )
+                            })
+                        ),
+
+                        actions.filter((a)=> !filter || filter.includes(a.type)).slice(0,maximumCount).map((a)=>{
+                            return m("li", 
+                                a.username + ' ', a.message,
+                                m("strong",{style:"float:right"}, dia(a.time) + " " + hora(a.time))
+                            )
+                        }),
+
+                        actions.length > maximumCount 
+                        ? m("li",m(Button,{
+                            type:'secondary',
+                            onclick:(e)=>{
+                                maximumCount += 50
+                            }
+                        },"Load more")) 
+                        : null
+                    )
+                //)
+            ]
+        }
+    }
+}
+
+export { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement, ActionsPage };
 

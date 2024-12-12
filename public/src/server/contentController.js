@@ -181,7 +181,11 @@ async function updateContent(content,hideMessage) {
 
     if(c.stagenumber !=  null) c.stagenumber = Number(c.stagenumber)
 
-    db.collection('content').doc(docID).update(c).then(function () {
+    if(c.position == null){ 
+        
+    }
+
+    db.collection('content').doc(docID).update(c,).then(function () {
         if(!hideMessage) alert("Document successfully updated!");
     }).catch(function (error) {
         console.log('QUE PASA',error)
@@ -191,6 +195,21 @@ async function updateContent(content,hideMessage) {
 
 
     return true;
+}
+
+async function deleteContentPosition(content){
+
+    console.log('DELETING CONTENT POSITION', content)
+
+    let query = await db.collection('content').where('cod', '==', content.cod).get()
+    let docID = query.docs[0].id
+
+    db.collection('content').doc(docID).update({position: firebase.firestore.FieldValue.delete()}).then(function () {
+        alert("Document successfully updated!");
+    }).catch(function (error) {
+        // The document probably doesn't exist.
+        alert("Error updating document: ", error);
+    });
 }
 
 async function updateSection(section){
@@ -252,6 +271,20 @@ async function updateMilestone(milestone) {
 }
 
 
+async function getSettings(){
+
+    let query = await db.collection('settings').get()
+
+    if(query.docs){
+        let settings = query.docs[0].data()
+        
+        console.log('settings', settings)
+
+        return settings;
+    }
+
+}
+
 export {
     addSection,
     addContent,
@@ -266,5 +299,6 @@ export {
     updateContent,
     updateStage,
     updateMilestone,
-    updateSection
+    updateSection,
+    deleteContentPosition
 }

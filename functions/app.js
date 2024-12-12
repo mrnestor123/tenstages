@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 
+
 admin.initializeApp({
   credential: admin.credential.cert('./secrets/firebase-key.json'),
   databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',

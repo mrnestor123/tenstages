@@ -54,7 +54,7 @@ function SubHeader(){
 function Header2(){
     return{
         view:(vnode)=>{
-            return m("h2.uk-heading-line",vnode.children)
+            return m("h2.uk-heading-line", vnode.attrs, vnode.children)
         }
     }
 }

@@ -54,7 +54,7 @@ function Grid() {
 function Row() {
     return {
         view: (vnode) => {
-            return m(".uk-width-1-1.uk-flex.uk-flex-row", vnode.attrs, vnode.children)
+            return m(".uk-width-1-1.uk-flex.uk-flex-row.uk-items-center.uk-flex-middle", vnode.attrs, vnode.children)
 
         }
     }
@@ -63,8 +63,8 @@ function Row() {
 /**
  * Componente Flex de UIkit
  * @param {Boolean} inline true | false
- * @param {String} horizAlign left | center | right | around | between
- * @param {String} vertAlign stretch | top | middle | bottom
+ * @param {String} hAlign left | center | right | around | between
+ * @param {String} vAlign stretch | top | middle | bottom
  * @param {String} direction row | column | row-reverse | column-reverse
  * @param {String} wrap wrap | nowrap | wrap-reverse
  */
@@ -190,6 +190,7 @@ function TextField() {
                     {
                         class: type ? types[type].class : types['input'].class,
                         //style: style || '',
+                        placeholder: vnode.attrs.placeholder || '',
                         id: id || undefined,
                         type: type ? types[type].type : 'text',
                         value: data[name],
@@ -208,6 +209,7 @@ function TextField() {
                 m("textarea",
                     {
                         class: types[type].class,
+                        placeholder: vnode.attrs.placeholder || '',
                         style: style || '',
                         rows: rows || "2",
                         value: data[name],
@@ -302,6 +304,8 @@ function Section() {
                 + (vnode.attrs.size ? 'uk-section-' + vnode.attrs.size + ' ' : '')
         },
         view: (vnode) => {
+            console.log(vnode.attrs.style)
+            
             return m("div",
                 {
                     class: clase,
@@ -327,16 +331,18 @@ function Padding() {
 
     return {
         oninit: (vnode) => {
-            clase = (vnode.attrs.size ? 'uk-padding-' + vnode.attrs.size : 'uk-padding')
+            clase = (vnode.attrs.size ? 'uk-padding-' + vnode.attrs.size : 'uk-padding') + 
+                ( vnode.attrs.horizontal ? " uk-padding-remove-top uk-padding-remove-bottom":"") +
+                ( vnode.attrs.vertical ? " uk-padding-remove-left uk-padding-remove-right":"")
         },
         view: (vnode) => {
-            return m("div",
-                { class: clase },
+            return m("div", { class: clase },
                 vnode.children
             )
         }
     }
 }
+
 
 function CardBadge() {
     return {
@@ -672,7 +678,7 @@ function TextEditor() {
  * @param {String} icon Nombre del icono
  * @param {String} color Color del icono
  * @param {function} onclick Función a ejecutar al hacer click
- * @param {String} size Tamaño del icono
+ * @param {String} size Tamaño del icono mini | tiny | small | medium | large | huge | massive | verymassive
  * @param {Number} opacity Opacidad del icono [0,1]
  * 
  * El nombre del icono se saca de 
@@ -696,8 +702,8 @@ function Icon() {
             return m("span",{
                 class:'material-icons', 
                 onclick:vnode.attrs.onclick,
-                style:`color:${vnode.attrs.color || 'black'};opacity:${vnode.attrs.opacity || 1};${sizes[vnode.attrs.size || 'medium']};`,
-                ...vnode.attrs
+                style: vnode.attrs.style || `color:${vnode.attrs.color || 'black'};opacity:${vnode.attrs.opacity || 1};${sizes[vnode.attrs.size || 'medium']}!important;`,
+                
             }, vnode.attrs.icon)
         }
     }
@@ -768,6 +774,19 @@ function Label(){
     }
 }
 
+function Chip(){
+
+    return {
+        view:(vnode)=>{
+            return [
+                m("div",{style:"border-radius:1em; padding:0.2em 0.5em; border:1px solid black;  display:flex;"},
+                    vnode.children
+                )
+            ]
+        }
+    }
+}
+
 
 export { 
     TextField, 
@@ -782,6 +801,7 @@ export {
     Row, 
     Select, 
     Section,
+    Chip,
     Icon, 
     Padding, 
     CardBadge, 

@@ -347,6 +347,7 @@ function ContentCard(){
     return {
         view:(vnode)=>{
             content = vnode.attrs.content
+            
 
             return  [
 
@@ -369,9 +370,11 @@ function ContentCard(){
                     m(".uk-card-footer",
                         m("a.uk-button.uk-button-text",{
                             onclick:()=>{
-                                m.route.set(`/edit_create?cod=${content.cod}`)
+                                if(vnode.attrs.onclick){
+                                    vnode.attrs.onclick()
+                                }else m.route.set(`/edit_create?cod=${content.cod}`)
                             }
-                        },"Edit")
+                        }, vnode.attrs.bottomText || "Edit")
                     ),
 
                     vnode.children
@@ -870,7 +873,7 @@ function EditableField(){
                     type == 'html' ?
                     m(TextEditor,{data:data,name:name, placeholder:name}):
                     m(TextField,{data:data,name:name,type:type, placeholder:name}): 
-                vnode.children
+                vnode.children && vnode.children.length ? vnode.children : data[name]
             ]
         }
     }

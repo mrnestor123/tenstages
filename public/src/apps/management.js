@@ -8,7 +8,7 @@ import { FormLabel } from '../components/texts.js'
 import { create_UUID, dia, hora } from '../components/util.js'
 import { Content } from '../models/content.js'
 import { stagenumbers, types } from '../models/models.js'
-import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
+import { addContent, addMilestone, deleteContent, deleteContentPosition, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
 import { getRequests, postRequest, updateRequest } from '../server/server.js'
 import { getUser, getUserActions, user } from '../server/usersController.js'
 
@@ -24,6 +24,7 @@ function EditCreateContent() {
     let texts = 1;
     let file = 2;
     let article_texts = 3;
+    let savedTexts = 4;
 
     //para cuando creamos un componente
     let json = {
@@ -253,7 +254,7 @@ function EditCreateContent() {
                                     content.position != undefined ?
                                     m(Button,{type:'danger', onclick:(e)=>{
                                         delete content.position
-                                        updateContent(content)
+                                        deleteContentPosition(content)
                                     }}, "DELETE") : null
                                 ),
                             
@@ -265,7 +266,7 @@ function EditCreateContent() {
                                 ),
 
 
-                                /*
+                                
                                 content.type.match('lesson') ?
                                 m(Column, { width: '1-3'}, 
                                     m(FormLabel, "AppCategory"),
@@ -274,7 +275,7 @@ function EditCreateContent() {
                                         categories
                                     )
                                 )
-                                : null, */
+                                : null, 
 
 
                                 //  AÑADIR SECCIÓN AL CONTENIDO !!
@@ -333,7 +334,7 @@ function EditCreateContent() {
                                 m("li",{class: !showingBasicInfo ? 'uk-active':'', onclick:(e) => showingBasicInfo = false}, m("a","Help text"))
                             ),
                             data[name] && data[name].text ?
-                            m("p", data[name].text.length):null,
+                            m("p", data[name].text.length) : null,
 
 
                             showingBasicInfo ? [
@@ -401,6 +402,7 @@ function EditCreateContent() {
                 }
             }
         }
+        let texts = []
 
         return {
             oninit:(vnode)=>{
@@ -421,6 +423,15 @@ function EditCreateContent() {
                 }
             },
             view:(vnode)=>{
+                if(showing ==  savedTexts){
+                    texts = content.copiedText[0]
+
+                }else{
+                    texts = content.text
+                }
+
+                console.log('content',  texts)
+
                 return [
                     m(Grid, [
                         m(Row,
@@ -433,9 +444,9 @@ function EditCreateContent() {
                                         content.text = []
                                     }
                                     
-                                    content.text.push({ 'text': 'Edit this text', 'image': "" })         
+                                    texts.push({ 'text': 'Edit this text', 'image': "" })         
                                 
-                                    pages = Math.ceil(content.text.length / 3)
+                                    pages = Math.ceil(texts.length / 3)
                                 }
                             }, "Add slide"),   
                             m(FormLabel, {style:"margin-top:15px"},
@@ -446,12 +457,11 @@ function EditCreateContent() {
                             ),
                         )),
                             
-                        content.text ? [
+                        texts ? [
                             // CAMBIAR ESTO POR NAVIGATION
                             pages > 1  ? m(Row, m("ul",{class:"uk-dotnav"},
                             Array.from(Array(pages).keys()).map((k,i)=>{
-                                return m("li",
-                                    {
+                                return m("li", {
                                         class: i == page ? 'uk-active':'',
                                         onclick:(e)=>{
                                             page = i 
@@ -461,9 +471,9 @@ function EditCreateContent() {
                                 )})
                             )):m(Row),
 
-                            content.text.slice(page*4, (page*4)+4).map((key,i) => {
+                            texts.slice(page*4, (page*4)+4).map((key,i) => {
                                 return m(Column, { width: '1-4' },
-                                    m(Slide, { data: content.text, name: i+(page*4), index: i})
+                                    m(Slide, { data: texts, name: i+(page*4), index: i + (page*4)})
                                 )
                             })
                         ] : null  
@@ -516,11 +526,11 @@ function EditCreateContent() {
         view: (vnode) => {
             return content.cod || isNew ? [
                 m(Section, {style:"margin-bottom:20px;"},
-                    m(Grid,{},
+                    m(Grid,
                         m(Column,{width:'1-6'},
                             m("ul.uk-tab-left",{'uk-tab':true, style:"min-height:50vh;"},
                                 // link that goes to basic info and changes the showing parameter
-                                m("li", {class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
+                                m("li", { class:showing == basic_info ? 'uk-active' : '',  onclick:(e)=> {showing = basic_info}},m("a", "Basic info")),
 
                                 // link that goes to content and changes the showing parameter
                                 content.type =='article' ? 
@@ -534,6 +544,9 @@ function EditCreateContent() {
                                     m("li", {class:showing == texts ? 'uk-active' : '', onclick:(e)=> {showing = texts}},m("a", "Write text")),
 
 
+                                    m("li", {class:showing == savedTexts ? 'uk-active' : '', onclick:(e)=> {showing = savedTexts}},m("a", "Saved text")),
+
+
                                     
                                     content.type == 'lesson' ? null  :
                                     m("li", {class:showing == file ? 'uk-active' : '', onclick:(e)=> {showing = file}},m("a", "Add File")),
@@ -545,6 +558,8 @@ function EditCreateContent() {
                             m(BasicInfo): 
                             showing == texts ? 
                             m(Texts):
+                            showing == savedTexts ?
+                            m(Texts) :
                             showing == article_texts ?
                             m(ArticleTexts):
                             m(File)
@@ -575,6 +590,23 @@ function EditCreateContent() {
                             }
                         }
                     }, "Delete") : null,
+                
+                    !isNew &&  content.type == 'lesson' ?
+                    m(Button, {
+                        style:"margin-right:20px;color:white;background-color:gray;margin-left:20px;min-width:200px;",
+                    
+                        type:"primary",
+                        onclick: (e) => {
+                            if(!content.copiedText){
+                                content.copiedText ={}
+                            }
+
+
+                            content.copiedText[Object.keys(content.copiedText).length] = content.text
+
+                            updateContent(content); 
+                        }
+                    }, "Save a copy"):null,
 
                     m(Button, {
                         style:"margin-right:20px;color:white;background-color:#1e87f0;margin-left:20px;min-width:200px;",
@@ -1273,7 +1305,6 @@ function ProfileView(){
     }
 }
 
-// 
 function ContentView(){
     let content = []
     let filter = {
@@ -1378,7 +1409,7 @@ function ContentView(){
                             })
                         )
                     )
-                ]: null,
+                ] : null,
 
                 /*
                 user.isAdmin() || true ? [
@@ -1562,7 +1593,7 @@ function Milestones(){
 
         let objectiveTypes = [
             'streak','timeMetric',
-            'reportMetric',
+            'reportMetric','longmeditations'
         ]
 
         return {
@@ -1648,20 +1679,7 @@ function Milestones(){
                                         m("span", "Ending stage: " + milestone.endingStage)
                                     ),
 
-                                    m(Button,{type:"secondary",
-                                
-                                        onclick:(e)=>{
-                                            if(!milestone.objectives){
-                                                milestone.objectives = []
-                                            }
-
-                                            milestone.objectives.push({
-                                                'title':'streak',
-                                                'type':'metric'
-                                            })
-                                        }
-                                    }, "Add objective"),
-
+                                    
                                     milestone.objectives ?  [
                                         // A FORM FOR THIS OBJECT
                                         /**Objective(
@@ -1675,11 +1693,13 @@ function Milestones(){
                                             metricName:'Focused attention',
                                             toComplete: 10
                                         ), */
-                                        milestone.objectives.map((objective)=>{
+                                        milestone.objectives.map((objective,i)=>{
                                             return [
+                                                m(".ui.label", i),
                                                 m(EditableField,{data:objective, name:'title', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'description', isEditing:editing}),
-                                                m(EditableField,{data:objective, name:'metricName', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'type', isEditing:editing}),
+                                                m(EditableField,{data:objective, name:'name', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'hint', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'toComplete', isEditing:editing}),
 
@@ -1690,11 +1710,26 @@ function Milestones(){
                                                 objective.type == 'reportMetric' ? [
                                                     m(EditableField,{data:objective, name:'reportType', isEditing:editing}),
                                                 ] : null,
-
-
                                             ]
                                         })
                                     ]: null,
+
+                                    m(Button,{
+                                        style:"width:100%",
+                                        type:"secondary",
+                                
+                                        onclick:(e)=>{
+                                            if(!milestone.objectives){
+                                                milestone.objectives = []
+                                            }
+
+                                            milestone.objectives.push({
+                                                'title':'streak',
+                                                'type':'metric'
+                                            })
+                                        }
+                                    }, "Add objective"),
+
                                     m(Button,{
                                         onclick:(e)=>{
 

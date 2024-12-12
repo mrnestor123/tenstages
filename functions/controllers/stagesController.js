@@ -1,7 +1,7 @@
 import { db } from '../app.js';
 import { getUser } from './usersController.js';
 
-export const getStages = async (allContent) => {
+export const getStages = async (allContent, isNew) => {
     try {
         let stages = [];
         let query = await db.collection('stages').get();
@@ -11,6 +11,8 @@ export const getStages = async (allContent) => {
         if (query.docs.length) {
             for (var doc of query.docs) {
                 let stage = doc.data();
+                
+                if(!isNew && stage.stagenumber == 0) continue;
                 
                 stage.meditations = [];
                 stage.games = [];

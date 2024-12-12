@@ -17,7 +17,7 @@ import { normalize_server } from './normalize_server.js';
 //PASAR ESTO A UNA VARIABLE DE ENTORNO
 const app = express();
 
-//  aceptamos  todas las url cuidadin !!!!
+// aceptamos todas las url cuidadin !!!!
 app.use(
     cors({
         "origin": "*",
@@ -34,9 +34,6 @@ app.use('/users', users);
 app.use('/stages', stages)
 app.use('/messages', messages);
 app.use('/requests', requests);
-
-
-// ESTO SE DEBERÍA LLAMAR CONTENT ?? probablemente ?
 app.use('/content', contentRoutes);
 app.use('/email', emails);
 
@@ -47,14 +44,13 @@ app.get('/', (req, res) => {
     res.send('Conectado correctamente al servidor de tenstages');
 });
 
-
 /*
 *
 * LLAMADAS ANTIGUAS
 */
 app.get('/paths',async (req,res)=>{
     try{
-        console.log('getting paths')
+        
         let courses = await getCourses();
 
         return  res.status(200).json(courses);
@@ -98,7 +94,7 @@ app.get("/connect/:userId",async (req, res) => {
 app.get("/expanduser/:userId",async (req, res) => {
     try{
         const user = await getUser(req.params.userId, true, false);
-        console.log('EXPANDINGUSER',user)
+        
         return res.status(200).json(user);
     }catch(err){
         return res.status(404).json({ message: err.message });
@@ -125,8 +121,8 @@ app.get('/teachers', async (req, res) => {
 });
 
 app.get('/user/:userId', async (req, res) => {
-    try{
-        console.log('getting user expanded', req.params.userId)
+    try {
+        //console.log('getting user expanded', req.params.userId)
         const user = await getUser(req.params.userId, true, false);
         return res.status(200).json(user);
     }catch(err){

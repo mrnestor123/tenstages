@@ -1,7 +1,6 @@
 import { api_get } from "../components/util.js";
 
 
-// api_get lo podemos poner aqui!!!
 
 // hay que quitar esto y pasar todas las llamadas al servidor de api!!
 var firebaseConfig = {
@@ -273,5 +272,6 @@ export {
     getSettings,
     updateSettings,
     API,
-    db
+    db,
+    auth
 }

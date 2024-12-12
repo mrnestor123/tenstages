@@ -2,7 +2,7 @@ import { Button, Column, Flex, Grid, Icon, Padding } from "../components/compone
 import { LoginPage } from "../components/tenstages-components.js"
 import { maincolor } from "../models/configuration.js"
 import { isLoggedIn, user } from "../server/usersController.js"
-import { AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./management-admin.js"
+import { ActionsPage, AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./management-admin.js"
 import { ContentView, EditCreateContent, FileExplorerPage,  Milestones,  ProfileView } from "./management.js"
 
 m.route(document.body, "/", {   
@@ -50,6 +50,12 @@ m.route(document.body, "/", {
         },
     },
 
+    "/actions": {
+        render: function (vnode) {
+            return m(Layout, vnode.attrs, ActionsPage)
+        },
+    },
+
     "/admin": {
         render: function (vnode) {
             return m(Layout, vnode.attrs, AdminManagement)
@@ -76,6 +82,7 @@ m.route(document.body, "/", {
 
     '/stages':{
         render: function (vnode) {
+            console.log('STAGES')
             return m(Layout, vnode.attrs, StagesManagement)
         }
     }
@@ -132,6 +139,12 @@ function Layout(){
             'route': '/milestones',
             'icon':'star'
         },
+
+        {
+            'name':'User actions',
+            'icon':'history',
+            'route':'/actions'
+        },
         {
             'name':'Settings',
             'icon':'settings',
@@ -158,10 +171,10 @@ function Layout(){
                                 m("p.uk-text-meta.uk-margin-remove-top",user.isAdmin() ? "Admin" : "Teacher")
                             ])
                         ]),
+
                         (user.isAdmin() ? managementRoutes : teacherRoutes).map((item)=>{
-
+                            
                             let isSelected = route.route == item.route
-
 
                             return m(Button,{
                                 onclick:(e)=>{
