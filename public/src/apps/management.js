@@ -6,11 +6,17 @@ import { FileExplorer, ImageSelector, showFileExplorer } from '../components/man
 import { ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
 import { FormLabel } from '../components/texts.js'
 import { create_UUID, dia, hora } from '../components/util.js'
+<<<<<<< HEAD
 import { Content } from '../models/content.js'
 import { stagenumbers, types } from '../models/models.js'
 import { addContent, addMilestone, deleteContent, deleteContentPosition, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
+=======
+import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
+>>>>>>> 65fa9946ebd809511992dab2bcb6cab34400b334
 import { getRequests, postRequest, updateRequest } from '../server/server.js'
 import { getUser, getUserActions, user } from '../server/usersController.js'
+import { Content, stagenumbers, types} from '../server/contentController.js'
+
 
 
 function EditCreateContent() {

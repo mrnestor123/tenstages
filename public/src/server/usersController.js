@@ -1,7 +1,28 @@
 import { api_get } from "../components/util.js";
 import { API, db, auth } from "./server.js";
 
-// AQUÍ PODRÍAMOS GUARDAR  EL USUARIO QUE SE PASA LUEGO AL PROGRAMA !!
+
+export {
+    
+    UserEntity, UserAction,
+
+    isLoggedIn,
+    getUser,
+    getUsers,
+    getTeachers,
+    getUserActions,
+    deleteUser,
+    login,
+    loginUser,
+    updateUser,
+    user
+}
+
+/*
+*
+* MODELOS
+*
+*/
 class UserEntity {
 
     // hay atributos solo únicos a un profesor !!
@@ -64,9 +85,32 @@ class UserEntity {
     }
 }
 
+class UserAction {
+    constructor(json){
+        var types = {
+            "meditation": (action) => 'meditated for ' + action[0] + ' min',
+            "guided_meditation": (action) => "took " + action[0] + ' for ' + action[1] + ' min',
+            "updatestage": (action) => "climbed up one stage to " + action,
+            "recording": (action) => "listened to " + action[0],
+            'game': (action) => 'played ',
+            'lesson': (action) => 'read ' + action
+        };
+
+        this.message = types[json.type](json.action);  
+        this.time = json.time;
+    }
+}
+
+
 // un user vacío para que sepa que es un objeto
 var user = new UserEntity();
 
+
+/*
+*
+* FUNCIONES DEL SERVIDOR
+*
+*/
 function loginUser(cod){
 
     localStorage.setItem('meditationcod', uid)
@@ -252,6 +296,7 @@ async function getTeachers(){
     return teachers;
 }
 
+<<<<<<< HEAD
 
 
 async function getAllActions(){
@@ -302,3 +347,5 @@ export {
     getAllActions,
     user
 }
+=======
+>>>>>>> 65fa9946ebd809511992dab2bcb6cab34400b334

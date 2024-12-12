@@ -1,6 +1,25 @@
 import { api_get } from "../components/util.js";
 
 
+export { 
+    sendMail,
+    getVersions,
+    getStats,
+    addVersion, 
+    postRequest, 
+    getRequests,
+    updateRequest, 
+    uploadFile, 
+    getFiles,
+    deleteImage,
+    getStages,
+    getSettings,
+    updateSettings,
+    API,
+    db,
+    auth
+}
+
 
 // hay que quitar esto y pasar todas las llamadas al servidor de api!!
 var firebaseConfig = {
@@ -257,21 +276,3 @@ async function updateSettings(settings){
 }
 
 
-export { 
-    sendMail,
-    getVersions,
-    getStats,
-    addVersion, 
-    postRequest, 
-    getRequests,
-    updateRequest, 
-    uploadFile, 
-    getFiles,
-    deleteImage,
-    getStages,
-    getSettings,
-    updateSettings,
-    API,
-    db,
-    auth
-}

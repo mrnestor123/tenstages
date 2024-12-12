@@ -1,9 +1,10 @@
 import { Button, Column, Flex, Grid, Icon, Padding } from "../components/components.js"
 import { LoginPage } from "../components/tenstages-components.js"
-import { maincolor } from "../models/configuration.js"
+import { maincolor } from "../configuration.js"
 import { isLoggedIn, user } from "../server/usersController.js"
 import { ActionsPage, AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./management-admin.js"
 import { ContentView, EditCreateContent, FileExplorerPage,  Milestones,  ProfileView } from "./management.js"
+
 
 m.route(document.body, "/", {   
     // SI ESTÁ LOGUEADO SALE LA PÁGINA DE LOGIN !!!
