@@ -15,6 +15,7 @@ export {
     login,
     loginUser,
     updateUser,
+    getAllActions,
     user
 }
 
@@ -296,7 +297,6 @@ async function getTeachers(){
     return teachers;
 }
 
-<<<<<<< HEAD
 
 
 async function getAllActions(){
@@ -334,18 +334,4 @@ async function getAllActions(){
 }
 
 
-export {
-    isLoggedIn,
-    deleteUser,
-    getUser,
-    getUsers,
-    getTeachers,
-    getUserActions,
-    login,
-    loginUser,
-    updateUser,
-    getAllActions,
-    user
-}
-=======
->>>>>>> 65fa9946ebd809511992dab2bcb6cab34400b334
+

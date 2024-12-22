@@ -21,7 +21,9 @@ export {
     updateContent,
     updateStage,
     updateMilestone,
-    updateSection
+    updateSection,
+
+    contentIcons, contentTypes
 }
 
 // AÑADIR MODELO DE CONTENT AQUI ??
@@ -34,6 +36,12 @@ const types = [
     {label:'Recording',value:'recording'},
     {label:'Video',value:'video'},
     {label:'Lesson Slides',value:'lesson'},
+]
+
+let contentIcons = {}
+
+let contentTypes =[
+
 ]
 
 

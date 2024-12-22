@@ -5,9 +5,8 @@ import { ImageSelector, showFileExplorer } from "../components/management-compon
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
 import { FormLabel, Header3 } from "../components/texts.js";
 import { api_get, create_UUID, dia, hora } from "../components/util.js";
-import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage } from '../server/contentController.js'
+import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage, contentIcons, contentTypes } from '../server/contentController.js'
 import { getAllActions, getTeachers } from '../server/usersController.js'
-import { contentIcons, contentTypes } from '../models/content.js';
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
