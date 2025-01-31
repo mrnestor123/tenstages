@@ -1399,7 +1399,10 @@ function ContentView(){
                     m("div",{style:"height:20px"}),
                     m(Section,
                         m(Grid,{match:true,columngap: 'small'},
-                            content.filter((c)=> filterContent(c)).map((item)=>{
+                            content
+                            .filter((c)=> filterContent(c))
+                            .sort((a,b)=> a.position-b.position)
+                            .map((item)=>{
                                 return m(Column,{width:'1-4'},
                                     m(ContentCard,{
                                         content:item

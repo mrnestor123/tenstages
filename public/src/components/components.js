@@ -702,7 +702,9 @@ function Icon() {
             return m("span",{
                 class:'material-icons', 
                 onclick:vnode.attrs.onclick,
-                style: vnode.attrs.style || `color:${vnode.attrs.color || 'black'};opacity:${vnode.attrs.opacity || 1};${sizes[vnode.attrs.size || 'medium']}!important;`,
+                style: vnode.attrs.style || `color:${vnode.attrs.color || 'black'};opacity:${vnode.attrs.opacity || 1};${sizes[vnode.attrs.size || 'medium']}!important;
+                    ${vnode.attrs.onclick ? ';cursor:pointer;': ''};
+                `,
                 
             }, vnode.attrs.icon)
         }

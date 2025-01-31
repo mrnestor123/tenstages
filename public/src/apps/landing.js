@@ -1,10 +1,11 @@
 import { Button, Card, CardBody, CardFooter, CardMedia, Chip, Column, Flex, Form, FormLabel, Grid, Icon, Padding, Row, Section, Select, TextEditor, TextField } from "../components/components.js"
 import { ContentCard, LoginInput } from "../components/tenstages-components.js"
 import { DefaultText, Header, Header2 } from "../components/texts.js";
-import { contentTypes } from "../models/content.js";
-import { stagenumbers, types } from "../models/models.js";
-import { getContent, getContentbycod } from "../server/contentController.js";
+
+import { getContent, getContentbycod, contentTypes} from "../server/contentController.js";
 import { getSettings } from "../server/server.js";
+
+import {FlexRow} from "../components/layout.js"
 
 
 // COLOR veige #FFFAD5
@@ -15,48 +16,62 @@ function TenStagesNavbar() {
 
     let menuOptions = [
         { name: 'Home', route: '/' },
-      //  { name: 'Support', route: '/support' },
+       // { name: 'Donate', route: '/donate' },
      //   { name: 'Philosophy', route: '/philosophy' }
     ]
+
+    window.addEventListener('resize', (e)=> {
+        
+        m.redraw()
+    })
 
     return {
         view: () => {
             let route = m.route.get()
-            let isMobile = window.innerWidth < 1200
+            let isMobile = window.innerWidth < 1000
+
+            console.log('route', route, route && route !='/')
 
             return [
-                m("nav.uk-navbar-container", { 
-                    'uk-navbar': '', 
-                    style:`${route && route != '/' ? 'border-bottom:1px solid lightgrey;background-color:white!important;': 'background-color: #FFFAD5;'} padding: 0px 25px` 
-                },
-                    
-                    m(".uk-navbar-left",
-                        m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-horizontal.png', style:  `max-height:${isMobile? '150px' :'100px'}; width:auto`, onclick:(e)=>m.route.set('/')})),
-                    ),
-                    m(".uk-navbar-right",
-                        isMobile ? 
-                        m("img", {
-                            src:  openMobileMenu ? './assets/close_icon.svg' : './assets/menu_icon.svg',
-                            onclick: () => { openMobileMenu = !openMobileMenu; clickedMenuButton = true }
-                        }) : 
-                        m("ul.uk-navbar-nav", {}, [
-                            menuOptions.map((item) => {
-                                return m("li", { 
-                                    }, m("a", { 
-                                        style:route == item.route ? 'font-weight:bold;color:black!important;'  : '', 
-                                        onclick: () => { m.route.set(item.route) } 
-                                    }, item.name)
-                                )
-                            }),
-                            /*
-                            m(Button,{
-                                type:"secondary",
-                                style:"border-radius:1em;",
-                                onclick:(e)=> m.route.set('/donate')
-                            }, "Donate")*/
-                        ]) 
-                    ),
-                ),
+                m(FlexRow,{ 
+                    justifyContent: 'space-between', alignItems:'center', padding:'1em', zIndex:100, 
+                    ...(route && route != '/' ? {
+                        borderBottom:'1px solid lightgrey',
+                        background:'white'
+                    } : {
+                        background:'#fffad4'
+                    } )
+                },[
+
+                    m("img", { 
+                        src: './assets/logo-horizontal.png', 
+                        style:  `max-height:${isMobile? '50px' :'100px'}; width:auto`, 
+                        onclick:(e)=>m.route.set('/')
+                    }),
+
+                    isMobile ? 
+                    m(Icon, {
+                        icon: 'menu',
+                        onclick: () => { 
+                            openMobileMenu = !openMobileMenu; 
+                            clickedMenuButton = true 
+                        }
+                    }) : 
+                    m(FlexRow,{gap:'1em', alignItems:'center'},
+                        menuOptions.map((item) => {
+                            return m("a", { 
+                                    style:route == item.route ? 'color:black!important;'  : 'color:grey;', 
+                                    onclick: () => { m.route.set(item.route) } 
+                                }, item.name)
+                        }),
+                        m(Button,{
+                            type:"secondary",
+                            style:"border-radius:1em;width:100%;",
+                            onclick:(e) => { m.route.set('/donate'); openMobileMenu = false; m.redraw() }
+                        }, "Donate") 
+
+                    )
+                ]),
                 
                 clickedMenuButton ?
                 m("div", {
@@ -147,7 +162,7 @@ function LandingPage() {
                     m("div.uk-width-1-3@l",
                         m(Card,{style:"min-height:200px; background-color:#F2F2F2; border-radius:15px;margin:1em; min-width:200px;"},
                             m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                m(Icon,{icon: icon, size:window.innerWidth < 1200? 'verymassive':'massive'}),
+                                m(Icon,{icon: icon, style:'font-size:60px;'}),
                                 m("h2",{style:"margin-top:0em"}, title),
                                 m("p",{style:"text-align:center"}, text)
                             ])
@@ -231,7 +246,7 @@ function LandingPage() {
 
                 m(Section, { size:"small" }, [
                     m(Grid, {size:'small', match:true, childWidth:'1-2@l', center:true, verticalalign:true}, [
-                        m("div",m("img", {src: "./assets/pexels-rfstudio-3059892.jpg", style:"margin:1em;"})),
+                        m("div",m("img", {src: "./assets/pexels-rfstudio-3059892.jpg", style:"margin:1em;max-width:80vw; width:30vw;"})),
                         m("div",m(Flex, {direction:'column', style:"padding:1em"}, 
                             m("h1",  "What is TenStages?"),
                             m("p", m.trust(`<p> The aim of TenStages is to give an overall understanding of what meditation is all about. We want you to understand what really is meditation, how your brain works and how you can become happier with what you have.</p>
