@@ -1,9 +1,7 @@
 import { Button, Card, CardBody, CardFooter, CardMedia, Chip, Column, Flex, Form, FormLabel, Grid, Icon, Padding, Row, Section, Select, TextEditor, TextField } from "../components/components.js"
 import { ContentCard, LoginInput } from "../components/tenstages-components.js"
 import { DefaultText, Header, Header2 } from "../components/texts.js";
-import { contentTypes } from "../models/content.js";
-import { stagenumbers, types } from "../models/models.js";
-import { getContent, getContentbycod } from "../server/contentController.js";
+import { getContent, getContentbycod, contentTypes,  stagenumbers, types } from "../server/contentController.js";
 import { getSettings } from "../server/server.js";
 
 
@@ -368,7 +366,7 @@ function PrivacyPage(){
 
 
     let privacyText= `<div style="text-align:center;font-size:0.9rem"> Last update: 16 May of 2022 </div>  <br>
-        <div>This Privacy Policy explains how TenStages ("we," "us," or "our") collects, uses, shares, and protects user 
+        <div>This Privacy Policy explains how TenStages ("we," "us," or "our") collects, uses, shares, and protects User 
         information when you use the TenStages Meditation App . We are committed to maintaining the privacy and confidentiality 
         of your personal information. By accessing or using the App, you agree to the terms of this Privacy Policy.</div>
         <div><br></div>
@@ -379,12 +377,12 @@ function PrivacyPage(){
         the meditations you complete, the features you use, and the content you access. This information may include 
         device information, IP address, browser type, operating system, and other usage details.</div><div><br></div>
         <div>How We Use Your Information:</div><div>a. Provide and Improve the App: We use the collected information 
-        to deliver, personalize, and improve the functionality and user experience of the App. This includes providing 
+        to deliver, personalize, and improve the functionality and User experience of the App. This includes providing 
         you with access to meditation content, recommending relevant content, and enhancing the overall performance of 
         the App.</div><div><br></div><div>b. Communication: We may use your contact information to communicate with you 
         regarding the App, respond to your inquiries, provide customer support, and send you important notices or 
         updates about the App.</div><div><br></div><div>c. Analytics and Research: We may use the collected information for analytical purposes,
-        such as understanding user behavior, usage patterns, and preferences. This helps us improve the App, develop new features,
+        such as understanding User behavior, usage patterns, and preferences. This helps us improve the App, develop new features,
         and conduct research to enhance our meditation offerings.</div><div><br></div><div>d. Legal Compliance: We may use your information
         to comply with applicable laws, regulations, or legal processes, respond to lawful requests, and protect our rights or the rights of others.
         </div><div><br></div><div>Sharing of Information:</div><div>a. Service Providers: We may engage trusted third-party service providers to 

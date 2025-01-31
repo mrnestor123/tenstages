@@ -1,6 +1,7 @@
 import { getStage } from './stagesController.js';
 import { db, FieldValue, storage } from '../app.js';
 import admin from 'firebase-admin';
+import { create_UUID } from '../util.js';
 
 let mailbox = {};
 let suscriptions = {};
@@ -107,14 +108,13 @@ export const getUser = async (userId, expand, connect) => {
                     userDataID = userDataquery.docs[0].id;
                 }
                 
-                
                 if (user.role === 'teacher') {
                     user.addedcontent = await getUserCreatedContent(userId);
                     user.addedsections = await getUserCreatedSections(userId);
                     // DE MOMENTO LOS CURSOS NO LOS AÑADIMOS !!
-                    //user.addedcourses = await getUserPaths(userId);
+                    // user.addedcourses = await getUserPaths(userId);
                     // esto es  un  poco lioso. NO  DEBE DE HACER FALTA SACAR LOS STUDENTS !!!
-                    //user.students = await getUsersinArray(user.students);
+                    //  user.students = await getUsersinArray(user.students);
                 }
 
                 // Cuando  hacemos  expand, no deberían de hacer falta las meditations !!
@@ -124,24 +124,7 @@ export const getUser = async (userId, expand, connect) => {
 
 
                 // SI EL USUARIO ES DEL MODELO VIEJO REVISAMOS LAS MEDITACIONES y  las añadimos !!
-                if(user.following) {
-                    let meditations = []
-                    
-                    let meditquery = await db.collection('meditations').where('coduser','==', userId).get();
-                    if(meditquery.docs.length){
-                        for(let medit of meditquery.docs){
-                            meditations.push(medit.data());
-                        }
-                    }
-
-
-                    if(meditations.length > 0){
-                        if(!user.meditations){
-                            user.meditations = []
-                        }
-                        user.meditations = user.meditations.concat(meditations)
-                    }
-                }
+                await normalizeUser(user, userDataID);
 
             }
 
@@ -202,16 +185,11 @@ export const loginUser = async (userId) => {
 
             await db.collection('users').add(user)
                 .then((e)=> console.log('E',e))
-
-
-
             
             let stage = await getStage(1)
             user.stage = stage
-
-
             return user;
-        }else {
+        } else {
             return query.docs[0].data();
         }
     } catch (err) {
@@ -315,16 +293,21 @@ export const getActions = async (userId) => {
         let actionsThisWeek = [];
         let nonFilteredActions = [];
 
-        let userDataID = await getUserDataId(userId);
+        let actionquery = await db
+            .collection('actions')
+            .where('coduser','==',userId)
+            .get();
         
-            
+        /*
         let actionquery = await db
             .collection('userData')
             .doc(userDataID)
             .collection('actions')
             .get();
+        */
 
         if(actionquery.docs){
+            
             actionquery.docs.map((doc) => {
                 let action = doc.data();
                 // ESTO ESTÁ MAL, NO DEBERÍA DE SER ASÍ
@@ -340,6 +323,7 @@ export const getActions = async (userId) => {
             var monday = new Date(
                 new Date(curr.setDate(first)).setHours(0, 0, 0)
             );
+
             var sunday = new Date(curr.setDate(last));
             var today = new Date();
 
@@ -397,12 +381,9 @@ export const addAction = async (action, userId) => {
         }
 
 
-        //let userDataID  = await getUserDataId(userId);
-
-        //console.log('adding action', action,  userDataID);
-
         await db.collection('actions').add(action);
-        //await db.collection('userData').doc(userDataID).collection('actions').add(action);
+
+        
 
     } catch (err) {
         console.log(err);
@@ -891,6 +872,145 @@ const getUsersinArray = async (cods) => {
         throw new Error(err);
     }
 };
+
+
+
+// para pasar de usuarios antiguos a nuevos
+async function normalizeUser(user){
+
+
+    let userId = user.coduser
+
+    console.log('NORMALIZING USER', userId)
+
+    if(user.following) {
+        let meditations = []
+        
+        
+        let meditquery = await db.collection('meditations').where('coduser','==', userId).get();
+        if(meditquery.docs.length){
+            for(let medit of meditquery.docs){
+                meditations.push(medit.data());
+            }
+        }
+
+
+        if(meditations.length > 0){
+            if(!user.meditations){
+                user.meditations = []
+            }
+            user.meditations = user.meditations.concat(meditations)
+        }
+    }
+
+
+    let userDataquery = await db.collection('userData').where('coduser','==', userId).get();
+
+    if(userDataquery.docs.length){
+        let userDataId = userDataquery.docs[0].id;
+        /// PPASAR  ESTO  A UNA COLECCIÓN APARTE,DE MOMENTO SOLO PASO ACCIONES
+        // let doneContent = await getUserDoneContent(userDataId);
+        // let readLessons = await getUserReadLessons(userDataId);
+        //let notifications = await getUserNotifications(userDataId);
+        let actions = await db.collection('userData').doc(userDataId).collection('actions').get();
+
+        let doneContent = await getUserDoneContent(userDataId);
+
+        
+
+        if(doneContent && doneContent.length){
+            let printed = false;
+            let recentContent = [];
+
+            for(let content of doneContent){
+
+                if(content.date){
+
+                    // check if content done is within  3 months  from now
+                    let now = new Date();
+                    let contentDate = new Date(content.date);
+                    let diff = now - contentDate;
+                    let diffDays = diff / (1000 * 60 * 60 * 24);
+
+
+                    if(diffDays < 90){
+                        recentContent.push(content)
+                    }
+                }
+            }
+
+            
+            if(recentContent.length){
+                recentContent.sort((a,b)=>{
+                    new Date(b.date) - new Date(a.date)
+                })
+
+                let justAdded = false;
+                
+                for(let content of recentContent){
+                    
+                    // CHECK IF NOT EXISTS !!
+                    if(content.cod){
+                        let exists = await db.collection('doneContent').where('cod','==',content.cod).get()
+                    
+                        if(exists.docs.length){
+                            continue;
+                        }
+
+                    } else content.cod = create_UUID() 
+
+
+
+                     
+                    await db.collection('doneContent').add(content);
+            
+
+
+                    /*if(action.time && new Date(action.time).getFullYear() == 2024){
+
+                        if(!justAdded){
+                            console.log('adding action', action)
+                            justAdded = true    
+                        // await db.collection('actions').add(action);
+                        } 
+                    }*/
+                }
+            }
+
+        }
+
+        if(actions.docs && actions.docs.length){
+
+            let justAdded = false;
+            
+            for(let doc of actions.docs){
+                // CHECK IF NOT EXISTS !!
+                let action = doc.data();
+
+
+                if(action.cod){
+                    let exists = await db.collection('actions').where('cod','==',action.cod).get()
+                    if(exists.docs.length){
+                       continue;
+                    }
+                } else action.cod = create_UUID() 
+
+
+                if(action.time && new Date(action.time).getFullYear() == 2024){
+
+                    if(!justAdded){
+                        console.log('adding action', action)
+                        justAdded = true    
+                       // await db.collection('actions').add(action);
+                    } 
+                }
+            }
+        }
+    }
+}
+
+
+
 
 
 // TEST GET USERS

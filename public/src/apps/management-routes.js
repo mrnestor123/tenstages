@@ -1,7 +1,7 @@
 import { Button, Column, Flex, Grid, Icon, Padding } from "../components/components.js"
 import { LoginPage } from "../components/tenstages-components.js"
 import { maincolor } from "../configuration.js"
-import { isLoggedIn, user } from "../server/usersController.js"
+import { isLoggedIn, User } from "../server/usersController.js"
 import { ActionsPage, AdminManagement, EmailTool, ExplorePage, SettingsPage, StagesManagement } from "./management-admin.js"
 import { ContentView, EditCreateContent, FileExplorerPage,  Milestones,  ProfileView } from "./management.js"
 
@@ -168,12 +168,12 @@ function Layout(){
                         m("div.uk-grid-small uk-flex-middle", {"uk-grid":"", style:"padding:20px"}, [
                             
                             m("div.uk-width-expand", [
-                                m("h3.uk-card-title.uk-margin-remove-bottom", user.nombre ),
-                                m("p.uk-text-meta.uk-margin-remove-top",user.isAdmin() ? "Admin" : "Teacher")
+                                m("h3.uk-card-title.uk-margin-remove-bottom", User.nombre ),
+                                m("p.uk-text-meta.uk-margin-remove-top",User.isAdmin() ? "Admin" : "Teacher")
                             ])
                         ]),
 
-                        (user.isAdmin() ? managementRoutes : teacherRoutes).map((item)=>{
+                        (User.isAdmin() ? managementRoutes : teacherRoutes).map((item)=>{
                             
                             let isSelected = route.route == item.route
 
@@ -237,8 +237,8 @@ function Layout(){
             }
             
             isLoggedIn().then((res)=>{
-                if(user && user.coduser){
-                    localStorage.setItem('meditationcod',JSON.stringify({'coduser':user.coduser, 'role':user.role}))
+                if(User && User.coduser){
+                    localStorage.setItem('meditationcod',JSON.stringify({'coduser':User.coduser, 'role':User.role}))
                     m.redraw()
                 }
             })
@@ -248,7 +248,7 @@ function Layout(){
                 //m(NavBar),
                 
                 // damos por  hechoque está logueado
-                user.coduser  ? [
+                User.coduser  ? [
                     m(Grid,
                         m(Column,{width:'1-6',style:"background:#f2f2f2"},
                             m(Sidebar)

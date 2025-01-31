@@ -1,5 +1,5 @@
 import { addContent, stagenumbers, types } from '../server/contentController.js';
-import { login, user } from '../server/usersController.js';
+import { login, User } from '../server/usersController.js';
 import { Button, Card, CardBody, CardHeader, CardMedia, Column, Flex, Form, Grid, Modal, Padding, Row, Select, TextEditor, TextField } from './components.js';
 import { FormLabel, Header2, SubHeader } from './texts.js';
 import { FileUploader, create_UUID, dia, hora } from './util.js';
@@ -385,14 +385,14 @@ function ContentCard(){
 function UserCard(){
     return {
         view:(vnode)=>{
-            let {user} = vnode.attrs
+            let {User} = vnode.attrs
             return m(".uk-card.uk-card-default",
-                user.image ?
+                User.image ?
                 m("uk-card-media-top",
-                    m("img", { src: user.image })
+                    m("img", { src: User.image })
                 ) : null,
                 m(".uk-card-body",
-                    m("h4.uk-card-title", user.nombre)
+                    m("h4.uk-card-title", User.nombre)
                 ),
                 m(".uk-card-footer",
                     m("a.uk-button.uk-button-text",{ 
@@ -536,7 +536,7 @@ function ContentEdit(){
 
 
 
-                                    json.createdBy = user.coduser
+                                    json.createdBy = User.coduser
                                     
                                     addContent(json);
                                     document.getElementById('closemodalmed').click();
@@ -880,7 +880,7 @@ function EditableField(){
 function ChatComponent(){
     let data = {}
     let sendMessage;
-    let user;
+    let User;
     
     // es probable que haya que pasar el username
     function send(){
@@ -888,8 +888,8 @@ function ChatComponent(){
             let msg  = {
                 'text':data.message, 
                 cod:'', 
-                sender:user.coduser,
-                username:user.nombre,
+                sender:User.coduser,
+                username:User.nombre,
                 date: new Date()
             }
         
@@ -903,7 +903,7 @@ function ChatComponent(){
         view:(vnode)=>{
             let { messages, title} = vnode.attrs
 
-            user  = vnode.attrs.user
+            User  = vnode.attrs.User
             sendMessage = vnode.attrs.sendMessage
 
             return m(".uk-card.uk-card-default",
@@ -1038,12 +1038,12 @@ function LoginPage() {
 
         var result = await login({type:type, email:email, password:password})
         
-        if(result.user || result.uid) {
+        if(result.User || result.uid) {
             
-            let uid = result.uid || result.user.uid
+            let uid = result.uid || result.User.uid
             console.log('meditationcod', uid)
             localStorage.setItem('meditationcod',JSON.stringify({'coduser': uid})) // ?????? QUE COJONES ?????? :)
-         // user  = await getUser(result.uid)
+         // User  = await getUser(result.uid)
             location.reload()
         } else {
             errorMsg = result;

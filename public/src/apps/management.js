@@ -6,15 +6,9 @@ import { FileExplorer, ImageSelector, showFileExplorer } from '../components/man
 import { ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
 import { FormLabel } from '../components/texts.js'
 import { create_UUID, dia, hora } from '../components/util.js'
-<<<<<<< HEAD
-import { Content } from '../models/content.js'
-import { stagenumbers, types } from '../models/models.js'
-import { addContent, addMilestone, deleteContent, deleteContentPosition, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
-=======
 import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
->>>>>>> 65fa9946ebd809511992dab2bcb6cab34400b334
 import { getRequests, postRequest, updateRequest } from '../server/server.js'
-import { getUser, getUserActions, user } from '../server/usersController.js'
+import { getUser, getUserActions, User } from '../server/usersController.js'
 import { Content, stagenumbers, types} from '../server/contentController.js'
 
 
@@ -526,7 +520,7 @@ function EditCreateContent() {
             }
             // ESTO YA NO HACE FALTA !!
             //getUsers().then((res) => {
-              //  teachers = res.filter((user)=> user.role == 'teacher');
+              //  teachers = res.filter((User)=> User.role == 'teacher');
             //})
         },
         view: (vnode) => {
@@ -642,7 +636,7 @@ function EditCreateContent() {
 
 
 
-                                json.createdBy = user.coduser
+                                json.createdBy = User.coduser
                                 
                                 addContent(json);
                                 //document.getElementById('closemodalmed').click();
@@ -686,7 +680,7 @@ function EditCreateContent() {
                             onclick: () => editar = !editar },
                             "Edit"
                         ) : [
-                        user.role == 'admin' ?
+                        User.role == 'admin' ?
                         m("button.uk-button",
                             {
                                 style:"color:white;background-color:red;margin-top:15px;margin-right:20px;",  
@@ -836,7 +830,7 @@ function errorPageComponent() {
 
 // ESTO no necesita el USER
 function ProfileView(){
-    let user = {}
+    let User = {}
     let loaded = false
     
     let issues = []
@@ -907,16 +901,16 @@ function ProfileView(){
             view:(vnode) => {
                return [ 
                    m(Column, {width:'1-2'},
-                        m(DataCard,{header:'stage', icon:'hiking', number: user.stage.stagenumber})
+                        m(DataCard,{header:'stage', icon:'hiking', number: User.stage.stagenumber})
                     ),
                     m(Column,{width:'1-2'},
-                        m(DataCard,{header:'Meditations completed', icon: "self_improvement",number: user.stats.total.meditaciones})
+                        m(DataCard,{header:'Meditations completed', icon: "self_improvement",number: User.stats.total.meditaciones})
                     ),
                     m(Column,{width:'1-2'},
-                        m(DataCard,{header:'Lessons read', icon: "book",number: user.stats.total.lecciones})
+                        m(DataCard,{header:'Lessons read', icon: "book",number: User.stats.total.lecciones})
                     ),
                     m(Column,{width:'1-2'},
-                        m(DataCard,{header:'Time meditated', icon: "timer",number: Math.floor(user.stats.total.tiempo / 60) + 'h'})
+                        m(DataCard,{header:'Time meditated', icon: "timer",number: Math.floor(User.stats.total.tiempo / 60) + 'h'})
                     )
             ]
            }
@@ -968,26 +962,26 @@ function ProfileView(){
                                         m("span",
                                                 m("a",{
                                                     class:"material-icons",
-                                                    style:`color:red;${request.votes[user.coduser] == -1 ? 'opacity:1;': 'opacity:0.5;'}`, 
+                                                    style:`color:red;${request.votes[User.coduser] == -1 ? 'opacity:1;': 'opacity:0.5;'}`, 
                                                     onclick:(e) => {
-                                                        if(!request.votes[user.coduser] && request.points){
-                                                            request.votes[user.coduser] = -1
+                                                        if(!request.votes[User.coduser] && request.points){
+                                                            request.votes[User.coduser] = -1
                                                             request.points--;
                                                         }
                                                         //si has votado positivamente
-                                                        else if(request.votes[user.coduser] == 1 && request.points){
+                                                        else if(request.votes[User.coduser] == 1 && request.points){
                                                             request.points--;
                                                             if(request.points){
                                                                 request.points--;
-                                                                request.votes[user.coduser] = -1
+                                                                request.votes[User.coduser] = -1
                                                             }else {
-                                                                delete request.votes[user.coduser]
+                                                                delete request.votes[User.coduser]
                                                             }
                                                         }
                                                         // si has votado negativamente se te quita
-                                                        else if(request.votes[user.coduser] == -1){
+                                                        else if(request.votes[User.coduser] == -1){
                                                             request.points++;
-                                                            delete request.votes[user.coduser]
+                                                            delete request.votes[User.coduser]
                                                         }
                                                 
                                                         updateRequest(request)
@@ -997,19 +991,19 @@ function ProfileView(){
                                         m("span",
                                             m("a",{
                                                 class:"material-icons",
-                                                style:`color:green;${request.votes[user.coduser] == 1 ? 'opacity:1;': 'opacity:0.5;'}`, 
+                                                style:`color:green;${request.votes[User.coduser] == 1 ? 'opacity:1;': 'opacity:0.5;'}`, 
 
                                                 onclick:(e) => {
-                                                    if(!request.votes[user.coduser]){
+                                                    if(!request.votes[User.coduser]){
                                                         if(!request.points){request.points = 0}
-                                                        request.votes[user.coduser] = 1
+                                                        request.votes[User.coduser] = 1
                                                         request.points++;
-                                                    }else if(request.votes[user.coduser] == 1){
+                                                    }else if(request.votes[User.coduser] == 1){
                                                         request.points --;
-                                                        delete request.votes[user.coduser]
-                                                    }else if(request.votes[user.coduser] == -1){
+                                                        delete request.votes[User.coduser]
+                                                    }else if(request.votes[User.coduser] == -1){
                                                        request.points += 2
-                                                       request.votes[user.coduser] = 1
+                                                       request.votes[User.coduser] = 1
                                                     }
 
                                                     updateRequest(request)
@@ -1064,8 +1058,8 @@ function ProfileView(){
                                     data.type = adding
                                     data.cod = create_UUID()
                                     data.state = 'open'
-                                    data.coduser = user.coduser
-                                    data.username = user.nombre
+                                    data.coduser = User.coduser
+                                    data.username = User.nombre
                                     data.points = 0
                                     postRequest(data)
                                 }
@@ -1123,9 +1117,9 @@ function ProfileView(){
                                                 }
                                                 selectedrequest.comments.push({
                                                     'comment':data.comment,
-                                                    'username':user.nombre,
+                                                    'username':User.nombre,
                                                     'date':new Date(),
-                                                    'coduser':user.coduser
+                                                    'coduser':User.coduser
                                                 })
                                                 data.comment = ''
                                                 updateRequest(selectedrequest)
@@ -1166,7 +1160,7 @@ function ProfileView(){
         return {
             view:(vnode)=>{
                 return m(".ui.list",
-                    user.meditations.sort((a,b)=> new Date(a.day)- new Date(b.day)).map((med,i)=>{
+                    User.meditations.sort((a,b)=> new Date(a.day)- new Date(b.day)).map((med,i)=>{
                         console.log(new  Date(med.day))
                         return m(".item",   
                             m(".content",
@@ -1195,8 +1189,8 @@ function ProfileView(){
             // SOLO S I NO SE HA CARGADO EL USER !!!
             // ESTO NO HACE FALTA
             getUser(vnode.attrs.cod).then((usr) => {
-                user = usr
-                console.log(user, 'user')
+                User = usr
+                console.log(User, 'User')
                 loaded = true
                 m.redraw()
             })
@@ -1223,7 +1217,7 @@ function ProfileView(){
                 size:'large',   
                 },
                 m(Column, {width:'1-3'},
-                    m("img", {src:user.image, style:"width:100%;height:auto"}),
+                    m("img", {src:User.image, style:"width:100%;height:auto"}),
                     m(Button,
                         {
                         type:"secondary", 
@@ -1243,7 +1237,7 @@ function ProfileView(){
                         "ADD SUGGESTION"
                     ),
                     m(ModalRequest),
-                    m(Button, {type:"danger",style:"width:100%;margin:10px auto", onclick:(e)=>{localStorage.removeItem('meditationcod');user ={};m.route.set('/');}}, "LOG OUT")
+                    m(Button, {type:"danger",style:"width:100%;margin:10px auto", onclick:(e)=>{localStorage.removeItem('meditationcod');User ={};m.route.set('/');}}, "LOG OUT")
                 ),
 
                 selectedrequest.cod ? 
@@ -1324,72 +1318,17 @@ function ContentView(){
         return (!filter.addedToPath || c.position != null && c.section == null) && (c.type == filter.type || filter.type == 'all') && c.stagenumber == filter.stage
     }
 
-    function FilterContent(){
-        return {
-            view:(vnode)=>{
-                return m(Section, {style:"padding:0px"},
-                    m(Padding,
-                        m("h3", "Filter content"),
-                        m(Flex,{direction:'row'},
-                            m(Flex,{direction:'column'},
-                                m(FormLabel, 'Stage'),
-                                m(Select,{
-                                    data:filter,
-                                    name:'stage',
-                                }, stagenumbers),
-                            ),
-                            
-                            m("div",{style:"width:20px"}),
-
-                            m(Flex,{direction:'column'},
-                                m(FormLabel,'Type of content'),
-                                m(Select,{
-                                    data:filter,
-                                    name:'type'
-                                }, types),
-                            ),
-
-                            m(Flex,{direction:'row'},
-                                m(FormLabel,'Added to path'),
-                                m(TextField,{
-                                    data:filter,
-                                    type:'checkbox',
-                                    name:'addedToPath'
-                                },"Added to path"),
-                            ),
-
-                            m("div",{style:"width:20px"}),
-
-                            m(Button,
-                                {
-                                    onclick:(e)=>{
-                                        m.route.set(`/edit_create`)
-                                    },
-                                    'target': '#modal-content',
-                                    type: 'primary',
-                                    style:"min-width:200px"
-                                },
-                                'Add Content' 
-                            ),  
-                            m("div",{style:"height:10px"}),
-                        )
-                    )
-                )
-            }
-        }
-
-    }
-
-
     return {
         oninit:(vnode) => {
-            if(user.isAdmin()){    
+            console.log('USER', User.isAdmin())
+            if(User.isAdmin()){    
                 getAllContent().then((res)=>{
+                    console.log('RES',res)
                     content = res.filter((c)=> c.stagenumber != null || c.createdBy != null)
                     .sort((a,b)=> a.position - b.position)
                 })
             }else{
-                getTeachersContent(user.coduser).then((res)=>{
+                getTeachersContent(User.coduser).then((res)=>{
                     res.sort((a,b)=>!a.position ? 1 : !b.position ? -1 : a.position -b.position)
                         .map((c)=>content.push(new Content(c)))
 
@@ -1418,7 +1357,7 @@ function ContentView(){
                 ] : null,
 
                 /*
-                user.isAdmin() || true ? [
+                User.isAdmin() || true ? [
                     m("h2", "Categories"),
 
 
@@ -1459,6 +1398,66 @@ function ContentView(){
             ]
         }
     }
+
+
+    function FilterContent(){
+        return {
+            view:(vnode)=>{
+                return m(Section, {style:"padding:0px"},
+                    m(Padding,
+                        m("h3", "Filter content"),
+                        m(Flex,{direction:'row', vAlign:'bottom'},
+                            m(Flex,{direction:'column'},
+                                m(FormLabel, 'Stage'),
+                                m(Select,{
+                                    data:filter,
+                                    name:'stage',
+                                }, stagenumbers),
+                            ),
+                            
+                            m("div",{style:"width:20px"}),
+
+                            m(Flex,{direction:'column'},
+                                m(FormLabel,'Type of content'),
+                                m(Select,{
+                                    data:filter,
+                                    name:'type'
+                                }, types),
+                            ),
+
+                            m(Flex,{direction:'column'},
+                                m(FormLabel,'Added to path'),
+                                m(TextField,{
+                                    data:filter,
+                                    type:'checkbox',
+                                    name:'addedToPath'
+                                },"Added to path"),
+                            ),
+
+                            m("div",{style:"width:20px"}),
+
+                            m(Button,
+                                {
+                                    onclick:(e)=>{
+                                        m.route.set(`/edit_create`)
+                                    },
+                                    'target': '#modal-content',
+                                    type: 'primary',
+                                    style:"min-width:200px"
+                                },
+                                'Add Content' 
+                            ),  
+                            m("div",{style:"height:10px"}),
+                        )
+                    )
+                )
+            }
+        }
+
+    }
+
+
+    
 }
 
 function FileExplorerPage(){

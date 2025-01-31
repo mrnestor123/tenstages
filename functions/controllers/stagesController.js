@@ -52,6 +52,8 @@ export const getStages = async (allContent, isNew) => {
 
         stages.sort((a, b) => a.stagenumber - b.stagenumber);
 
+        console.log('stages', stages)
+
         return stages;
     } catch (err) {
         throw new Error(err);

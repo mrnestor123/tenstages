@@ -38,11 +38,11 @@ app.use('/content', contentRoutes);
 app.use('/email', emails);
 
 
-
-
 app.get('/', (req, res) => {
     res.send('Conectado correctamente al servidor de tenstages');
 });
+
+
 
 /*
 *

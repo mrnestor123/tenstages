@@ -1,7 +1,7 @@
 import { getFiles, uploadFile } from '../server/server.js';
 import { Header2, Header3, SubHeader } from './texts.js';
 import { isAudio, isFile, isImage, isVideo } from '../components/util.js';
-import { user } from  '../server/usersController.js';
+import { User } from  '../server/usersController.js';
 import { stagenumbers } from '../server/contentController.js'
 import { Button, Column, Container, Grid, Label, Row, Section, Select, } from './components.js';
 
@@ -215,15 +215,15 @@ function FileExplorer() {
                                     let file = e.target.files[0]
 
                                     if(file){
-                                        if(!files[user.coduser]){
-                                            files[user.coduser] = []
+                                        if(!files[User.coduser]){
+                                            files[User.coduser] = []
                                         }
                                         
                                         // SIEMPRE LO AÑADIMOS AL BUCKET DEL USUARIO !!
-                                        uploadFile(user.coduser, file, 'teacherFiles').then((url) => {
+                                        uploadFile(User.coduser, file, 'teacherFiles').then((url) => {
                                             // LA AÑADIMOS LA PRIMERA
                                             //files.unshift(url)
-                                            files[user.coduser].push(url)
+                                            files[User.coduser].push(url)
                                             m.redraw()
                                         })
                                     }

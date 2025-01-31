@@ -5,9 +5,8 @@ import { ImageSelector, showFileExplorer } from "../components/management-compon
 import { ContentCard, EditableField } from "../components/tenstages-components.js";
 import { FormLabel, Header3 } from "../components/texts.js";
 import { api_get, create_UUID, dia, hora } from "../components/util.js";
-import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage } from '../server/contentController.js'
-import { getAllActions, getTeachers } from '../server/usersController.js'
-import { contentIcons, contentTypes } from '../models/content.js';
+import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage,contentIcons, contentTypes } from '../server/contentController.js'
+import { getAllActions, getTeachers, getUsers } from '../server/usersController.js'
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -993,29 +992,25 @@ function ActionsPage(){
 
     let savedActions = []
     
-    let  filter = ''
+    let filter = ''
 
+    let users = {}
 
     return {
         oninit: (vnode)=> {
             
-            if(!localStorage.getItem('actions')){
-                getAllActions().then((res)=>{
+            getAllActions().then((res)=>{
+                console.log('ACTIONS', res)
+                actions = res.sort((a,b)=> new Date(b.time) - new Date(a.time))
+                m.redraw()
+            })
 
-
-                    console.log('ACTIONS', res)
-                    actions = res.sort((a,b)=> new Date(b.time) - new Date(a.time))
-                    localStorage.setItem('actions',JSON.stringify(actions))
+            getUsers().then((res)=>{
+                res.forEach((u)=>{
+                    users[u.coduser] = u
                 })
-            } else {
-                actions = JSON.parse(localStorage.getItem('actions'))
-                actions.sort((a,b)=> new Date(b.time) - new Date(a.time))
-
-
-                console.log('FILTERED ', actions.filter((a)=> new Date(a.time).getFullYear() == 2024))
-
-               
-            }
+                m.redraw()
+            })
         },
         view: (vnode)=>{
             return [
@@ -1030,6 +1025,7 @@ function ActionsPage(){
                                     filter = ''
                                 }
                             }, "Clear"),
+
                             Object.keys(contentTypes).map((c)=>{
                                 return m(Button,{ 
                                     onclick:(e)=>{
@@ -1047,8 +1043,14 @@ function ActionsPage(){
                         ),
 
                         actions.filter((a)=> !filter || filter.includes(a.type)).slice(0,maximumCount).map((a)=>{
-                            return m("li", 
-                                a.username + ' ', a.message,
+                            let username = a.username || (users[a.coduser] ? users[a.coduser].username|| users[a.coduser].userName : 'Unknown')
+                            
+                            return m("li", {
+                                onclick:(e)=>{
+                                    console.log('clicked', a)
+                                }
+                            },
+                                username + ' ', a.message,
                                 m("strong",{style:"float:right"}, dia(a.time) + " " + hora(a.time))
                             )
                         }),

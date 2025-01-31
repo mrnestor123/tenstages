@@ -4,8 +4,8 @@ import { API, db } from "./server.js"
 
 
 export {
-    types, stagenumbers,
-    Content, Lesson, Meditation, StageEntity,
+    types, stagenumbers,  contentIcons, contentTypes,
+    Content, Lesson, Meditation, StageEntity, 
 
 
     addSection,
@@ -26,6 +26,11 @@ export {
 
 // AÑADIR MODELO DE CONTENT AQUI ??
 let stagenumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]
+
+let contentIcons = []
+
+let contentTypes = {}
+
 
 //PASAR A CLASE MEDITACIÓN
 // ESTO LO GUARDAMOS EN EL CONTENTCONTROLLER!!! 

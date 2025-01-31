@@ -3,9 +3,8 @@ import { API, db, auth } from "./server.js";
 
 
 export {
-    
+    User,
     UserEntity, UserAction,
-
     isLoggedIn,
     getUser,
     getUsers,
@@ -15,7 +14,8 @@ export {
     login,
     loginUser,
     updateUser,
-    user
+    getAllActions,
+    
 }
 
 /*
@@ -27,10 +27,10 @@ class UserEntity {
 
     // hay atributos solo únicos a un profesor !!
     constructor(json){
-        if(json){   // create json method to create a json from the user
+        if(json){   // create json method to create a json from the User
             this.coduser = json.coduser;
             this.nombre = json.nombre;
-            this.user = json.user;
+            this.User = json.User;
             this.position = json.position;
             this.image = json.image;
             this.stageNumber = json.stagenumber;
@@ -102,8 +102,8 @@ class UserAction {
 }
 
 
-// un user vacío para que sepa que es un objeto
-var user = new UserEntity();
+// un User vacío para que sepa que es un objeto
+var User = new UserEntity();
 
 
 /*
@@ -115,9 +115,9 @@ function loginUser(cod){
 
     localStorage.setItem('meditationcod', uid)
 
-    getUser(cod).then((usr)={
-        if(usr){
-            user = new UserEntity(usr)
+    getUser(cod).then((res)=>{
+        if(res){
+            User = new UserEntity(res)
             m.redraw()
         }
     })
@@ -131,8 +131,8 @@ function isLoggedIn(){
 
 
     if(userData && userData.coduser ){
-        user.role = userData.role || 'teacher'
-        user.coduser = userData.coduser
+        User.role = userData.role || 'teacher'
+        User.coduser = userData.coduser
     }
 
     /*
@@ -150,7 +150,7 @@ function isLoggedIn(){
 
             if(typeof userData == 'object'){
                 cod = userData.coduser
-            }else{
+            } else {
                 cod = userData
             }
 
@@ -160,7 +160,7 @@ function isLoggedIn(){
 
             getUser(cod).then((usr)=>{
                 if(usr){
-                    user = new UserEntity(usr)
+                    User = new UserEntity(usr)
                     resolve()
                     m.redraw()
                 }
@@ -193,7 +193,7 @@ async function login({ type, email, password }) {
             .signInWithPopup(provider)
             .then((result) => {
                 /** @type {firebase.auth.OAuthCredential} */
-                return result.user
+                return result.User
                 // ...
             }).catch((error) => {
                 console.log("Error when logging with external app", error.message)
@@ -202,8 +202,8 @@ async function login({ type, email, password }) {
             });
     } else {
         return auth.signInWithEmailAndPassword(email, password)
-        .then((user) => {
-            return user;
+        .then((User) => {
+            return User;
         })
         .catch((error) => {
             console.log("Error when logging with email", error.message)
@@ -214,9 +214,9 @@ async function login({ type, email, password }) {
 
 
 async function deleteUser(cod) {
-    let user = await db.collection('users').where('coduser', '==', cod).get();
-    console.log(user)
-    await db.collection("users").doc(user.docs[0].id).delete()
+    let User = await db.collection('users').where('coduser', '==', cod).get();
+    console.log(User)
+    await db.collection("users").doc(User.docs[0].id).delete()
 
 
     let usermeditations = await db.collection('meditations').where('coduser', '==', cod).get();
@@ -239,11 +239,11 @@ async function deleteUser(cod) {
 }
 
 
-async function updateUser(user){
-    let query = await db.collection('users').where('coduser', '==', user.coduser).get()
+async function updateUser(User){
+    let query = await db.collection('users').where('coduser', '==', User.coduser).get()
     let docID = query.docs[0].id
 
-    db.collection('users').doc(docID).update(user).then(function () {
+    db.collection('users').doc(docID).update(User).then(function () {
         alert("Document successfully updated!");
     }).catch(function (error) {
         // The document probably doesn't exist.
@@ -264,10 +264,10 @@ async function getUsers() {
 
 async function getUser(cod){
     //OJOOO
-    let user = await api_get(`${API}/connect/${cod}`)
+    let User = await api_get(`${API}/connect/${cod}`)
     
 
-  return user;
+  return User;
 }
 
 
@@ -283,6 +283,39 @@ async function getUserActions(coduser){
     return actions;
 } 
 
+
+async function getAllActions(){
+    
+    let query = await db.collection('actions').get()
+    let actions = []
+
+    for (let doc of query.docs) {
+        actions.push(doc.data())
+    }
+
+
+    let contentquery = await db.collection('doneContent').get()
+
+    for  (let doc of contentquery.docs){
+        let content = doc.data()
+
+        
+        if(content.date && new Date(content.date) > new Date('2024-01-01')){
+            
+            actions.push({
+                type: content.type == 'lesson' ? 'lesson': 'meditation', 
+                time: content.date, 
+                message:  content.type == 'lesson' ? 'read a lesson ' : 'meditated for ' +  (content.done) / 60 + ' min',
+                coduser : content.doneBy || content.coduser, 
+                'json':content
+            })
+        }
+    }
+
+    return actions;
+}
+
+
 async function getTeachers(){
 
     var query = await db.collection('users').where('role','==','teacher').get();
@@ -296,56 +329,3 @@ async function getTeachers(){
     return teachers;
 }
 
-<<<<<<< HEAD
-
-
-async function getAllActions(){
-    
-    // GET THE COLLECTION USERDATA, AND THEN GET THE ACTIONS OF EACH USER
-    let query = await db.collection('actions').get()
-    let actions = []
-
-    if(query.docs && query.docs.length > 0){
-        for(let doc of query.docs){
-            actions.push(doc.data())
-        }
-    }
-
-    
-    let userData = await db.collection('userData').get()
-
-    if(userData.docs && userData.docs.length > 0){
-        for(let doc of userData.docs){
-            let id = doc.id
-            
-            let actionsDoc = await db.collection('userData').doc(id).collection('actions').limit(1).get()
-            
-            if(actionsDoc.docs && actionsDoc.docs.length > 0){
-                for(let doc of actionsDoc.docs){
-                    actions.push(doc.data())
-                }
-            }
-        }
-    }
-
- 
-    
-    return actions;
-}
-
-
-export {
-    isLoggedIn,
-    deleteUser,
-    getUser,
-    getUsers,
-    getTeachers,
-    getUserActions,
-    login,
-    loginUser,
-    updateUser,
-    getAllActions,
-    user
-}
-=======
->>>>>>> 65fa9946ebd809511992dab2bcb6cab34400b334
