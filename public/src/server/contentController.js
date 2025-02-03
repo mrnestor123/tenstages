@@ -21,7 +21,7 @@ export {
     updateContent,
     updateStage,
     updateMilestone,
-    updateSection
+    updateSection,
 }
 
 // AÑADIR MODELO DE CONTENT AQUI ??
@@ -40,7 +40,6 @@ const types = [
     {label:'Video',value:'video'},
     {label:'Lesson Slides',value:'lesson'},
 ]
-
 
 
 // Habrá que crear la clase de meditación, de lección y tal tal tal
@@ -211,9 +210,9 @@ async function addMilestone(m){
 
 /** 
  * llamadas GET
- * */ 
-
-
+ * 
+ * 
+*/ 
 async function getContentbycod(cod) {
     var query = await db.collection('content').where('cod', '==', cod).get();
     let content = {};
@@ -303,21 +302,6 @@ async function getMilestones(){
 
         return milestones;
     }
-    
-    /*
-    let milestones = []
-    let url = `${API}/database/milestones`
-    let res  = await api_get(url)
-    
-    console.log('RES', res)
-
-    if(res && res.length){
-        milestones = res
-    }
-
-
-    return milestones;
-    */
 }
 
 
