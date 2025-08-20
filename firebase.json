@@ -13,7 +13,34 @@
       }
     ],
     "functions": {
-      "engines": {"node": "16"}
+      "engines": {
+        "node": "16"
+      }
+    }
+  },
+
+  "functions": {
+    
+   "source":"functions"
+
+  },
+
+  "emulators": {
+    "hosting": {
+      "port": 9000
+    },
+    "ui": {
+      "enabled": true,
+      "port": 6001
+    },
+    "singleProjectMode": true,
+    "apphosting": {
+      "port": 5002,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
+    "functions": {
+      "port": 5006
     }
   }
 }

@@ -64,7 +64,6 @@ export const getDB = async (isNew) => {
 
             database.versions = await getVersions();
 
-            console.log('DATABASE EEEEEEE')
             
             // sacamos todo el contenido de la app 
             let query = await db.collection('content').get();

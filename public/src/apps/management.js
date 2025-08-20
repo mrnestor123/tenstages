@@ -290,7 +290,6 @@ function EditCreateContent() {
                                 ) : null,
                                 
                                 
-                                
                                 content.stagenumber == 'none' ?  
                                 m(Column, { width: '1-4' },
                                     m(FormLabel, "Position"),
@@ -1652,6 +1651,7 @@ function Milestones(){
     ],
                 *
                 */
+                
                 return [
                     m(Card,
                         m(CardHeader,
@@ -1690,20 +1690,29 @@ function Milestones(){
                                     
                                     milestone.objectives ?  [
                                         // A FORM FOR THIS OBJECT
-                                        /**Objective(
-                                            type:'reportMetric',
-                                            name:'mindwandering',
-                                            reportType: 'percentage',
-                                            title:'Overcome mind-wandering',
-                                            metricValue: 70,
-                                            description: 'Complete ten sessions with 70% of focused attention.',
-                                            hint: 'What percentage were you focused on what you intended to?',
-                                            metricName:'Focused attention',
-                                            toComplete: 10
-                                        ), */
+                                        /**
+                                        Objective(
+                                                type:'reportMetric',
+                                                name:'mindwandering',
+                                                reportType: 'percentage',
+                                                title:'Overcome mind-wandering',
+                                                metricValue: 70,
+                                                description: 'Complete ten sessions with 70% of focused attention.',
+                                                hint: 'What percentage were you focused on what you intended to?',
+                                                metricName:'Focused attention',
+                                                toComplete: 10
+                                            ) */
+
                                         milestone.objectives.map((objective,i)=>{
                                             return [
-                                                m(".ui.label", i),
+                                                m(Flex,{direction:'row'},
+                                                    m(".ui.label", i),
+                                                    m(".ui.label", {
+                                                        onclick: (e)=> {
+                                                            milestone.objectives.splice(i,1)
+                                                        }
+                                                    }, "Delete")
+                                                ),
                                                 m(EditableField,{data:objective, name:'title', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'description', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'type', isEditing:editing}),
@@ -1711,7 +1720,7 @@ function Milestones(){
                                                 m(EditableField,{data:objective, name:'hint', isEditing:editing}),
                                                 m(EditableField,{data:objective, name:'toComplete', isEditing:editing}),
 
-                                                objective.type.match('Metric')? [
+                                                objective.type.match('Metric') ? [
                                                     m(EditableField,{data:objective, name:'metricValue', isEditing:editing}),
                                                 ]:null,
 
@@ -1722,14 +1731,12 @@ function Milestones(){
                                         })
                                     ]: null,
 
-                                    m(Button,{
+                                    m(Button, {
                                         style:"width:100%",
                                         type:"secondary",
                                 
                                         onclick:(e)=>{
-                                            if(!milestone.objectives){
-                                                milestone.objectives = []
-                                            }
+                                            if(!milestone.objectives){ milestone.objectives = [] }
 
                                             milestone.objectives.push({
                                                 'title':'streak',
@@ -1738,15 +1745,7 @@ function Milestones(){
                                         }
                                     }, "Add objective"),
 
-                                    m(Button,{
-                                        onclick:(e)=>{
-
-                                            if(!milestone.objectives) milestone.objectives = []
-                                            milestone.objectives.push({
-
-                                            })
-                                        }
-                                    })
+                                    
                                 )
                             ),
                         ),

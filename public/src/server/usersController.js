@@ -273,10 +273,49 @@ async function getUser(cod){
 async function getUserActions(coduser){
     
     let query = await db.collection('actions').where('coduser','==',coduser).get()
+    
     let actions = []
-
     for (let doc of query.docs) {
         actions.push(doc.data())
+    }
+
+
+    let userData = await db.collection('userData').where('coduser','==',coduser).get()
+   
+    for (let doc of userData.docs) {
+        let actionDoc = await db.collection('userData').doc(doc.id).collection('actions').get()
+        
+        
+        let contentDoc = await db.collection('userData').doc(doc.id).collection('doneContent').get()
+        
+
+        if(actionDoc && actionDoc.docs.length){
+            for(let action of actionDoc.docs){
+                if(new Date(action.time) > new Date('2025-01-01')){
+                    actions.push(action.data())
+                }
+            }
+        }
+
+        if(contentDoc && contentDoc.docs.length){
+            for(let doc of contentDoc.docs){
+                let content = doc.data()
+        
+                if(content.date && new Date(content.date) > new Date('2025-01-01')){
+                    console.log('content', content)
+
+                    actions.push({
+                        type: content.type == 'lesson' ? 'lesson': 'meditation', 
+                        time: content.date, 
+                        message: content.type == 'lesson' ? 'read a lesson ' : 'meditated for ' +  Math.floor((content.done) / 60) + ' min',
+                        cod: content.cod,
+                        coduser : content.doneBy || content.coduser, 
+                        'json':content
+                    })
+                }
+            }
+        }
+
     }
 
     return actions;
@@ -297,19 +336,49 @@ async function getAllActions(){
 
     for  (let doc of contentquery.docs){
         let content = doc.data()
-
         
         if(content.date && new Date(content.date) > new Date('2024-01-01')){
-            
             actions.push({
                 type: content.type == 'lesson' ? 'lesson': 'meditation', 
                 time: content.date, 
-                message:  content.type == 'lesson' ? 'read a lesson ' : 'meditated for ' +  (content.done) / 60 + ' min',
+                message: content.type == 'lesson' ? 'read a lesson ' : 'meditated for ' +  Math.floor((content.done) / 60) + ' min',
                 coduser : content.doneBy || content.coduser, 
                 'json':content
             })
         }
     }
+
+    let promises = [];
+
+    /*   
+    */
+    [   
+        'ASI9f9j4qjgsYSoGp81aAO5iLf33', '7nuyIdrgFEgNzrQA0nQKbKLPeS82', 'Q8tdBzDP6XQUxkTOX7FRc3qm1XH2','ptjTdVtJDNdVRriJVbq2yloFXw62',
+        'qGYpBJVJLZd38TmgflqwgpqmniV2','og6FkDXaMDU478XpFiksnwUa6Wg2','iS89nSsFlicL3BovWDKhKOb3ZCx1','P3uRdvSr66aVGTW7VGUd9X8Z12S2',
+        's2KufXuBEYVcTiOxD6nS15UbKum1','aSgCEc63X2VU2eHfVscPenQkL922','dkL2H0j2tSXUOsFGyaZXibcS0Dm2','7D9jRaiNY5XMlBWScOqOCs86jcG2',
+        't82Hto7yKlTsVTlp3yjYcTo3Sl73', 'qOM9MKVNhzR6nYOHai6p65lil1K3', 'J6mQEsPSr2ctveUZTYx4jmA6rDH3',
+    ].map((u)=>{
+        promises.push(getUserActions(u))
+    })
+
+    return new Promise((resolve,reject)=>{
+
+        Promise.all(promises).then(r=>{
+            r.map((useractions)=>{
+                useractions.map((a)=>{
+                    if(new Date(a.time).getFullYear() >= 2024){
+                        console.log('ACTION', a.message, new Date(a.time).getFullYear())
+                        actions.push(a)
+                    }
+                })
+            })
+
+            resolve(actions);
+        });
+    })
+    
+    
+    console.log('ALLACTIONS', actions)
 
     return actions;
 }

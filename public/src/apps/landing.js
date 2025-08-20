@@ -203,13 +203,12 @@ function LandingPage() {
                     
                     m(Grid, {size:'small', match:true,  center:true}, [
                         m(InfoCard,{icon:'psychology_alt',title: "Understand why", text:"Learn how your mind works and how to work with it"}),
-                        m(InfoCard,{icon:'self_improvement', title: "Practice", text:"Learn from certified The Mind Illuminated teachers"}),
+                        m(InfoCard,{icon:'self_improvement', title: "Practice", text:"Practice meditations from certified The Mind Illuminated teachers"}),
                         m(InfoCard,{icon:'checklist', title: "Clear and structured", text: "Know what you are doing and why"})
                     ])
                 ]),
 
                 // Imagen del camino
-                
                 m("div", { 
                     style: {
                         "background-image":"url('./assets/camino.png')", 
@@ -248,10 +247,12 @@ function LandingPage() {
                         m("div",m("img", {src: "./assets/pexels-rfstudio-3059892.jpg", style:"margin:1em;max-width:80vw; width:30vw;"})),
                         m("div",m(Flex, {direction:'column', style:"padding:1em"}, 
                             m("h1",  "What is TenStages?"),
-                            m("p", m.trust(`<p> The aim of TenStages is to give an overall understanding of what meditation is all about. We want you to understand what really is meditation, how your brain works and how you can become happier with what you have.</p>
-                            </p><p> We hope that you enjoy the content and that you learn as much as we learn with everyone. Our aim is to improve the overall peace and make the world a better place. </p>
-                            <p> Attentively,  </p>
-                            <p> The TenStages team </p>`)),
+                            m("p", 
+                                m.trust(`<p> The aim of TenStages is to give an overall understanding of what meditation is all about. We want you to understand what really is meditation, how your brain works and how you can become happier with what you have.</p>
+                                </p><p> We hope that you enjoy the content and that you learn as much as we learn with everyone.  </p>
+                                <p> Attentively,  </p>
+                                <p> The TenStages team </p>`)
+                            ),
                         ))
                     ]),
                 ]),
@@ -433,11 +434,17 @@ function DonationPage(){
     return {
         view: (vnode)=>{
             return [
-                m("div",{style:"padding:1em"},
-                    m("p", "This project is currently maintained by three people. We aim to make meditation free and accessible for everyone, any help is appreciated." ),
+                m("div",{style:"padding:1em 4em"},
+                    m("div",{style:"height:20px"}),
+                    m("p", "Our aim is to make meditation free and accessible for everyone, any help is appreciated. If you'd like to support us, you can donate through pressing the button below."),
                     
-                    
-
+                    // create a paypal button with a link to the donation page
+                    // make it more modern
+                    m("div",{style:"height:20px"}),
+                    m("a", {href:"https://www.paypal.com/pools/c/9eBy7RU9mQ", target:'_blank'},
+                        //m(Icon,{icon:'paypal', size:'large'}),
+                        m("img", {src:"https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"})
+                    )
                 ),
             ]
         }

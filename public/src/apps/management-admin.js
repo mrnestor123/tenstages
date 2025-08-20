@@ -996,6 +996,8 @@ function ActionsPage(){
 
     let users = {}
 
+    let content = {}
+
     return {
         oninit: (vnode)=> {
             
@@ -1010,6 +1012,13 @@ function ActionsPage(){
                     users[u.coduser] = u
                 })
                 m.redraw()
+            })
+
+            getAllContent().then((res)=>{
+                console.log('res',res)
+                res.map((c)=>{
+                    content[c.cod] = c.title
+                })
             })
         },
         view: (vnode)=>{
@@ -1050,8 +1059,11 @@ function ActionsPage(){
                                     console.log('clicked', a)
                                 }
                             },
-                                username + ' ', a.message,
-                                m("strong",{style:"float:right"}, dia(a.time) + " " + hora(a.time))
+                                username + ' ', a.message, a.cod && content[a.cod],
+                                
+                                m("strong",{style:"float:right"}, dia(a.time) + " " + hora(a.time)),
+                                
+                                
                             )
                         }),
 

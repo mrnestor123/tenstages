@@ -160,7 +160,6 @@ async function getFiles(coduser) {
     return files;
 }
 
-
 async function getStats(content){
     var query = await db.collection('doneContent').where('cod','==',content.cod).get();
 
@@ -180,7 +179,6 @@ async function getStats(content){
     return stats;
 
 }
-
 
 async function getStages() {
     var query = await db.collection('stages').get();
@@ -234,7 +232,6 @@ async function getVersions(){
 
     return versions;
 }
-
 
 async function addVersion(version){
     var query = await db.collection('versions').add(version);
