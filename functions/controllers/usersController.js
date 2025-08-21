@@ -122,11 +122,10 @@ export const getUser = async (userId, expand, connect) => {
                 // Cuando  hacemos  expand, no deberían de hacer falta las meditations !!
                 // EN CASO DE  QUE NO SE HAYA HECHO EL TRASPASO BIEN !!
                 // COMPROBAMOS LAS MEDITACIONES !!
-                user.meditations = await getMeditations(userDataID);
+                user.meditations = await getMeditations(userDataID, user.coduser);
 
 
                 // SI EL USUARIO ES DEL MODELO VIEJO REVISAMOS LAS MEDITACIONES y  las añadimos !!
-                
                 // await normalizeUser(user, userDataID);
 
             }
@@ -515,25 +514,7 @@ export const uploadFile = async (image, fileName) => {
 // save into userData, if it exists update done time
 export const doneContent = async (userId, content) =>{
     try {
-        console.log('updating content', content);
-
-        let docId  = await getUserDataId(userId);
-        let query = await db.collection('userData').doc(docId).collection('doneContent').get();
-
-        // VAMOS A quitar userData y vamos a guardarlo siempre dentro de doneContent, de momento se mantiene para compatibilidad con lo antiguo 
-        if(query.docs.length){
-
-            let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',content.cod).get();
-
-            if(query2.docs.length){
-                let c = query2.docs[0].data()
-                if(c != null && c.timesFinished > content.timesFinished){
-                    content.timesFinished = c.times
-                }
-            }
-        }
-
-
+        
         // Este es el bueno !!
         let finalQuery = await db.collection('doneContent')
             .where('cod','==', content.cod)
@@ -555,11 +536,25 @@ export const doneContent = async (userId, content) =>{
                 timesFinished: content.timesFinished
             })
         } else {
+            let docId  = await getUserDataId(userId);
+            let query = await db.collection('userData').doc(docId).collection('doneContent').get();
+
+            // VAMOS A quitar userData y vamos a guardarlo siempre dentro de doneContent, de momento se mantiene para compatibilidad con lo antiguo 
+            if(query.docs.length){
+
+                let query2 = await db.collection('userData').doc(docId).collection('doneContent').where('cod','==',content.cod).get();
+
+                if(query2.docs.length){
+                    let c = query2.docs[0].data()
+                    if(c != null && c.timesFinished > content.timesFinished){
+                        content.timesFinished = c.times
+                    }
+                }
+            }
+
             await db.collection('doneContent').add(content);
         }
-
     }   catch (err) {
-        console.log('err uploading', err)
         throw new Error(err);
     }
 }
@@ -568,6 +563,7 @@ export const doneContent = async (userId, content) =>{
 export const finishMeditation =  async (userId, data) => {
 
     try {
+        console.log('finishedmeditation', data)
         // queremos saber las meditaciones que se hacen actualmente, para poder hacer un seguimiento de la app
         await db.collection('meditations').add(data);
         
@@ -616,10 +612,12 @@ export const addMeditationReport = async (userId, data) => {
     }
 }
 
-
+/*
 export const finishLesson = async (userId, data) => {
 
     try {
+        let lessonquery = await db.collection('doneContent')
+
         let userDataId  = await getUserDataId(userId);
 
         
@@ -648,7 +646,7 @@ export const finishLesson = async (userId, data) => {
     } catch (err) {
         throw new Error(err);
     }
-}
+}*/
 
 
 export const getUserDataId = async (userId) => {
@@ -778,9 +776,22 @@ const getUserPaths = async (userId) => {
     }
 };
 
-const getMeditations = async (docId) => {
+const getMeditations = async (docId, userId) => {
     try {
         let meditations = [];
+        
+        let query2 = await db 
+            .collection('meditations')
+            .where('coduser', '==', userId)
+            .get();
+
+        if (query2.docs && query2.docs.length) {
+            for (var doc of query2.docs) {
+                meditations.push(doc.data());
+            }
+        }
+        
+
         // HACEMOS DOS LLAMADAS DE MOMENTO
         if(docId){
             let query = await db
@@ -791,25 +802,14 @@ const getMeditations = async (docId) => {
 
             if (query.docs && query.docs.length) {
                 for (var doc of query.docs) {
-                    meditations.push(doc.data());
+                    let medit = doc.data();
+                    if(!meditations.find(m => m.cod === medit.cod)){
+                        meditations.push(medit);
+                    }
                 }
             }
         }
 
-        let query2 = await db 
-            .collection('meditations')
-            .where('coduser', '==', docId)
-            .get();
-
-        if (query2.docs && query2.docs.length) {
-            for (var doc of query2.docs) {
-                let medit = doc.data();
-
-                if(!meditations.find(m => m.cod === medit.cod)){
-                    meditations.push(medit);
-                }
-            }
-        }
 
         return meditations;
     } catch (err) {
@@ -836,8 +836,10 @@ const expandJoinedCourses = async (joinedCourses) => {
     }
 };
 
+        // creo que esto ya no hace falta !!
 const getUserReadLessons = async (docId) => {
     try {
+
         let lessons = [];
         let query = await db
             .collection('userData')
@@ -865,20 +867,7 @@ const getUserDoneContent = async (docId, coduser) => {
     try {
         let doneContent = [];
         
-        // modelo antiguo 
-        if(docId){
-            let query = await db
-                .collection('userData')
-                .doc(docId)
-                .collection('doneContent')
-                .get();
-
-            if (query.docs && query.docs.length) {
-                for (var doc of query.docs) {
-                    doneContent.push(doc.data());
-                }
-            }   
-        }
+        
 
 
         // LO PASAMOS TODO A UNA SOLA BASE DE DATOS 
@@ -890,18 +879,33 @@ const getUserDoneContent = async (docId, coduser) => {
         if (query2.docs && query2.docs.length) {
             for (var doc of query2.docs) {
                 let data = doc.data()
-                
-                let index = doneContent.findIndex((d)=> d.cod == data.cod) 
-                
 
-                if(index != -1)doneContent[index] = data
+                doneContent.push(data)
                 
-                else doneContent.push(data);
             }
         }
 
-        console.log('doneContent', doneContent)
+        // modelo antiguo 
+        if(docId){
+            let query = await db
+                .collection('userData')
+                .doc(docId)
+                .collection('doneContent')
+                .get();
 
+            if (query.docs && query.docs.length) {
+                for (var doc of query.docs) {
+                    let data = doc.data();
+                    
+                    let index = doneContent.findIndex((d)=> d.cod == data.cod) 
+                    if(index != -1)doneContent[index] = data
+                    
+                    else doneContent.push(data);
+                }
+            }   
+        }
+
+        
         return doneContent;
     } catch (err) {
         console.log('err',err)

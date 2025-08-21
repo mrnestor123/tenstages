@@ -40,7 +40,8 @@
       "startCommand": "npm run dev"
     },
     "functions": {
-      "port": 5006
+      "port": 5006,
+      "host": "0.0.0.0"
     }
   }
 }

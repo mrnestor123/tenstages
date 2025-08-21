@@ -95,7 +95,7 @@ router.post('/action/:userId', isVerified, async (req, res) => {
     }
 });
 
-// PARA SABER QUIEN ESTÁ MEDITANDO AHORA 
+// PARA SABER QUIEN ESTÁ MEDITANDO AHORA ??
 // TODO:!!
 router.post('/meditate/start/:userId', isVerified, async (req,res) =>{
     try {
