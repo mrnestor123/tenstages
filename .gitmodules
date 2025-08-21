@@ -1,0 +1,3 @@
+[submodule "public/src/components/dview"]
+	path = public/src/components/dview
+	url = https://github.com/DigitalValue/DView.git

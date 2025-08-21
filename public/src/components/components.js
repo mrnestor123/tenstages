@@ -89,7 +89,7 @@ function Flex() {
 /**
  * Componente Column de UIkit
  * @param { String } width 1-1 | 1-2 | 1-3 | 1-4 | 1-5 | 1-6 | 2-3 | 2-5 | 3-4 | 3-5 | 4-5 | 5-6
- */
+*/
 function Column() {
     return {
         view: (vnode) => {
@@ -362,8 +362,8 @@ function Modal() {
             return m("div", {
                 id: vnode.attrs.id,
                 'uk-modal': true
-            }, m(".uk-modal-dialog",
-                {
+            }, 
+                m(".uk-modal-dialog", {
                     class: vnode.attrs.center ? 'uk-margin-auto-vertical' : ''
                 },
                 vnode.children
@@ -769,7 +769,7 @@ function AlertDialog(){
  * class: uk-label-success uk-label-warning  uk-label-danger
  **/
 function Label(){
-    return{
+    return {
         view:(vnode)=>{
             return m("span.uk-label", vnode.attrs)
         }
