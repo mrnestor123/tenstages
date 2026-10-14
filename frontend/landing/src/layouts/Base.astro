@@ -31,7 +31,8 @@ const alternates = lost ? [] : [
   { hreflang: 'x-default', href: abs(lang === 'en' ? Astro.url.pathname : alt) },
 ];
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
-const ogImage = abs(lang === 'en' ? '/og.png' : '/og-es.png');
+// Archivo, no directorio: sin barra final (abs() la añade y daría 404). JPEG < 300 KB para WhatsApp
+const ogImage = new URL(lang === 'en' ? '/og.jpg' : '/og-es.jpg', Astro.site ?? site.url).href;
 const p = state ?? 0;
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -67,6 +68,10 @@ const jsonLd = {
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="apple-itunes-app" content="app-id=1592906074" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
