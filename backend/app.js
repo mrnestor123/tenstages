@@ -1,8 +1,12 @@
 import admin from 'firebase-admin';
+import { existsSync } from 'fs';
 
 
 admin.initializeApp({
-  credential: admin.credential.cert('./secrets/firebase-key.json'),
+  // en Cloud Functions no hace falta la clave; en local, backend/secrets/firebase-key.json
+  credential: existsSync('./secrets/firebase-key.json')
+    ? admin.credential.cert('./secrets/firebase-key.json')
+    : admin.credential.applicationDefault(),
   databaseURL: 'https://the-mind-illuminated-32dee.firebaseio.com',
   storageBucket: 'the-mind-illuminated-32dee.appspot.com'
 });

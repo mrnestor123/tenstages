@@ -9,8 +9,8 @@ firebase-debug.*.log*
 
 
 # Ignore secrets
-functions/secrets
-functions/firebase-key.json
+backend/secrets
+backend/firebase-key.json
 
 # Firebase cache
 .firebase/
@@ -72,3 +72,7 @@ node_modules/
 
 # ignore mierdas de mac
 .DS_Store
+
+frontend/dist
+
+.vscode/

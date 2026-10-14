@@ -1,17 +1,20 @@
-import { Button, Card, CardBody, CardFooter, CardMedia, Chip, Column, Flex, Form, FormLabel, Grid, Icon, Padding, Row, Section, Select, TextEditor, TextField } from "../components/components.js"
-import { ContentCard, LoginInput } from "../components/tenstages-components.js"
-import { DefaultText, Header, Header2 } from "../components/texts.js";
-import { getContent, getContentbycod, contentTypes,  stagenumbers, types } from "../server/contentController.js";
-import { getSettings } from "../server/server.js";
+import m from "mithril";
+import { Button, Card, CardBody, CardMedia, Chip, Column, Flex, Grid, Icon, Padding, Row, Section } from "../../../shared/components/components.js";
+import { ContentCard } from "../../../shared/components/tenstages-components.js";
+import { DefaultText, Header2 } from "../../../shared/components/texts.js";
+import { contentTypes, getContent, getContentbycod } from "../../../shared/server/contentController.js";
+import { getSettings } from "../../../shared/server/server.js";
 
-import {FlexCol, FlexRow} from "../components/layout.js"
+import { FlexRow } from "../../../shared/components/layout.js";
+import { PrivacyPage } from "./PrivacyPage.js";
+import { SupportPage } from "./SupportPage.js";
 
 // pasar a util??
 let Page = {
     isMobile: false,
 }
 
-let isMobile = false;
+export let isMobile = false;
 
 // COLOR veige #FFFAD5
 function TenStagesNavbar() {
@@ -50,7 +53,7 @@ function TenStagesNavbar() {
                 },[
 
                     m("img", { 
-                        src: './assets/logo-horizontal.png', 
+                        src: '/assets/logo-horizontal.png', 
                         style:  `max-height:${isMobile? '50px' :'100px'}; width:auto`, 
                         onclick:(e)=>m.route.set('/')
                     }),
@@ -103,195 +106,6 @@ function TenStagesNavbar() {
     }
 }
 
-function LandingPage() {
-
-    // TELÉFONO CON EL TEXTO A LA IZQUIERDA O DERECHA
-    function PhoneRow(){
-        let image,title,text;
-
-        function Text(){
-            return {
-                view:(vnode)=>{
-                    return m("div.uk-flex-column.uk-flex.uk-flex-center", 
-                        m("div",{style:"padding-left:2em; max-width:70%; margin:0 auto;"}, [
-                            m("h1", {style:"text-align:left;"}, title),
-                            m("p", {style:"text-align:left;"}, text),
-                        ])
-                    )
-                }
-            }
-        }
-
-        function Phone(){
-            return {
-                view:(vnode)=> {
-                    return m("img", {
-                        src: image,
-                        style: `object-fit:contain;height:70%; ${isMobile ?' margin:0 auto':''}`
-                    })
-                }
-            }
-        }
-
-        return {
-            view:(vnode)=>{
-                let { textposition } = vnode.attrs
-                
-                image = vnode.attrs.image
-                title = vnode.attrs.title
-                text = vnode.attrs.text
-
-                // HE AÑADIDO UK-FLEX PORQUE SINO NO SE CENTRABA
-                return [
-                    m(Grid,{childWidth: '1-2@l', verticalalign:true, center:true, style:"height:28%;position:relative;"},
-                        textposition == 'right' && !isMobile ? 
-                        [ m(Phone), m(Text) ] :  [ m(Text), m(Phone)]
-                    )   
-                ]
-            }
-        }
-    }
-
-    function InfoCard(){
-        return {
-            view:(vnode)=>{
-                let {icon, title, text} = vnode.attrs
-                
-                return [
-                    m("div.uk-width-1-3@l",
-                        m(Card,{style:"min-height:200px; background-color:#F2F2F2; border-radius:15px;margin:1em; min-width:200px;"},
-                            m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                m(Icon,{icon: icon, style:'font-size:60px;'}),
-                                m("h2",{style:"margin-top:0em"}, title),
-                                m("p",{style:"text-align:center"}, text)
-                            ])
-                        )
-                    ),
-                ]
-            }
-        }
-    }
-
-    return {
-        view: (vnode) => {
-            return [
-                // Imagen de montaña
-                m("div", { 
-                    style: {
-                        "background-image":"url('./assets/slider.webp')", 
-                        "background-size":"cover", 
-                        "background-position":"center",
-                        "height":"100vh",
-                        "width":"100vw",
-                        "display":"flex",
-                        "flex-direction":"column"
-                    }
-                }, [
-                    m(Section, { type:"muted", style:" margin-top:20vh; margin-left:15vw; background-color:transparent; " }, [
-                        m("div.uk-width-1-3@l.uk-width-2-3@m", [
-                            m("h1", { style: "text-align:left; margin-bottom:0.5em;" }, "A journey inside yourself"),
-                            //LO HE COMENTADO  PARA LA PRIMERA VERSIÓN
-                            m("p", { style: "text-align:left; "}, "A complete meditation training system integrating buddhist wisdom with brain science", m("br"),m("br"), "Inspired by The Mind Illuminated"),
-                           
-                        ])
-                    ])
-                ]),
-            
-                // Benefits de TenStages
-                m(Section, { size:"small" }, [
-                    m("h1", {style: "text-align:center;"}, "Benefits of using TenStages"),
-                    
-                    m(Grid, {size:'small', match:true,  center:true}, [
-                        m(InfoCard,{icon:'psychology_alt',title: "Understand why", text:"Learn how your mind works and how to work with it"}),
-                        m(InfoCard,{icon:'self_improvement', title: "Practice", text:"Practice meditations from certified The Mind Illuminated teachers"}),
-                        m(InfoCard,{icon:'checklist', title: "Clear and structured", text: "Know what you are doing and why"})
-                    ])
-                ]),
-
-                // Imagen del camino
-                m("div", { 
-                    style: {
-                        "background-image":"url('./assets/camino.png')", 
-                        "background-size":"cover", 
-                        "background-position":"center",
-                        "height":"300vh",
-                        "position":"relative",
-                        "width":"100%"
-                    }
-                }, [
-                    // PARA CUANDO ESTAMOS EN MÓVIL
-                    window.innerWidth < 1200 ? m("div",{style:"height:20vh"}): null,
-                    m(PhoneRow,{
-                        image:'./assets/stage1.png', 
-                        title:"Train in TenStages", 
-                        text:"Providing a step-by-step guidance from your very first sit all the way to mastery of the deepest states of peace and insight. "
-                    }), 
-
-                    m(PhoneRow,{
-                        image: './assets/stage2.png',
-                        title:"Understand why",
-                        textposition:'right',
-                        text: "At each stage we will provide you with information about your mind based on neuroscience. We will be expanding our model all the time through the ten stages. "
-                    }),
-                    
-                    m(PhoneRow,{
-                        image: './assets/stage3.png',
-                        title:"Practice with certified teachers",
-                        text: "Listen to guided meditations, clear your doubts with our teachers and learn from the community. "
-                    })
-
-                ]),
-
-                m(Section, { size:"small" }, [
-                    m(Grid, {size:'small', match:true, childWidth:'1-2@l', center:true, verticalalign:true}, [
-                        m("div",m("img", {src: "./assets/pexels-rfstudio-3059892.jpg", style:"margin:1em;max-width:80vw; width:30vw;"})),
-                        m("div",m(Flex, {direction:'column', style:"padding:1em"}, 
-                            m("h1",  "What is TenStages?"),
-                            m("p", 
-                                m.trust(`<p> The aim of TenStages is to give an overall understanding of what meditation is all about. We want you to understand what really is meditation, how your brain works and how you can become happier with what you have.</p>
-                                </p><p> We hope that you enjoy the content and that you learn as much as we learn with everyone.  </p>
-                                <p> Attentively,  </p>
-                                <p> The TenStages team </p>`)
-                            ),
-                        ))
-                    ]),
-                ]),
-
-
-                /*m(Section, { size:"small" }, [
-                    m("h1", {style: "text-align:center; margin:0px; font-family:'Gotham Rounded'; font-weight:350"}, "What people say about TenStages"),
-                    m(Row, {}, [
-                        m(Grid, {size:'small', match:true, childWidth:'1-3@m'}, [
-                            m(Card, [
-                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
-                                ])
-                            ]),
-                            m(Card, {}, [
-                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),
-                                ])
-                            ]),
-                            m(Card, {}, [
-                                m(CardBody, {style:'display:flex; flex-direction:column; align-items:center;'}, [
-                                    m("div", {style:"height:200px; width:100%; background-color:#F2F2F2; border-radius:15px"}, ""),,
-                                ])
-                            ])
-                        ])
-                    ]),
-                ]),*/
-                
-                m(Section,  [
-                    m(FlexCol, {alignItems:'center',background:'#ECD79D', paddingBottom:'80px' }, [
-                        m("h1", { style: "margin-top:64px" }, "Contact Us"),
-                        m("a", {href:"mailto:"}, "support@tenstages.app")
-                    ]),
-                ])
-            ]
-        }
-    }
-}
-
 function Footer() {
     let styles = {
         titles: 'font-weight:700;letter-spacing:2.5px;padding-bottom:16px',
@@ -323,9 +137,9 @@ function Footer() {
                             m(CardBody, {style:`display:flex; flex-direction:column; `}, [
                                 m("div", {style: styles.titles}, "DOWNLOAD THE APP"),
                                 m("div",{style:`display:flex; flex-direction:${isMobile ? 'row':'column'};`},
-                                    m(StoreImage, {href:"https://apps.apple.com/app/tenstages/id1592906074", src: './assets/app-store.svg'}),
+                                    m(StoreImage, {href:"https://apps.apple.com/app/tenstages/id1592906074", src: '/assets/app-store.svg'}),
                                     m("div",{style:"height:1em;width:1em;"}),
-                                    m(StoreImage, {href: "https://play.google.com/store/apps/details?id=tenStages.meditationApp", src: './assets/google-play.svg'})
+                                    m(StoreImage, {href: "https://play.google.com/store/apps/details?id=tenStages.meditationApp", src: '/assets/google-play.svg'})
                                 )
                             ])
                         ]),
@@ -357,78 +171,6 @@ function Footer() {
     }
 }
 
-
-function SupportPage() {
-
-    return {
-        view: (vnode) => {
-            return [
-                m(Section,[
-                    m(Flex, {direction:'column', hAlign:'center', style:'align-items:center; min-height:50vh;padding:1em;' }, [
-                        //m("h1", "Support page"),
-                        m("p", "We are currently working on a FAQ and a support page. In the meantime, if you have any questions or issues, please contact us at: "),
-
-                        m("h1",m("a",{class:'header', href:"mailto:support@tenstages.app"}, "support@tenstages.app"))
-                    ]),
-                ])
-            ]
-
-        }
-    }
-
-}
-
-
-function PrivacyPage(){
-
-
-    let privacyText= `<div style="text-align:center;font-size:0.9rem"> Last update: 16 May of 2022 </div>  <br>
-        <div>This Privacy Policy explains how TenStages ("we," "us," or "our") collects, uses, shares, and protects User 
-        information when you use the TenStages Meditation App . We are committed to maintaining the privacy and confidentiality 
-        of your personal information. By accessing or using the App, you agree to the terms of this Privacy Policy.</div>
-        <div><br></div>
-        <div>Information We Collect:</div><div>a. Personal Information: When you register and use the App,
-        we may collect personal information, such as your name, email address, and other contact information. 
-        We may also collect payment information if you make any purchases within the App.</div><div><br></div>
-        <div>b. Usage Information: We may collect information about your interactions with the App, including 
-        the meditations you complete, the features you use, and the content you access. This information may include 
-        device information, IP address, browser type, operating system, and other usage details.</div><div><br></div>
-        <div>How We Use Your Information:</div><div>a. Provide and Improve the App: We use the collected information 
-        to deliver, personalize, and improve the functionality and User experience of the App. This includes providing 
-        you with access to meditation content, recommending relevant content, and enhancing the overall performance of 
-        the App.</div><div><br></div><div>b. Communication: We may use your contact information to communicate with you 
-        regarding the App, respond to your inquiries, provide customer support, and send you important notices or 
-        updates about the App.</div><div><br></div><div>c. Analytics and Research: We may use the collected information for analytical purposes,
-        such as understanding User behavior, usage patterns, and preferences. This helps us improve the App, develop new features,
-        and conduct research to enhance our meditation offerings.</div><div><br></div><div>d. Legal Compliance: We may use your information
-        to comply with applicable laws, regulations, or legal processes, respond to lawful requests, and protect our rights or the rights of others.
-        </div><div><br></div><div>Sharing of Information:</div><div>a. Service Providers: We may engage trusted third-party service providers to 
-        perform certain functions on our behalf, such as hosting, data analysis, payment processing, or customer support. These providers have 
-        access to your information only to the extent necessary to perform these tasks on our behalf and are obligated to maintain the confidentiality 
-        and security of your information.</div><div><br></div><div>b. Aggregated or De-Identified Data: We may share aggregated or de-identified 
-        information with third parties for analytical, research, marketing, or other purposes. This information does not personally identify you.
-        </div><div><br></div><div>c. Legal Requirements: We may disclose your information if required to do so by law, or if we believe in good faith 
-        that such action is necessary to comply with legal obligations, protect our rights, investigate fraud, or respond to a government request.
-        </div><div><br></div><div>d. Business Transfers: In the event of a merger, acquisition, or any form of sale or transfer of some or all of our assets, 
-        your information may be transferred as part of the transaction. We will notify you via prominent notice on our website or within the App of any 
-        change in ownership or use of your personal information.</div><div><br></div><div>Data Security:</div><div>We take reasonable measures to protect 
-        your personal information from unauthorized access, disclosure</div>`
-    
-    return {
-        view:(vnode)=>{
-            return [
-                m(Section,[
-                    m(Flex, {direction:'column',  style:'padding:1em;' }, [
-                        m.trust(privacyText)
-                    ]),
-                ])
-            ]
-
-        }
-    }
-}
-
-
 function DonationPage(){
     
     return {
@@ -451,7 +193,6 @@ function DonationPage(){
     }
 
 }
-
 
 function AuthorPage(){
     let settings = {}
@@ -476,7 +217,6 @@ function AuthorPage(){
     }
 }
 
-
 function PhilosophyPage(){
 
     return {
@@ -492,8 +232,6 @@ function PhilosophyPage(){
         }
     }
 }
-
-
 
 function ContentShow() {
     let selectedContent = {}
@@ -523,7 +261,7 @@ function ContentShow() {
                             max-height:100%;
                             height:${height ? height : '300px'};
                             background-repeat:no-repeat;
-                            background-image:url(${data && name && data[name] ? data[name] : './assets/buddha-sharing.webp'});
+                            background-image:url(${data && name && data[name] ? data[name] : '/assets/buddha-sharing.webp'});
                             background-size:${data && name && data[name] ? 'contain':'cover'};
                             background-position:center;
                             border-radius:10px;
@@ -819,6 +557,4 @@ function ContentShow() {
     }
 }
 
-
-
-export { LandingPage, Footer, TenStagesNavbar, ContentShow, SupportPage, PrivacyPage, DonationPage, AuthorPage, PhilosophyPage}
+export { AuthorPage, ContentShow, DonationPage, Footer, PhilosophyPage, PrivacyPage, SupportPage, TenStagesNavbar };

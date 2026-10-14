@@ -4,7 +4,7 @@
 function DefaultText() {
     return{
         view:(vnode)=>{
-            return m("div.uk-text-default",vnode.children)
+            return m("div.uk-text-default", vnode.children)
         }
     }
 }

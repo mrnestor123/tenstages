@@ -4,12 +4,15 @@
   "description": "tenstages best app in the world",
   "main": "index.js",
   "scripts": {
-    "serve": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only hosting",
+    "serve-backend": "firebase emulators:start --only functions",
+    "deploy": "npm run build && firebase deploy --only hosting",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "logs": "firebase functions:log",
-    "test": "test"
+    "test": "test",
+    "build": "npm --prefix frontend/landing install && npm --prefix frontend/landing run build && npm --prefix frontend/management install && npm --prefix frontend/management run build",
+    "dev:landing": "npm --prefix frontend/landing run dev",
+    "dev:management": "npm --prefix frontend/management run dev"
   },
   "repository": {
     "type": "git",
@@ -20,8 +23,5 @@
   "bugs": {
     "url": "https://github.com/mrnestor123/tenstages/issues"
   },
-  "homepage": "https://github.com/mrnestor123/tenstages#readme",
-  "dependencies": {
-    "firebase": "^9.6.7"
-  }
+  "homepage": "https://github.com/mrnestor123/tenstages#readme"
 }

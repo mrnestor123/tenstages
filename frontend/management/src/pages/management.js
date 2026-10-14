@@ -1,15 +1,15 @@
 
 // METER AQUÍ TODO LO DEL MANAGEMENT DE LA APP.
 // EDITAR PROFESOR, EDITAR CONTENIDO, VER CONTENIDO
-import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Flex, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField, showAlert } from '../components/components.js'
-import { FileExplorer, ImageSelector, showFileExplorer } from '../components/management-components.js'
-import { ContentCard, EditableField, FileView, ImagePicker } from '../components/tenstages-components.js'
-import { FormLabel } from '../components/texts.js'
-import { create_UUID, dia, hora } from '../components/util.js'
-import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../server/contentController.js'
-import { getRequests, postRequest, updateRequest } from '../server/server.js'
-import { getUser, getUserActions, User } from '../server/usersController.js'
-import { Content, stagenumbers, types} from '../server/contentController.js'
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Flex, Form, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField, showAlert } from '../../../shared/components/components.js'
+import { FileExplorer, ImageSelector, showFileExplorer } from '../../../shared/components/management-components.js'
+import { ContentCard, EditableField, FileView, ImagePicker } from '../../../shared/components/tenstages-components.js'
+import { FormLabel } from '../../../shared/components/texts.js'
+import { create_UUID, dia, hora } from '../../../shared/components/util.js'
+import { addContent, addMilestone, deleteContent, getAllContent, getContentbycod, getMilestones, getTeachersContent, updateContent, updateMilestone } from '../../../shared/server/contentController.js'
+import { getRequests, postRequest, updateRequest } from '../../../shared/server/server.js'
+import { getUser, getUserActions, User } from '../../../shared/server/usersController.js'
+import { Content, stagenumbers, types} from '../../../shared/server/contentController.js'
 
 
 
@@ -196,7 +196,7 @@ function EditCreateContent() {
                             max-height:100%;
                             height:${height ? height : '300px'};
                             background-repeat:no-repeat;
-                            background-image:url(${data && name && data[name] ? data[name] : './assets/buddha-sharing.webp'});
+                            background-image:url(${data && name && data[name] ? data[name] : '/assets/buddha-sharing.webp'});
                             background-size:${data && name && data[name] ? 'contain':'cover'};
                             background-position:center;
                             border-radius:10px;

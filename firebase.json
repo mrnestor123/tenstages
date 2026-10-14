@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "frontend/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -8,8 +8,12 @@
     ],
     "rewrites": [
       {
+        "source": "/management/**",
+        "destination": "/management/index.html"
+      },
+      {
         "source": "**",
-        "function": "app"
+        "destination": "/index.html"
       }
     ],
     "functions": {
@@ -18,16 +22,12 @@
       }
     }
   },
-
   "functions": {
-    
-   "source":"functions"
-
+    "source": "backend"
   },
-
   "emulators": {
     "hosting": {
-      "port": 9000
+      "port": 9005
     },
     "ui": {
       "enabled": true,

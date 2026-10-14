@@ -42,8 +42,6 @@ app.get('/', (req, res) => {
     res.send('Conectado correctamente al servidor de tenstages');
 });
 
-
-
 /*
 *
 * LLAMADAS ANTIGUAS

@@ -1,12 +1,12 @@
 import * as htmlConverter from 'https://cdn.jsdelivr.net/npm/@eraserlabs/quill-delta-to-html@0.12.1/+esm';
-import { getSettings,  getStages,  updateSettings  } from "../server/server.js";
-import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from "../components/components.js";
-import { ImageSelector, showFileExplorer } from "../components/management-components.js";
-import { ContentCard, EditableField } from "../components/tenstages-components.js";
-import { FormLabel, Header3 } from "../components/texts.js";
-import { api_get, create_UUID, dia, hora } from "../components/util.js";
-import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage,contentIcons, contentTypes } from '../server/contentController.js'
-import { getAllActions, getTeachers, getUsers } from '../server/usersController.js'
+import { getSettings,  getStages,  updateSettings  } from "../../../shared/server/server.js";
+import { Button, Card, CardBody, CardFooter, CardHeader, CardMedia, Column, Grid, Icon, Modal, ModalBody, ModalFooter, ModalHeader, Padding, Row, Section, Select, TextEditor, TextField } from "../../../shared/components/components.js";
+import { ImageSelector, showFileExplorer } from "../../../shared/components/management-components.js";
+import { ContentCard, EditableField } from "../../../shared/components/tenstages-components.js";
+import { FormLabel, Header3 } from "../../../shared/components/texts.js";
+import { api_get, create_UUID, dia, hora } from "../../../shared/components/util.js";
+import { addSection, getAllContent, getSections, updateContent, updateSection, updateStage,contentIcons, contentTypes } from '../../../shared/server/contentController.js'
+import { getAllActions, getTeachers, getUsers } from '../../../shared/server/usersController.js'
 //import { htmlConverter } from "quill-delta-to-html"
 
 // ESTO SERÍA EMAIL 
@@ -41,7 +41,7 @@ function AdminManagement() {
                     m(Flex, {direction:"column", style:""}, [
                         m("div.uk-grid-small uk-flex-middle", {"uk-grid":"", style:"padding:20px"}, [
                             m("div.uk-width-auto", [
-                                m("img.uk-border-circle", {width:"50", height:"50", src:"./assets/logo-tenstages.png", alt:"Avatar"})
+                                m("img.uk-border-circle", {width:"50", height:"50", src:"/assets/logo-tenstages.png", alt:"Avatar"})
                             ]),
                             m("div.uk-width-expand", [
                                 m("h3.uk-card-title.uk-margin-remove-bottom", "Pepe Perez"),
@@ -66,7 +66,7 @@ function AdminManagement() {
                         m("nav.uk-navbar-container", { 'uk-navbar': '', style:"height:95px;background-color: white" },
                             m("nav", { 'uk-navbar': '', style: "width:100%;background-color:2C2C2C" },
                                 m(".uk-navbar-center",
-                                    m("a.uk-navbar-item.uk-logo", m("img", { src: './assets/logo-tenstages-white.png', style: "max-height:95px; width:auto" })),
+                                    m("a.uk-navbar-item.uk-logo", m("img", { src: '/assets/logo-tenstages-white.png', style: "max-height:95px; width:auto" })),
                                 )
                             )
                         )

@@ -1,0 +1,19 @@
+{
+  "name": "tenstages-landing",
+  "version": "1.0.0",
+  "description": "TenStages landing page built with MithrilJS optimized for SEO",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "mithril": "^2.3.8"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

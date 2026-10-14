@@ -476,7 +476,7 @@ function ImageSelector(){
                         max-height:100%;
                         height:${height ? height : '300px'};
                         background-repeat:no-repeat;
-                        background-image:url(${data && name && data[name] ? data[name] : './assets/buddha-sharing.webp'});
+                        background-image:url(${data && name && data[name] ? data[name] : '/assets/buddha-sharing.webp'});
                         background-size:${data && name && data[name] ? 'contain':'cover'};
                         background-position:center;
                         border-radius:10px;
