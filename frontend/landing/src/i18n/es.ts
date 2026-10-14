@@ -1,0 +1,236 @@
+// Spanish (Spain) copy, informal "tú". Must satisfy the Dict type from en.ts.
+// Terminology to confirm with the TenStages teachers: etapa, embotamiento, flexibilidad mental,
+// and the four group names (principiante, hábil, transición, adepto).
+import type { Dict, StageText } from './en';
+
+const stages: StageText[] = [
+  {
+    name: 'Establecer una práctica',
+    line: 'Sentarte cada día es toda la primera etapa. Todo lo demás crece a partir de ahí.',
+    goal: 'Crear una práctica de meditación constante y diaria.',
+    obstacles: ['Resistencia', 'Procrastinación', 'Cansancio', 'Impaciencia', 'Aburrimiento'],
+    skills: ['Crear rutinas de práctica', 'Fijar objetivos concretos', 'Generar una motivación sólida', 'Diligencia'],
+    mastery: 'No te saltas ninguna sesión diaria.',
+    why: 'La mayoría de las prácticas fracasan antes de empezar. Una hora fija, un lugar fijo y un breve ritual eliminan la decisión diaria de sentarte, y una razón clara para practicar te mantiene volviendo cuando las sesiones se vuelven aburridas o parecen inútiles.',
+  },
+  {
+    name: 'Atención interrumpida',
+    line: 'Te das cuenta de que la mente se ha ido, y disfrutas de darte cuenta. Ese pequeño momento es la habilidad.',
+    goal: 'Acortar los periodos de divagación mental y alargar el tiempo que te mantienes con la respiración.',
+    obstacles: ['Divagación mental', 'Mente de mono', 'Impaciencia'],
+    skills: ['Reforzar el momento en que despiertas de la divagación mental', 'Sostener la atención en la respiración'],
+    mastery: 'La mayoría de los episodios de divagación duran solo unos segundos, y te mantienes con la respiración durante minutos.',
+    why: 'No puedes obligar a la mente a dejar de divagar. Lo que sí puedes hacer es apreciar el momento en que notas que se ha ido. Recompensar ese momento entrena a la mente inconsciente para notarlo antes, y cada episodio se acorta por sí solo.',
+  },
+  {
+    name: 'Atención prolongada',
+    line: 'Olvidar la respiración ocurre con menos frecuencia, y la somnolencia deja de acabar con tus sesiones.',
+    goal: 'Superar el olvido y el quedarse dormido.',
+    obstacles: ['Distracciones', 'Olvido', 'Divagación mental', 'Somnolencia'],
+    skills: ['Seguir y enlazar la respiración', 'Etiquetar y comprobar cómo estás'],
+    mastery: 'Rara vez olvidas la respiración o te quedas dormido.',
+    why: 'La atención se te escapa porque nadie la está vigilando. Etiquetar las distracciones y revisar a menudo cómo estás desarrolla la conciencia introspectiva, la alarma de fondo que detecta el olvido antes de que ocurra.',
+  },
+  {
+    name: 'Atención continua',
+    line: 'La respiración se mantiene en primer plano. El dolor, los recuerdos y el embotamiento fuerte pasan a ser cosas con las que trabajar.',
+    goal: 'Superar la distracción grosera y el embotamiento fuerte.',
+    obstacles: ['Distracción grosera', 'Embotamiento fuerte', 'Dolor', 'Emociones y recuerdos que afloran'],
+    skills: ['Conciencia introspectiva continua', 'Trabajar con el dolor', 'Purificar la mente'],
+    mastery: 'Las distracciones groseras ya no relegan la respiración a un segundo plano.',
+    why: 'Una vez superado el olvido, el problema que queda es la fuerza. La conciencia continua te permite ver una distracción o una bajada de energía cuando empieza, y corregirla pronto, en lugar de cuando la respiración ya se ha desvanecido.',
+  },
+  {
+    name: 'Superar el embotamiento sutil',
+    line: 'Una calma agradable y neblinosa es fácil de confundir con profundidad. Aquí aprendes a mantenerte lúcido.',
+    goal: 'Superar el embotamiento sutil y aumentar el poder de la atención plena.',
+    obstacles: ['Embotamiento sutil'],
+    skills: ['Escanear el cuerpo', 'Experimentar la respiración con todo el cuerpo'],
+    mastery: 'Puedes mantener, o incluso aumentar, la viveza de la respiración durante toda la sesión.',
+    why: 'El embotamiento sutil resulta agradable, y por eso es fácil acomodarse en él. Ampliar el foco de la atención a todo el cuerpo y notar detalles más finos de la respiración mantiene la mente alerta y hace la percepción más vívida.',
+  },
+  {
+    name: 'Someter la distracción sutil',
+    line: 'La charla de fondo se aquieta hasta que solo la respiración queda en el campo de la atención.',
+    goal: 'Atención exclusiva y fin de la distracción sutil.',
+    obstacles: ['Distracción sutil'],
+    skills: ['Experimentar la respiración con todo el cuerpo', 'Conciencia introspectiva metacognitiva'],
+    mastery: 'Las distracciones sutiles casi han desaparecido y la atención se mantiene exclusiva y estable.',
+    why: 'Cuando la atención se vuelve exclusiva, hay menos competencia por la conciencia. Observar el estado de la propia mente, y no solo la respiración, te permite detectar la distracción sutil antes de que se instale.',
+  },
+  {
+    name: 'Atención exclusiva',
+    line: 'Ya no hace falta esfuerzo. La atención se sostiene sola y la mente empieza a unificarse.',
+    goal: 'Atención estable sin esfuerzo y conciencia introspectiva.',
+    obstacles: ['Aburrimiento', 'Inquietud', 'Duda', 'Sensaciones extrañas'],
+    skills: ['Diligencia', 'Soltar el esfuerzo poco a poco'],
+    mastery: 'La atención estable y la conciencia se sostienen solas, sin esfuerzo.',
+    why: 'Hasta ahora, la estabilidad ha dependido de un esfuerzo constante. Aquí el propio esfuerzo se convierte en el obstáculo. Soltarlo poco a poco permite que las partes inconscientes de la mente asuman el trabajo, y la mente empieza a funcionar como una sola.',
+  },
+  {
+    name: 'Flexibilidad mental',
+    line: 'Los sentidos se asientan, el cuerpo se aquieta y empieza a surgir una alegría meditativa estable.',
+    goal: 'Pacificación completa de los sentidos y aparición de la alegría meditativa.',
+    obstacles: ['Sensaciones extrañas', 'Movimientos involuntarios', 'Energía intensa'],
+    skills: ['Sostener la atención sin esfuerzo', 'Dejar que las corrientes de energía sigan su curso'],
+    mastery: 'Alcanzas de forma fiable la flexibilidad mental, los sentidos pacificados y la alegría meditativa.',
+    why: 'Con la mente unificada, los sentidos dejan de competir por la atención y se aquietan. Es el terreno del que brotan la flexibilidad y la alegría meditativa, el resultado de que la mente deje de pelearse consigo misma.',
+  },
+  {
+    name: 'Flexibilidad mental y física',
+    line: 'La emoción de la alegría madura hacia algo más sereno: tranquilidad y una profunda ecuanimidad.',
+    goal: 'Calmar la intensidad de la alegría meditativa para que puedan crecer la tranquilidad y la ecuanimidad.',
+    obstacles: ['La propia intensidad de la alegría'],
+    skills: ['Familiaridad con el estado meditativo', 'Paciencia'],
+    mastery: 'Evocas de forma constante tranquilidad y ecuanimidad cuando te sientas.',
+    why: 'La alegría es intensa al principio y puede desestabilizar. Familiarizarte con ella permite que la excitación se asiente en una felicidad más callada, con la tranquilidad y la ecuanimidad como compañeras naturales.',
+  },
+  {
+    name: 'Tranquilidad y ecuanimidad',
+    line: 'La calma no termina cuando suena el temporizador. Te acompaña durante el resto del día.',
+    goal: 'Dejar que las cualidades del estado meditativo permanezcan después de levantarte.',
+    obstacles: ['Ninguno en el sentido habitual: solo seguir practicando'],
+    skills: ['Practicar en la vida diaria', 'Práctica de visión profunda'],
+    mastery: 'La tranquilidad, la alegría y la ecuanimidad permanecen entre sesiones, en la vida cotidiana.',
+    why: 'El objetivo nunca fue solo una buena sesión. Cuando la tranquilidad y la ecuanimidad permanecen después de levantarte, marcan cómo afrontas el resto de tu vida y preparan el terreno para la visión profunda y el despertar.',
+  },
+];
+
+const es: Dict = {
+  self: { short: 'ES', name: 'Español', switchLabel: 'Cambiar a español' },
+  meta: {
+    title: 'TenStages | Entrenamiento de meditación en diez etapas',
+    description:
+      'Una app de meditación que te guía por las diez etapas de The Mind Illuminated, de tu primera sesión a la paz profunda, con profesores certificados.',
+  },
+  skip: 'Saltar al contenido',
+  logoLabel: 'TenStages, inicio',
+  mainNav: 'Principal',
+  nav: { path: 'El camino', app: 'La app', download: 'Descargar' },
+  counter: { label: 'Posición en el camino', stage: 'Etapa', of: 'de 10', off: 'Fuera del camino' },
+  stores: { appStore: 'Consíguelo en', googlePlay: 'Disponible en' },
+  groups: { novice: 'Principiante', skilled: 'Hábil', transition: 'Transición', adept: 'Adepto' },
+  home: {
+    heroTitle: 'Diez etapas hasta una\u00A0mente\u00A0en\u00A0calma.',
+    lede: [
+      'TenStages es un entrenador de meditación basado en ',
+      '. Te muestra en qué etapa estás, qué practicar a continuación y por qué funciona, desde tu primera meditación hasta los estados más profundos de paz y visión profunda.',
+    ],
+    statementLabel: 'Por qué un mapa',
+    statement: 'La mayoría de las apps de meditación te dan un temporizador. TenStages te da un mapa.',
+    statementSub:
+      'Dónde estás en el camino, qué obstáculo te frena y la habilidad que te ayuda a superarlo. Cada sesión se apoya en la anterior.',
+    appTitle: 'Por dentro de la app',
+    shots: [
+      { alt: 'La app de TenStages en un iPhone mostrando el mapa de la etapa 10: un camino sinuoso donde un monje guía a un elefante que pasa de gris oscuro a blanco.', title: 'Un mapa para cada etapa', text: 'Cada una de las diez etapas tiene su propio mapa, dibujado a partir del tradicional camino del elefante. Siempre ves dónde estás y qué hay por delante.' },
+      { alt: 'La app explicando el sistema de la mente: mente consciente, mentes sensoriales y mente discriminadora, dibujado como un diagrama.', title: 'Cómo funciona tu mente', text: 'Cada etapa añade una pieza a un modelo de la atención y la conciencia basado en la neurociencia. El modelo crece a medida que lo hace tu práctica.' },
+      { alt: 'Una meditación guiada en la app: Despertar de la divagación mental, el momento ¡ajá!', title: 'Guiada por profesores certificados', text: 'Meditaciones guiadas por profesores certificados de The Mind Illuminated. Llévales tus dudas y practica junto a la comunidad.' },
+    ],
+    pathTitle: 'Las diez etapas',
+    pathIntro: [
+      '',
+      ' divide la meditación en diez etapas agrupadas en cuatro grupos: principiante, hábil, transición y adepto. Cada etapa tiene un objetivo claro, los obstáculos que encontrarás y las habilidades que te ayudan a superarlos. Recorre el camino aquí abajo.',
+    ],
+    stageMore: (n) => `Etapa ${n} en detalle`,
+    stageSr: (n) => `Etapa ${n}: `,
+    letterTitle: 'Por qué la creamos',
+    letter: [
+      'Queríamos una app que explicara qué es de verdad la meditación: cómo se comporta tu cerebro mientras te sientas, por qué divaga la mente y cómo puedes ser más feliz con lo que ya tienes.',
+      'Aprendemos tanto de quienes practican con nosotros como ellos de la app. Si aporta un poco más de paz al mundo, habrá cumplido su misión.',
+    ],
+    signOff: 'Atentamente,',
+    signName: 'El equipo de TenStages',
+  },
+  stage: {
+    title: (n, name) => `Etapa ${n}: ${name}`,
+    description: (n, goal, mastery) => `Etapa ${n} de The Mind Illuminated en TenStages. Objetivo: ${goal} ${mastery}`,
+    kicker: (group, n) => `${group}, etapa ${n} de 10`,
+    mapLabel: (n) => `Etapa ${n} resaltada en el camino de las diez etapas`,
+    goal: 'Objetivo',
+    why: 'Por qué funciona',
+    obstacles: 'Obstáculos que encontrarás',
+    skills: 'Habilidades que desarrollarás',
+    mastery: 'Listo para la siguiente etapa cuando',
+    navLabel: 'Etapas',
+    prev: (n) => `Anterior, etapa ${n}`,
+    next: (n) => `Siguiente, etapa ${n}`,
+    backTo: 'Volver a',
+    allStages: 'Las diez etapas',
+  },
+  footer: {
+    begin: 'Empieza por la etapa uno.',
+    arrive: (n) => `Empieza en la uno. Llega a la ${n}.`,
+    lede: 'Descarga gratuita para iPhone, iPad y Android.',
+    questions: '¿Dudas, o algo no funciona?',
+    method: ['Método de ', ', de Culadasa (John Yates, PhD), Matthew Immergut y Jeremy Graves.'],
+    privacy: 'Política de privacidad',
+    support: 'Soporte',
+  },
+  support: {
+    title: 'Soporte',
+    description: 'Ayuda con la app de meditación TenStages: cómo contactar con el equipo y qué contarnos.',
+    intro: '¿Algo no funciona en la app, o tienes una duda sobre cómo usarla? Escríbenos.',
+    write: 'Escríbenos',
+    helpTitle: 'Qué nos ayuda a ayudarte',
+    help: [
+      'El dispositivo y el sistema operativo que usas (por ejemplo, iPhone 15 con iOS 18).',
+      'La versión de la app.',
+      'Qué estabas haciendo, qué esperabas y qué pasó en su lugar.',
+      'Una captura de pantalla, si puedes.',
+    ],
+    dataTitle: 'Tus datos',
+    data: 'Cómo recopilamos y protegemos tu información se explica en nuestra',
+    privacyLink: 'política de privacidad',
+  },
+  privacy: {
+    title: 'Política de privacidad',
+    description: 'Cómo recopila, usa, comparte y protege TenStages tu información cuando usas la app de meditación TenStages.',
+    contents: 'Contenido',
+    questions: '¿Dudas sobre esta política?',
+    // Traducción del texto en inglés del equipo de TenStages: debe revisarla alguien con criterio legal.
+    // El original se corta dentro de «Seguridad de los datos»: falta el resto.
+    intro:
+      'Esta Política de privacidad explica cómo TenStages («nosotros») recopila, utiliza, comparte y protege la información de los usuarios cuando usas la app de meditación TenStages. Nos comprometemos a mantener la privacidad y la confidencialidad de tu información personal. Al acceder a la App o utilizarla, aceptas los términos de esta Política de privacidad.',
+    sections: [
+      {
+        heading: 'Información que recopilamos',
+        items: [
+          { label: 'Información personal', text: 'Cuando te registras y usas la App, podemos recopilar información personal, como tu nombre, tu dirección de correo electrónico y otros datos de contacto. También podemos recopilar información de pago si realizas compras dentro de la App.' },
+          { label: 'Información de uso', text: 'Podemos recopilar información sobre tus interacciones con la App, incluidas las meditaciones que completas, las funciones que utilizas y el contenido al que accedes. Esta información puede incluir datos del dispositivo, dirección IP, tipo de navegador, sistema operativo y otros detalles de uso.' },
+        ],
+      },
+      {
+        heading: 'Cómo usamos tu información',
+        items: [
+          { label: 'Ofrecer y mejorar la App', text: 'Usamos la información recopilada para ofrecer, personalizar y mejorar el funcionamiento y la experiencia de uso de la App. Esto incluye darte acceso al contenido de meditación, recomendarte contenido relevante y mejorar el rendimiento general de la App.' },
+          { label: 'Comunicación', text: 'Podemos usar tus datos de contacto para comunicarnos contigo sobre la App, responder a tus consultas, ofrecerte atención al cliente y enviarte avisos o actualizaciones importantes sobre la App.' },
+          { label: 'Análisis e investigación', text: 'Podemos usar la información recopilada con fines analíticos, como entender el comportamiento, los patrones de uso y las preferencias de los usuarios. Esto nos ayuda a mejorar la App, desarrollar nuevas funciones e investigar para mejorar nuestra oferta de meditación.' },
+          { label: 'Cumplimiento legal', text: 'Podemos usar tu información para cumplir con las leyes, normativas o procedimientos legales aplicables, responder a solicitudes legítimas y proteger nuestros derechos o los de terceros.' },
+        ],
+      },
+      {
+        heading: 'Cómo compartimos la información',
+        items: [
+          { label: 'Proveedores de servicios', text: 'Podemos contratar a proveedores externos de confianza para que realicen determinadas funciones en nuestro nombre, como alojamiento, análisis de datos, procesamiento de pagos o atención al cliente. Estos proveedores solo tienen acceso a tu información en la medida necesaria para realizar dichas tareas en nuestro nombre y están obligados a mantener su confidencialidad y seguridad.' },
+          { label: 'Datos agregados o anonimizados', text: 'Podemos compartir información agregada o anonimizada con terceros con fines analíticos, de investigación, de marketing u otros. Esta información no te identifica personalmente.' },
+          { label: 'Requisitos legales', text: 'Podemos divulgar tu información si la ley nos obliga a ello o si creemos de buena fe que es necesario para cumplir con obligaciones legales, proteger nuestros derechos, investigar un fraude o responder a una solicitud de las autoridades.' },
+          { label: 'Transferencias empresariales', text: 'En caso de fusión, adquisición o cualquier forma de venta o transferencia de todos o parte de nuestros activos, tu información podrá transferirse como parte de la operación. Te avisaremos mediante un aviso destacado en nuestra web o dentro de la App de cualquier cambio en la titularidad o en el uso de tu información personal.' },
+        ],
+      },
+      {
+        heading: 'Seguridad de los datos',
+        // INCOMPLETO en el original. Sustituir por la sección completa.
+        text: 'Tomamos medidas razonables para proteger tu información personal frente al acceso y la divulgación no autorizados.',
+      },
+    ],
+  },
+  lost: {
+    title: 'Fuera del camino',
+    description: 'Esta página no existe. Vuelve al camino de TenStages y retoma tu práctica donde la dejaste.',
+    heading: 'Te has salido del\u00A0camino.',
+    text: 'Nos pasa a todos, normalmente hacia la etapa dos. Date cuenta y vuelve con suavidad.',
+    back: 'Volver al camino',
+  },
+  stages,
+};
+export default es;

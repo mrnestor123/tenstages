@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { dicts, other, homePath, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = dicts[lang].lost;
+---
+<Base lang={lang} alt={homePath(other(lang))} title={t.title} description={t.description} state={0} lost>
+  <section class="lost">
+    <svg class="lost__mark" viewBox="170 96 312 277" aria-hidden="true">
+      <path class="mark__path" d="M453,125 H226.4 A27.4,27.4 0 0 0 226.4,179.8 H330" />
+      <path class="mark__path lost__ghost" d="M372,179.8 H425.6 A27.4,27.4 0 0 1 425.6,234.6 H226.4 A27.4,27.4 0 0 0 226.4,289.4 H425.6 A27.4,27.4 0 0 1 425.6,344.2 H199" />
+    </svg>
+    <p class="lost__code">404</p>
+    <h1 class="lost__title" data-split="lines" data-intro>{t.heading}</h1>
+    <p class="lost__text" data-reveal="fade" data-intro data-delay="0.4">{t.text}</p>
+    <p data-reveal="fade" data-intro data-delay="0.5"><a class="pill pill--solid" href={homePath(lang)}>{t.back}</a></p>
+  </section>
+</Base>

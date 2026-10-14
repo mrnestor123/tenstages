@@ -41,7 +41,7 @@ function AdminManagement() {
                     m(Flex, {direction:"column", style:""}, [
                         m("div.uk-grid-small uk-flex-middle", {"uk-grid":"", style:"padding:20px"}, [
                             m("div.uk-width-auto", [
-                                m("img.uk-border-circle", {width:"50", height:"50", src:"/assets/logo-tenstages.png", alt:"Avatar"})
+                                m("img.uk-border-circle", {width:"50", height:"50", src:"/management/assets/logo-tenstages.png", alt:"Avatar"})
                             ]),
                             m("div.uk-width-expand", [
                                 m("h3.uk-card-title.uk-margin-remove-bottom", "Pepe Perez"),
@@ -66,7 +66,7 @@ function AdminManagement() {
                         m("nav.uk-navbar-container", { 'uk-navbar': '', style:"height:95px;background-color: white" },
                             m("nav", { 'uk-navbar': '', style: "width:100%;background-color:2C2C2C" },
                                 m(".uk-navbar-center",
-                                    m("a.uk-navbar-item.uk-logo", m("img", { src: '/assets/logo-tenstages-white.png', style: "max-height:95px; width:auto" })),
+                                    m("a.uk-navbar-item.uk-logo", m("img", { src: '/management/assets/logo-tenstages-white.png', style: "max-height:95px; width:auto" })),
                                 )
                             )
                         )

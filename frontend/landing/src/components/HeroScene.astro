@@ -1,0 +1,131 @@
+---
+// Dawn over the path: the world of the app's map, drawn as layered SVG behind the hero.
+// A monk leads the elephant up a path that turns from umber to gold, toward a stupa
+// hung with prayer flags, while the sun comes up. Decorative only.
+const W = 1440, H = 900;
+
+
+// Deterministic stars (no layout shift, same on every load).
+let seed = 7;
+const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const stars = Array.from({ length: 46 }, () => ({ x: rand() * W, y: rand() * 380, r: 0.7 + rand() * 1.1, o: 0.18 + rand() * 0.45 }));
+
+// Prayer flags on two strings tied to the spire, each running down to a pole planted
+// in the ridge (ground heights measured from the mid range's curve below).
+const flagColors = ['#5b86b8', '#ece4cc', '#c8553d', '#5f9e6e', '#e3b552'];
+const top = { x: 760, y: 526 };
+const poles = [{ x: 612, ground: 609, h: 46 }, { x: 912, ground: 627, h: 40 }];
+const strings = poles.map((p) => ({ x: p.x, y: p.ground - p.h })).map((end) => {
+  const c = { x: (top.x + end.x) / 2, y: Math.max(top.y, end.y) + 14 };
+  const pt = (t: number) => ({
+    x: (1 - t) ** 2 * top.x + 2 * (1 - t) * t * c.x + t ** 2 * end.x,
+    y: (1 - t) ** 2 * top.y + 2 * (1 - t) * t * c.y + t ** 2 * end.y,
+  });
+  const flags = Array.from({ length: 9 }, (_, i) => ({ ...pt(0.12 + i * 0.1), fill: flagColors[i % 5] }));
+  return { d: `M${top.x},${top.y} Q${c.x},${c.y} ${end.x},${end.y}`, flags };
+});
+
+const cloud = 'M0,30 C-2,18 12,10 24,16 C28,3 50,-2 62,9 C72,-4 96,0 100,14 C112,8 130,15 126,30 Z';
+const curls = 'M24,16 c-6,4 -2,12 4,9 c3,-2 1,-6 -2,-5 M100,14 c6,2 6,10 0,10 c-3,0 -3,-4 0,-4 M62,9 c-3,6 3,10 6,6';
+---
+<div class="scene" aria-hidden="true">
+  <svg class="scene__layer scene__sky" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" data-parallax="0.1">
+    <defs>
+      <radialGradient id="sun-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#f6c97f" stop-opacity="0.55" />
+        <stop offset="0.45" stop-color="#d98a52" stop-opacity="0.18" />
+        <stop offset="1" stop-color="#d98a52" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="sun-disc" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fbe2a6" />
+        <stop offset="1" stop-color="#e59a57" />
+      </linearGradient>
+    </defs>
+    {stars.map((s) => <circle class="scene__star" cx={s.x.toFixed(1)} cy={s.y.toFixed(1)} r={s.r.toFixed(2)} opacity={s.o.toFixed(2)} />)}
+    <g class="scene__shift">
+    <ellipse cx="760" cy="560" rx="560" ry="360" fill="url(#sun-glow)" />
+    <g class="scene__sun" data-sun>
+      <circle cx="760" cy="572" r="150" class="scene__ring" />
+      <circle cx="760" cy="572" r="205" class="scene__ring" />
+      <circle cx="760" cy="572" r="270" class="scene__ring" />
+      <circle cx="760" cy="572" r="74" fill="url(#sun-disc)" />
+    </g>
+    </g>
+  </svg>
+
+  <!-- Clouds hang from the top edge, below the header, whatever the screen ratio. -->
+  <svg class="scene__layer scene__clouds" viewBox="0 0 1440 320" preserveAspectRatio="xMidYMin slice" data-parallax="0.12">
+    <g class="scene__shift">
+    <g class="scene__birds">
+      <path d="M380,96 q7,-7 14,0 q7,-7 14,0" />
+      <path d="M418,78 q5,-5 10,0 q5,-5 10,0" />
+      <path d="M404,122 q4,-4 8,0 q4,-4 8,0" />
+    </g>
+    <g class="scene__cloud" data-cloud transform="translate(560 46) scale(1.5)"><path d={cloud} /><path class="scene__curl" d={curls} /></g>
+    <g class="scene__cloud" data-cloud transform="translate(70 22) scale(1.05)"><path d={cloud} /><path class="scene__curl" d={curls} /></g>
+    <g class="scene__cloud" data-cloud transform="translate(960 8) scale(1.1)"><path d={cloud} /><path class="scene__curl" d={curls} /></g>
+    </g>
+  </svg>
+
+  <svg class="scene__layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" data-parallax="0.06">
+    <g class="scene__shift">
+    <path fill="#2b4643" d="M-400,600 L120,545 L205,575 L330,505 L430,560 L560,470 L680,545 L790,508 L900,560 L1010,486 L1120,545 L1240,470 L1350,532 L1440,500 V900 H-400 Z" />
+    <path fill="#5f7871" d="M560,470 L588,494 L574,491 L561,501 L548,489 L534,493 Z M1240,470 L1266,492 L1252,489 L1240,498 L1229,488 L1216,491 Z M330,505 L352,523 L340,521 L330,528 L320,520 L310,522 Z" />
+      </g>
+  </svg>
+
+  <svg class="scene__layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice" data-parallax="0.03">
+    <g class="scene__shift">
+    <defs>
+      <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="0" y1="900" x2="0" y2="610">
+        <stop offset="0" stop-color="#6b5232" />
+        <stop offset="1" stop-color="#ecd08f" />
+      </linearGradient>
+    </defs>
+    <path fill="#20322f" d="M-400,700 C80,660 150,640 230,660 C320,612 400,602 470,640 C540,615 640,600 700,606 L820,606 C900,620 980,650 1060,640 C1150,600 1240,620 1300,650 C1360,640 1400,650 1440,640 V900 H-400 Z" />
+    <path fill="#192727" d="M-400,790 C160,742 320,760 480,770 C640,732 820,722 980,742 C1120,712 1280,722 1440,702 V900 H-400 Z" />
+
+    <path class="scene__trail" d="M1210,900 C1130,868 1010,872 980,836 C955,806 1060,790 1030,760 C1000,732 890,742 868,708 C850,682 905,662 860,640 C830,626 790,622 772,608" stroke="url(#trail)" />
+
+    {poles.map((p) => (
+      <g class="scene__pole">
+        <path d={`M${p.x},${p.ground + 2} V${p.ground - p.h}`} />
+        <circle cx={p.x} cy={p.ground - p.h - 2.5} r="2.5" />
+      </g>
+    ))}
+    {strings.map((s) => (
+      <g class="scene__flags">
+        <path class="scene__string" d={s.d} />
+        {s.flags.map((f) => <rect x={(f.x - 4).toFixed(1)} y={(f.y + 1).toFixed(1)} width="8" height="11" fill={f.fill} data-flag />)}
+      </g>
+    ))}
+
+    <g class="scene__stupa" transform="translate(760 607) scale(1.6)">
+      <rect x="-14" y="-7" width="28" height="7" />
+      <rect x="-10" y="-12" width="20" height="5" />
+      <path d="M-9,-12 A9,9 0 0 1 9,-12 Z" />
+      <rect x="-4" y="-25" width="8" height="5" />
+      <path d="M-3,-25 L3,-25 L1.2,-50 L-1.2,-50 Z" />
+      <circle cx="0" cy="-53" r="2" />
+    </g>
+
+    <g class="scene__walkers" transform="translate(944 744)">
+      <path class="scene__rope" d="M-6,-14 C10,-6 24,-10 38,-16" />
+      <g class="scene__elephant" transform="translate(-84 -54) scale(0.95)">
+        <path d="M10,30 C10,12 30,4 50,6 C62,7 70,10 74,16 C84,14 92,22 90,34 C89,44 86,52 88,62 C89,66 84,67 83,62 C82,54 80,48 78,46 L76,60 L68,60 L68,48 C60,50 44,50 34,48 L34,60 L26,60 L25,46 C18,44 12,40 10,30 Z" />
+        <path class="scene__ear" d="M58,14 C67,11 73,22 67,34 C61,37 55,28 58,14 Z" />
+      </g>
+      <g class="scene__monk" transform="translate(44 0)">
+        <circle cx="0" cy="-27" r="4.2" class="scene__skin" />
+        <path d="M-6,-21 C-3,-23 3,-23 6,-21 L9,0 L-9,0 Z" />
+      </g>
+    </g>
+      </g>
+  </svg>
+
+  <svg class="scene__layer" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMax slice">
+    <g class="scene__shift">
+    <path fill="var(--dusk)" d="M-400,860 C200,822 420,832 620,850 C820,880 1100,842 1440,822 V900 H-400 Z" />
+      </g>
+  </svg>
+</div>

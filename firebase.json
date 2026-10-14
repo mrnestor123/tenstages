@@ -10,17 +10,40 @@
       {
         "source": "/management/**",
         "destination": "/management/index.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ],
     "functions": {
       "engines": {
         "node": "16"
       }
-    }
+    },
+    "redirects": [
+      {
+        "source": "/management.html",
+        "destination": "/management/",
+        "type": 301
+      },
+      {
+        "source": "/donate",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/author",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/philosophy",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/content",
+        "destination": "/",
+        "type": 301
+      }
+    ]
   },
   "functions": {
     "source": "backend"

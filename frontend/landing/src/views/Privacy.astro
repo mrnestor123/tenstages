@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { dicts, other, privacyPath, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = dicts[lang].privacy;
+---
+<Base lang={lang} alt={privacyPath(other(lang))} title={t.title} description={t.description} state={1} note={t.title}>
+  <article class="legal">
+    <header class="legal__head">
+      <h1 class="legal__title" data-split="lines" data-intro>{t.title}</h1>
+      <p class="legal__intro" data-reveal="fade" data-intro data-delay="0.3">{t.intro}</p>
+    </header>
+    <div class="legal__body">
+      <nav class="legal__toc" aria-label={t.contents}>
+        <p class="sp__label">{t.contents}</p>
+        <ol>{t.sections.map((s, i) => <li><a href={`#s${i + 1}`}>{s.heading}</a></li>)}</ol>
+      </nav>
+      <div class="legal__text">
+        {t.sections.map((s, i) => (
+          <section id={`s${i + 1}`} aria-labelledby={`s${i + 1}-h`}>
+            <h2 id={`s${i + 1}-h`}>{s.heading}</h2>
+            {s.text && <p>{s.text}</p>}
+            {s.items?.map((it) => (<><h3>{it.label}</h3><p>{it.text}</p></>))}
+          </section>
+        ))}
+        <p class="legal__contact">{t.questions} <a class="link" href={`mailto:${site.email}`}>{site.email}</a></p>
+      </div>
+    </div>
+  </article>
+</Base>

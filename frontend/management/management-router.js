@@ -184,7 +184,7 @@ function Layout() {
               m("img.uk-border-circle", {
                 width: "100",
                 height: "100",
-                src: "/assets/logo-tenstages.png",
+                src: "/management/assets/logo-tenstages.png",
                 alt: "Avatar",
               }),
               // CREO QUE GRID, CENTER:TRUE
@@ -263,7 +263,7 @@ function Layout() {
                   "a.uk-navbar-item.uk-logo",
                   { style: "min-height:0px!important" },
                   m("img", {
-                    src: "/assets/logo-horizontal.png",
+                    src: "/management/assets/logo-horizontal.png",
                     style: "height:55px; width:auto",
                   })
                 )

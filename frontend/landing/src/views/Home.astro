@@ -1,0 +1,106 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Stores from '../components/Stores.astro';
+import HeroScene from '../components/HeroScene.astro';
+import { site } from '../data/site';
+import { dicts, other, homePath, stagePath, groupOf, type Lang } from '../i18n';
+import appPath from '../assets/app-path.png';
+import appMind from '../assets/app-mind.png';
+import appPractice from '../assets/app-practice.png';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const images = [appPath, appMind, appPractice];
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = dicts[lang];
+const h = t.home;
+const shots = h.shots.map((s, i) => ({ ...s, img: images[i] }));
+let lastGroup = '';
+---
+<Base lang={lang} alt={homePath(other(lang))}>
+  <section class="hero" aria-labelledby="hero-title">
+    <HeroScene />
+    <div class="hero__copy">
+      <h1 id="hero-title" class="hero__title" data-split="lines" data-intro>{h.heroTitle}</h1>
+      <p class="hero__lede" data-reveal="fade" data-intro data-delay="0.5">
+        {h.lede[0]}<cite>{site.book}</cite>{h.lede[1]}
+      </p>
+      <div data-reveal="fade" data-intro data-delay="0.7"><Stores lang={lang} /></div>
+    </div>
+  </section>
+
+  <section class="statement" aria-label={h.statementLabel}>
+    <p class="statement__text" data-split="lines">{h.statement}</p>
+    <p class="statement__sub" data-reveal="up">{h.statementSub}</p>
+  </section>
+
+  <section class="app" id="app" aria-labelledby="app-title">
+    <h2 id="app-title" class="section-title" data-split="lines">{h.appTitle}</h2>
+    <div class="app__wall">
+      {shots.map((s, i) => (
+        <figure class={`shot shot--${i + 1}`} data-reveal="up" data-delay={String(i * 0.08)}>
+          <div class="shot__frame">
+            <Image src={s.img} alt={s.alt} widths={[320, 480, 640]} sizes="(max-width: 767px) 72vw, 26vw" loading="lazy" />
+          </div>
+          <figcaption>
+            <h3 class="shot__title">{s.title}</h3>
+            <p>{s.text}</p>
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <section class="path" id="path" aria-labelledby="path-title">
+    <header class="path__head">
+      <h2 id="path-title" class="section-title" data-split="lines">{h.pathTitle}</h2>
+      <p class="path__intro" data-reveal="up">
+        {h.pathIntro[0]}<cite>{site.book}</cite>{h.pathIntro[1]}
+      </p>
+    </header>
+    <div class="path__body" data-path>
+      <svg class="path__svg" aria-hidden="true" data-path-svg>
+        <defs>
+          <linearGradient id="path-gold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="1000" data-path-grad>
+            <stop offset="0" stop-color="#8a6b3e" />
+            <stop offset="0.55" stop-color="#d9bc7a" />
+            <stop offset="1" stop-color="#b8914a" />
+          </linearGradient>
+        </defs>
+        <path class="path__track" data-path-track />
+        <path class="path__line" stroke="url(#path-gold)" data-path-line />
+        <circle class="path__halo" r="22" data-path-halo />
+        <circle class="path__dot" r="7" data-path-dot />
+      </svg>
+      <ol class="stages">
+        {t.stages.map((s, i) => {
+          const n = i + 1;
+          const group = groupOf(n);
+          const first = group !== lastGroup;
+          lastGroup = group;
+          return (
+            <li class="stage" data-stage={n}>
+              <p class="stage__num" aria-hidden="true">{pad(n)}</p>
+              <div class="stage__body">
+                {first && <p class="stage__group">{t.groups[group]}</p>}
+                <h3 class="stage__name"><span class="sr-only">{h.stageSr(n)}</span>{s.name}</h3>
+                <p class="stage__line">{s.line}</p>
+                <a class="link stage__more" href={stagePath(lang, n)} data-dest={`${n}. ${s.name}`}>{h.stageMore(n)}</a>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  </section>
+
+  <section class="letter" aria-labelledby="letter-title">
+    <h2 id="letter-title" class="letter__title" data-split="lines">{h.letterTitle}</h2>
+    <div class="letter__body" data-reveal="up">
+      <p>{h.letter[0]}</p>
+      <p>{h.letter[1]}</p>
+      <p class="letter__sign">{h.signOff}<br />{h.signName}</p>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,6 @@
+---
+import Stage from '../../views/Stage.astro';
+export const getStaticPaths = () => Array.from({ length: 10 }, (_, i) => ({ params: { n: String(i + 1) }, props: { n: i + 1 } }));
+const { n } = Astro.props;
+---
+<Stage lang="en" n={n} />

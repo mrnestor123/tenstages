@@ -1,0 +1,11 @@
+---
+import { site } from '../data/site';
+import { dicts, type Lang } from '../i18n';
+interface Props { lang: Lang; class?: string }
+const { lang, class: cls } = Astro.props;
+const t = dicts[lang].stores;
+---
+<ul class:list={['stores', cls]}>
+  <li><a class="pill pill--solid" href={site.appStore} rel="noopener"><small>{t.appStore}</small> App Store</a></li>
+  <li><a class="pill" href={site.googlePlay} rel="noopener"><small>{t.googlePlay}</small> Google Play</a></li>
+</ul>

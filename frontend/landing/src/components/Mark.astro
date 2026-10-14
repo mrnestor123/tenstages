@@ -1,0 +1,29 @@
+---
+// The logo's switchback, drawn as one stroke. Optionally a map: ten stage stops along it.
+interface Props { class?: string; map?: boolean; active?: number; title?: string }
+const { class: cls, map = false, active, title } = Astro.props;
+
+// Geometry measured from the logo artwork (viewBox units).
+const r = 27.4, L = 226.4, R = 425.6, ys = [125, 179.8, 234.6, 289.4, 344.2];
+const d = `M453,${ys[0]} H${L} A${r},${r} 0 0 0 ${L},${ys[1]} H${R} A${r},${r} 0 0 1 ${R},${ys[2]} H${L} A${r},${r} 0 0 0 ${L},${ys[3]} H${R} A${r},${r} 0 0 1 ${R},${ys[4]} H199`;
+
+// Point at arc length s along d (runs and semicircles), for the stage stops.
+const segs: { len: number; at: (t: number) => [number, number] }[] = [];
+const run = (x0: number, x1: number, y: number) => segs.push({ len: Math.abs(x1 - x0), at: (t) => [x0 + (x1 - x0) * t, y] });
+const turn = (cx: number, y0: number, side: -1 | 1) => segs.push({ len: Math.PI * r, at: (t) => {
+  const a = -Math.PI / 2 + Math.PI * t; return [cx + side * r * Math.cos(a), y0 + r + r * Math.sin(a)];
+} });
+run(453, L, ys[0]); turn(L, ys[0], -1); run(L, R, ys[1]); turn(R, ys[1], 1); run(R, L, ys[2]); turn(L, ys[2], -1); run(L, R, ys[3]); turn(R, ys[3], 1); run(R, 199, ys[4]);
+const total = segs.reduce((s, g) => s + g.len, 0);
+const pointAt = (s: number) => { for (const g of segs) { if (s <= g.len) return g.at(s / g.len); s -= g.len; } return segs.at(-1)!.at(1); };
+const stops = Array.from({ length: 10 }, (_, i) => pointAt((i / 9) * total));
+---
+<svg class:list={['mark', cls]} viewBox="170 96 312 277" role={title ? 'img' : undefined} aria-hidden={title ? undefined : 'true'} aria-label={title} data-mark data-len={total.toFixed(1)}>
+  <path class="mark__path" d={d} pathLength={total.toFixed(1)} />
+  {map && stops.map(([x, y], i) => (
+    <g class:list={['mark__stop', { 'is-active': active === i + 1, 'is-past': active !== undefined && i + 1 < active }]} data-stop={i + 1}>
+      <circle cx={x} cy={y} r="5.5" />
+      <text x={x} y={y - 20} text-anchor="middle">{i + 1}</text>
+    </g>
+  ))}
+</svg>

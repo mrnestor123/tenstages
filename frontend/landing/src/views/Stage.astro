@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import Mark from '../components/Mark.astro';
+import { dicts, other, stagePath, homePath, groupOf, type Lang } from '../i18n';
+import { pOfStage } from '../data/light';
+
+interface Props { lang: Lang; n: number }
+const { lang, n } = Astro.props;
+const t = dicts[lang];
+const s = t.stages[n - 1];
+const prev = t.stages[n - 2];
+const next = t.stages[n];
+const pad = (v: number) => String(v).padStart(2, '0');
+const x = t.stage;
+const allStages = `${homePath(lang)}#path`;
+---
+<Base
+  lang={lang}
+  alt={stagePath(other(lang), n)}
+  title={x.title(n, s.name)}
+  description={x.description(n, s.goal, s.mastery).slice(0, 158)}
+  state={pOfStage(n)}
+  current="path"
+  footer={n === 1 ? t.footer.begin : t.footer.arrive(n)}
+>
+  <article class="sp">
+    <div class="sp__trail" aria-hidden="true"><i data-trail></i></div>
+    <header class="sp__head">
+      <p class="sp__num" aria-hidden="true" data-reveal="fade" data-intro>{pad(n)}</p>
+      <div class="sp__titles">
+        <p class="sp__group" data-reveal="fade" data-intro>{x.kicker(t.groups[groupOf(n)], n)}</p>
+        <h1 class="sp__title" data-split="lines" data-intro>{s.name}</h1>
+      </div>
+      <figure class="sp__map" data-reveal="fade" data-intro data-delay="0.3">
+        <Mark map active={n} class="sp__mark" title={x.mapLabel(n)} />
+      </figure>
+    </header>
+
+    <section class="sp__goal" aria-labelledby="goal">
+      <h2 id="goal" class="sp__label">{x.goal}</h2>
+      <p class="sp__goaltext" data-split="lines">{s.goal}</p>
+      <h2 class="sp__label sp__whylabel">{x.why}</h2>
+      <p class="sp__why" data-reveal="up">{s.why}</p>
+    </section>
+
+    <div class="sp__cols">
+      <section aria-labelledby="obstacles" data-reveal="up">
+        <h2 id="obstacles" class="sp__label">{x.obstacles}</h2>
+        <ul class="sp__list">{s.obstacles.map((o) => <li>{o}</li>)}</ul>
+      </section>
+      <section aria-labelledby="skills" data-reveal="up" data-delay="0.08">
+        <h2 id="skills" class="sp__label">{x.skills}</h2>
+        <ul class="sp__list">{s.skills.map((o) => <li>{o}</li>)}</ul>
+      </section>
+      <section aria-labelledby="mastery" data-reveal="up" data-delay="0.16">
+        <h2 id="mastery" class="sp__label">{x.mastery}</h2>
+        <p class="sp__mastery">{s.mastery}</p>
+      </section>
+    </div>
+
+    <nav class="sp__nav" aria-label={x.navLabel}>
+      {prev ? <a class="sp__step" href={stagePath(lang, n - 1)} rel="prev" data-dest={`${n - 1}. ${prev.name}`}><span>{x.prev(n - 1)}</span>{prev.name}</a> : <a class="sp__step" href={allStages} data-dest={x.allStages}><span>{x.backTo}</span>{x.allStages}</a>}
+      {next ? <a class="sp__step sp__step--next" href={stagePath(lang, n + 1)} rel="next" data-dest={`${n + 1}. ${next.name}`}><span>{x.next(n + 1)}</span>{next.name}</a> : <a class="sp__step sp__step--next" href={allStages} data-dest={x.allStages}><span>{x.backTo}</span>{x.allStages}</a>}
+    </nav>
+  </article>
+</Base>

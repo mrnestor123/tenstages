@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { dicts, other, privacyPath, supportPath, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = dicts[lang].support;
+---
+<Base lang={lang} alt={supportPath(other(lang))} title={t.title} description={t.description} state={1} note={t.title}>
+  <article class="legal">
+    <header class="legal__head">
+      <h1 class="legal__title" data-split="lines" data-intro>{t.title}</h1>
+      <p class="legal__intro" data-reveal="fade" data-intro data-delay="0.3">{t.intro}</p>
+    </header>
+    <div class="legal__body">
+      <div class="legal__text">
+        <section aria-labelledby="write-h">
+          <h2 id="write-h">{t.write}</h2>
+          <p><a class="link support__email" href={`mailto:${site.email}`}>{site.email}</a></p>
+        </section>
+        <section aria-labelledby="help-h">
+          <h2 id="help-h">{t.helpTitle}</h2>
+          <ul class="support__list">{t.help.map((h) => <li>{h}</li>)}</ul>
+        </section>
+        <section aria-labelledby="data-h">
+          <h2 id="data-h">{t.dataTitle}</h2>
+          <p>{t.data} <a class="link" href={privacyPath(lang)}>{t.privacyLink}</a>.</p>
+        </section>
+      </div>
+    </div>
+  </article>
+</Base>

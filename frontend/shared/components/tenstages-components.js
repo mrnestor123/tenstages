@@ -464,7 +464,7 @@ function ContentEdit(){
                 m(Grid,{center:true,verticalalign:true, style:"width:100%;"},
                     m(Column,{width:'1-3'},
                         m(Padding,
-                            m("img",{style:"width:100%; border-radius:10px", src: '/assets/buddha-sharing.webp'})
+                            m("img",{style:"width:100%; border-radius:10px", src: '/management/assets/buddha-sharing.webp'})
                         )
                     ),
 
@@ -1059,7 +1059,7 @@ function LoginPage() {
                     style:"background:#f1f1f1; padding:2em;"
                 }, m("h1", "You need  to be logged in to access the management system")
                 ),
-                m("div", { style: "background-image:url('/assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
+                m("div", { style: "background-image:url('/management/assets/side-wave_background.svg'); background-size:cover; background-position:center; height:500px; width:100%; display:flex ;flex-direction:column; align-items:center; justify-content:center" }, [
                     m(Card, {type:"default", style:"border-radius:16px"}, [
                         m(CardBody, {}, [
                             m("h2", {style:"text-align:center; margin-bottom:25px"}, "Login"),
@@ -1070,10 +1070,10 @@ function LoginPage() {
                                 m(Flex, {direction:"row"}, [
                                     m(Button, { style: "border-radius:20px;padding:0px 10px;height:48px;width:100%;", type: "primary", onclick: () => { login(); } }, "Login with email"),
                                     m(Button, { onclick: () => log({type:'google'}), style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                        m("img", {src:"/assets/icons8-google.svg"})
+                                        m("img", {src:"/management/assets/icons8-google.svg"})
                                     ]),
                                     // m(Button, { style: "border-radius:20px;padding:0px 10px;margin-left:5px"}, [
-                                    //     m("img", {src:"/assets/icons8-facebook.svg"})
+                                    //     m("img", {src:"/management/assets/icons8-facebook.svg"})
                                     // ]),
                                 ]),
                                 //m(".", {style: "margin-top:15px;"}, "First time here? ", m("a", {href: "/register"}, "Register for free!")),

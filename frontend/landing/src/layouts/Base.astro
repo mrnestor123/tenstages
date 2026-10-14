@@ -1,0 +1,95 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { site } from '../data/site';
+import { dicts, htmlLang, ogLocale, other, type Lang } from '../i18n';
+import { cssVars, groundAt, isLight } from '../data/light';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/tokens.css';
+import '../styles/engine.css';
+import '../styles/site.css';
+
+interface Props {
+  lang: Lang;
+  alt: string; // path of this page in the other language
+  title?: string;
+  description?: string;
+  state?: number; // pinned illumination 0..1 (stage pages); home is driven by scroll
+  current?: 'path' | 'app';
+  footer?: string;
+  lost?: boolean;
+  note?: string; // replaces the stage counter in the header (pages outside the path)
+}
+const { lang, alt, title, description, state, current, footer, lost, note } = Astro.props;
+const t = dicts[lang];
+const desc = description ?? t.meta.description;
+const fullTitle = title ? `${title} | ${site.name}` : t.meta.title;
+const abs = (path: string) => new URL(path.endsWith('/') ? path : `${path}/`, Astro.site ?? site.url).href; // directory URLs, like the canonical
+const alternates = lost ? [] : [
+  { hreflang: htmlLang[lang], href: abs(Astro.url.pathname) },
+  { hreflang: htmlLang[other(lang)], href: abs(alt) },
+  { hreflang: 'x-default', href: abs(lang === 'en' ? Astro.url.pathname : alt) },
+];
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const ogImage = abs(lang === 'en' ? '/og.png' : '/og-es.png');
+const p = state ?? 0;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MobileApplication',
+  name: site.name,
+  url: site.url,
+  description: desc,
+  inLanguage: htmlLang[lang],
+  operatingSystem: 'iOS, Android',
+  applicationCategory: 'HealthApplication',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  installUrl: [site.appStore, site.googlePlay],
+};
+---
+<!doctype html>
+<html lang={htmlLang[lang]} transition:animate="none" class:list={{ 'is-light': isLight(p) }} style={cssVars(p)} data-state={state}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content={groundAt(p)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content={ogLocale[lang]} />
+    <meta property="og:locale:alternate" content={ogLocale[other(lang)]} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="apple-itunes-app" content="app-id=1592906074" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    <link rel="preload" href="/fonts/display-300-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/text-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
+    </script>
+    <ClientRouter fallback="swap" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.skip}</a>
+    <div id="curtain" transition:persist="curtain" aria-hidden="true"><div class="curtain__panel"><p class="curtain__title" data-curtain-title></p></div></div>
+    <Header lang={lang} alt={alt} current={current} note={lost ? dicts[lang].counter.off : note} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} heading={footer} />
+    <script>
+      import { start } from '../engine/astro';
+      import { setupMotion } from '../motion/setup';
+      start(setupMotion);
+    </script>
+  </body>
+</html>

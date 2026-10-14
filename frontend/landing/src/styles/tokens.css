@@ -1,0 +1,47 @@
+@font-face { font-family: 'Text'; src: url('/fonts/text-400-normal.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Text'; src: url('/fonts/text-500-normal.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Display'; src: url('/fonts/display-300-normal.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Display'; src: url('/fonts/display-300-italic.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Display'; src: url('/fonts/display-400-normal.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Display'; src: url('/fonts/display-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+
+:root {
+  /* Dusk (stage 1) and light (stage 10). The path driver moves --c-bg between them
+     and flips html.is-light once, at FLIP (data/light.ts), between stages 5 and 6.
+     Fg, muted, accent and line are set the same way, from the same curve. */
+  --dusk: #141b1b;
+  --cream: #fffad5;
+  --gold: #d9bc7a;
+  --umber: #6b5232;
+
+  --c-bg: var(--dusk);
+  --c-fg: #fffad5;
+  --c-muted: #b9b49a;
+  --c-accent: #d9bc7a;
+  --c-line: rgb(255 250 213 / 0.16);
+  --c-curtain: var(--c-bg);
+
+  --f-display: 'Display', 'Iowan Old Style', Georgia, serif;
+  --f-body: 'Text', ui-sans-serif, system-ui, sans-serif;
+
+  --t-mega: clamp(3.25rem, 1.6rem + 7vw, 8.5rem);
+  --t-xl: clamp(2.5rem, 1.4rem + 4.8vw, 6rem);
+  --t-l: clamp(1.75rem, 1.2rem + 2.2vw, 3.25rem);
+  --t-m: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+  --t-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --t-s: 0.875rem;
+  --t-xs: 0.8125rem;
+
+  --u: clamp(0.5rem, 0.35rem + 0.6vw, 1rem);
+  --gutter: clamp(1rem, 0.6rem + 1.6vw, 2.5rem);
+  --cols: 12;
+  --radius: 999px; /* round caps, like the logo stroke: pills or nothing */
+
+  --z-gl: 0;
+  --z-content: 1;
+  --z-header: 50;
+  --z-cursor: 80;
+  --z-curtain: 90;
+  --z-loader: 100;
+}
+

@@ -1,0 +1,25 @@
+---
+import Mark from './Mark.astro';
+import { dicts, other, homePath, anchor, htmlLang, type Lang } from '../i18n';
+interface Props { lang: Lang; alt: string; current?: 'path' | 'app'; note?: string }
+const { lang, alt, current, note } = Astro.props;
+const t = dicts[lang];
+const to = dicts[other(lang)].self; // the language switcher names the language it leads to
+---
+<header class="header">
+  <a class="header__logo" href={homePath(lang)} aria-label={t.logoLabel}>
+    <Mark class="header__mark" />
+    <span class="wordmark" aria-hidden="true"></span>
+  </a>
+  {note ? <p class="counter counter--note"><span class="counter__text">{note}</span></p> : (
+  <p class="counter" aria-label={t.counter.label}>
+    <span class="counter__text">{t.counter.stage} <span data-stage-count>01</span> <span class="counter__of">{t.counter.of}</span></span>
+    <span class="counter__ticks" aria-hidden="true">{Array.from({ length: 10 }, (_, i) => <i class:list={{ on: i === 0 }} />)}</span>
+  </p>)}
+  <nav class="header__nav" aria-label={t.mainNav}>
+    <a href={anchor(lang, 'path')} aria-current={current === 'path' ? 'page' : undefined}>{t.nav.path}</a>
+    <a class="header__app" href={anchor(lang, 'app')}>{t.nav.app}</a>
+    <a class="header__lang" href={alt} hreflang={htmlLang[other(lang)]} lang={htmlLang[other(lang)]} data-dest={to.name}><span aria-hidden="true">{to.short}</span><span class="sr-only">{to.switchLabel}</span></a>
+    <a class="pill pill--small" href="#download">{t.nav.download}</a>
+  </nav>
+</header>

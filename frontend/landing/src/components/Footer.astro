@@ -1,0 +1,21 @@
+---
+import { site } from '../data/site';
+import { dicts, privacyPath, supportPath, type Lang } from '../i18n';
+import Stores from './Stores.astro';
+import Mark from './Mark.astro';
+interface Props { lang: Lang; heading?: string }
+const { lang, heading } = Astro.props;
+const t = dicts[lang].footer;
+---
+<footer class="footer" id="download">
+  <h2 class="footer__title" data-split="lines">{heading ?? t.begin}</h2>
+  <p class="footer__lede">{t.lede}</p>
+  <Stores lang={lang} class="footer__stores" />
+  <figure class="footer__map" aria-hidden="true"><Mark map active={1} class="footer__mark" /></figure>
+  <div class="footer__base">
+    <p>{t.questions} <a class="link" href={`mailto:${site.email}`}>{site.email}</a></p>
+    <p>{t.method[0]}<cite>{site.book}</cite>{t.method[1]}</p>
+    <p><a class="link" href={supportPath(lang)}>{t.support}</a> · <a class="link" href={privacyPath(lang)}>{t.privacy}</a></p>
+    <p>© {new Date().getFullYear()} TenStages</p>
+  </div>
+</footer>
